@@ -58,3 +58,15 @@ def read_frame(path: str | Path, index: int = 0) -> np.ndarray:
     if not ok:
         raise ValueError(f"Không đọc được frame {index} của {path}")
     return frame
+
+
+def safe_upload_name(name: str, allowed_suffixes: tuple[str, ...]) -> str | None:
+    """Tên file an toàn để lưu video người dùng tải lên, hoặc None nếu không hợp lệ.
+
+    Tên do trình duyệt gửi lên có thể chứa thư mục ("../../x.mp4", dấu gạch ngược kiểu Windows, "C:/x.mp4") nhằm ghi file ra ngoài
+    thư mục lưu (path traversal) -> chỉ giữ phần tên cuối, cấm tên ẩn/rỗng và đuôi ngoài danh sách cho phép.
+    """
+    base = Path(name.replace("\\", "/")).name
+    if not base or base.startswith(".") or Path(base).suffix.lower().lstrip(".") not in allowed_suffixes:
+        return None
+    return base

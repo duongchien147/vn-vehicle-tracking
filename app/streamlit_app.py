@@ -19,10 +19,11 @@ from vtrack import CLASS_NAMES
 from vtrack.models import DEFAULT_WEIGHTS, load_model
 from vtrack.pipeline import VideoResult, process_video
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
-from vtrack.video_io import read_frame
+from vtrack.video_io import read_frame, safe_upload_name
 
 VIDEO_DIR = Path("data/videos")
 OUTPUT_DIR = Path("outputs/streamlit")
+UPLOAD_SUFFIXES = ("mp4", "avi", "mov")
 # Mô hình chọn sẵn trong demo: cùng trọng số v5 nhưng chạy bằng OpenVINO — cả pipeline 6.9 so với 5.3 frame/s trên
 # CPU (outputs/benchmark_speed/), mAP50 val Hà Nội 0.916 so với 0.919 của bản PyTorch (chênh trong mức dao động)
 DEMO_WEIGHTS = "weights/yolo26n_vn_v5_best_openvino_model"
@@ -66,10 +67,18 @@ def choose_source() -> Path | None:
             return None
         default = next((i for i, p in enumerate(clips) if p.stem == DEFAULT_CLIP), 0)
         return st.sidebar.selectbox("Clip", clips, index=default, format_func=lambda p: p.stem)
-    uploaded = st.sidebar.file_uploader("Video (mp4, avi, mov)", type=["mp4", "avi", "mov"])
+    uploaded = st.sidebar.file_uploader("Video", type=list(UPLOAD_SUFFIXES))
     if uploaded is None:
         return None
-    path = OUTPUT_DIR / "uploads" / uploaded.name
+    name = safe_upload_name(uploaded.name, UPLOAD_SUFFIXES)
+    if name is None:
+        st.sidebar.error("Tên file không hợp lệ")
+        return None
+    upload_dir = (OUTPUT_DIR / "uploads").resolve()
+    path = upload_dir / name
+    if path.resolve().parent != upload_dir:  # chốt chặn cuối: đường dẫn phải nằm đúng trong uploads/
+        st.sidebar.error("Tên file không hợp lệ")
+        return None
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_bytes(uploaded.getbuffer())
     return path

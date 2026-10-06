@@ -30,6 +30,17 @@ data/labeling/hanoi/val/*
 !data/labeling/hanoi/test/HUMAN_VERIFIED.txt
 !data/labeling/hanoi/val/labels/
 !data/labeling/hanoi/val/HUMAN_VERIFIED.txt
+!data/labeling/vn_extra/
+data/labeling/vn_extra/*
+!data/labeling/vn_extra/classes.txt
+!data/labeling/vn_extra/label_frames_config.yaml
+!data/labeling/vn_extra/day/
+!data/labeling/vn_extra/night/
+data/labeling/vn_extra/day/*
+data/labeling/vn_extra/night/*
+!data/labeling/vn_extra/*/labels/
+!data/labeling/vn_extra/*/labels_prelabel_yolo26x/
+!data/labeling/vn_extra/*/HUMAN_VERIFIED.txt
 !data/tracking_gt/
 data/tracking_gt/*
 !data/tracking_gt/pvd_goc_a/

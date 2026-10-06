@@ -1,5 +1,6 @@
 """Tạo nhãn sơ bộ (pre-label) cho ảnh cần gán nhãn bằng một mô hình có sẵn, để người gán nhãn chỉ phải sửa
 thay vì vẽ từ đầu. Ghi nhãn YOLO (4 lớp dự án) vào thư mục labels/ cạnh images/.
+Mô hình COCO (vd. yolo26x.pt) được gộp box người lái vào box xe máy cho đúng quy ước nhãn của dự án.
 
 Ví dụ:
     python scripts/prelabel.py data/labeling/hanoi --weights weights/yolo26n_vn_v2_best.pt --imgsz 960
@@ -7,14 +8,13 @@ Ví dụ:
 
 import argparse
 from pathlib import Path
-from typing import cast
 
-from ultralytics import YOLO
-from ultralytics.engine.results import Results
+import cv2
 
 from vtrack import CLASS_NAMES, IGNORE_LABEL
-from vtrack.label_review import HUMAN_VERIFIED_MARKER, is_human_verified
-from vtrack.models import DEFAULT_WEIGHTS, FALLBACK_IMGSZ, class_mapping, training_imgsz
+from vtrack.label_review import HUMAN_VERIFIED_MARKER, drop_nested_duplicates, is_human_verified, write_yolo_file
+from vtrack.models import DEFAULT_WEIGHTS, FALLBACK_IMGSZ, load_model, training_imgsz
+from vtrack.pseudo_label import predict_teacher
 
 
 def main() -> None:
@@ -28,10 +28,9 @@ def main() -> None:
                         "Luôn chỉ định khi đã có tập được gán nhãn tay, nếu không nhãn tay sẽ bị ghi đè")
     args = parser.parse_args()
 
-    model = YOLO(args.weights)
+    model = load_model(args.weights)
     imgsz = args.imgsz or training_imgsz(model) or FALLBACK_IMGSZ
     print(f"Pre-label bằng {args.weights}, imgsz={imgsz}")
-    mapping = class_mapping(model.names)
     total_images, total_boxes = 0, 0
     for images_dir in sorted(Path(args.root).glob("*/images")):
         if args.splits and images_dir.parent.name not in args.splits:
@@ -41,16 +40,14 @@ def main() -> None:
         labels_dir = images_dir.parent / "labels"
         labels_dir.mkdir(exist_ok=True)
         for image_path in sorted(images_dir.glob("*.jpg")):
-            results = list(model.predict(str(image_path), imgsz=imgsz, conf=args.conf, classes=list(mapping), verbose=False))
-            boxes = cast(Results, results[0]).boxes
-            assert boxes is not None  # mô hình phát hiện đối tượng luôn trả về boxes
-            lines = [
-                f"{mapping[int(cls)]} {x:.6f} {y:.6f} {w:.6f} {h:.6f}"
-                for cls, (x, y, w, h) in zip(boxes.cls.tolist(), boxes.xywhn.tolist())
-            ]
-            (labels_dir / f"{image_path.stem}.txt").write_text("\n".join(lines))
+            image = cv2.imread(str(image_path))
+            if image is None:
+                raise SystemExit(f"Không đọc được ảnh: {image_path}")
+            # Bỏ box "chỉ phần xe" nằm trong box "xe + người lái" cùng lớp (mô hình COCO gộp người lái chưa hết)
+            boxes = drop_nested_duplicates(predict_teacher(model, image, imgsz, args.conf))
+            write_yolo_file(labels_dir / f"{image_path.stem}.txt", boxes)
             total_images += 1
-            total_boxes += len(lines)
+            total_boxes += len(boxes)
         print(f"{images_dir.parent.name:5s}: đã pre-label {len(list(images_dir.glob('*.jpg')))} ảnh")
 
     # Tên lớp theo thứ tự id, định dạng mà các công cụ gán nhãn (CVAT, labelImg, X-AnyLabeling...) đọc được

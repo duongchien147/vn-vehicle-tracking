@@ -144,3 +144,23 @@ def invalid_boxes(boxes: list[YoloBox], image_width: int, image_height: int, min
         or box.height * image_height < min_side_px
         or not (0 <= box.center_x <= 1 and 0 <= box.center_y <= 1)
     ]
+
+
+# Box nằm >= tỉ lệ này bên trong một box cùng lớp lớn hơn coi là trùng (vd. "chỉ phần xe" trong box "xe + người lái")
+NESTED_DUPLICATE_FRACTION = 0.8
+
+
+def drop_nested_duplicates(boxes: list[YoloBox], min_inside: float = NESTED_DUPLICATE_FRACTION) -> list[YoloBox]:
+    """Bỏ box nằm gần trọn bên trong một box CÙNG LỚP lớn hơn — giữ box lớn, vì quy ước dự án là box xe máy bao cả
+    người lái. Dùng để dọn nhãn sơ bộ của mô hình COCO trước khi người gán kiểm (không dùng cho nhãn đã kiểm)."""
+    kept = []
+    for box in boxes:
+        area = box.width * box.height
+        nested = any(
+            other is not box and other.class_id == box.class_id and other.width * other.height > area
+            and overlap_fraction(box, other) >= min_inside
+            for other in boxes
+        )
+        if not nested:
+            kept.append(box)
+    return kept

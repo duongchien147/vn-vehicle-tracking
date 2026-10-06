@@ -1,0 +1,15 @@
+# Tập test detector bổ sung (6/10/2026): thêm CẢNH mới Việt Nam, không phải thêm frame cùng cảnh — frame liền nhau
+# trong một video gần như giống hệt nên chỉ làm khoảng tin cậy hẹp giả tạo. Dùng bởi scripts/extract_label_frames.py.
+#
+# Lấy từ các clip quy định "chỉ test" (data/videos/SOURCES.md) -> không rò rỉ với train:
+#   day   = pvd_goc_b (ngược sáng, lá cây che mép dưới) + pvd_goc_c (giao lộ, nhiều xe máy) — 2 góc máy mới
+#   night = ham_chui_dem_2 + ham_chui_dem_3 — cảnh đêm Việt Nam có nhãn đầu tiên (đường hầm có đèn + đường tối)
+# Mỗi clip 15 frame, cách 3 giây (giây 2–44). Không lấy pvd_goc_a: đã có nhãn tracking (giây 20–40).
+# Nhãn sơ bộ: YOLO26x COCO (không phải v3/v4/v5) -> không ưu ái mô hình nào trong cuộc so sánh.
+output: data/labeling/vn_extra
+
+segments:
+  - {split: day, video: data/videos/pvd_goc_b.mp4, prefix: pvd_goc_b, start: "0:02", end: "0:45", every_s: 3}
+  - {split: day, video: data/videos/pvd_goc_c.mp4, prefix: pvd_goc_c, start: "0:02", end: "0:45", every_s: 3}
+  - {split: night, video: data/videos/ham_chui_dem_2.mp4, prefix: ham_chui_dem_2, start: "0:02", end: "0:45", every_s: 3}
+  - {split: night, video: data/videos/ham_chui_dem_3.mp4, prefix: ham_chui_dem_3, start: "0:02", end: "0:45", every_s: 3}

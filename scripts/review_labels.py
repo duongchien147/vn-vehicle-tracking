@@ -4,19 +4,22 @@ Kết quả: outputs/label_review/<tập>/review.csv + ảnh đánh dấu chỗ 
 
 Ví dụ:
     python scripts/review_labels.py data/labeling/hanoi/test
+    # Tập test so sánh nhiều mô hình: dò bằng mô hình KHÔNG nằm trong cuộc so sánh, nếu không người gán chỉ bổ sung
+    # đúng những xe mà mô hình dò lỗi thấy -> nhãn thiên vị mô hình đó
+    python scripts/review_labels.py data/labeling/vn_extra/night --prelabel-subdir labels_prelabel_yolo26x \
+        --models weights/yolo26x.pt@1280 weights/yolo26x.pt@1920
 """
 
 import argparse
 import csv
 from pathlib import Path
-from typing import cast
 
 import cv2
 import numpy as np
 from ultralytics import YOLO
-from ultralytics.engine.results import Results
 
 from vtrack import CLASS_NAMES, IGNORE_CLASS_ID, IGNORE_LABEL
+from vtrack.detection_benchmark import ModelSpec
 from vtrack.label_review import (
     YoloBox,
     best_iou,
@@ -27,10 +30,12 @@ from vtrack.label_review import (
     overlap_fraction,
     read_yolo_file,
 )
-from vtrack.models import class_mapping
+from vtrack.models import FALLBACK_IMGSZ, training_imgsz
+from vtrack.pseudo_label import predict_teacher
 
-# (trọng số, imgsz) của các mô hình dùng để dò lỗi: dùng hai mô hình khác nhau để bớt phụ thuộc điểm mù của một mô hình
-REVIEW_MODELS = [("weights/yolo26n_vn_v2_best.pt", 960), ("weights/yolo26n.pt", 1280)]
+# Mô hình dò lỗi mặc định (trọng số@imgsz), đã dùng cho tập Hà Nội: hai mô hình khác nhau để bớt phụ thuộc điểm mù
+# của một mô hình
+DEFAULT_REVIEW_MODELS = ["weights/yolo26n_vn_v2_best.pt@960", "weights/yolo26n.pt@1280"]
 PREDICT_CONF = 0.1  # lấy cả dự đoán điểm thấp: box người gán không khớp dự đoán nào kể cả ở mức này mới đáng ngờ
 MISSED_CONF = 0.5  # chỉ coi là "có thể bị sót" khi mô hình khá chắc chắn
 MATCH_IOU = 0.3  # ngưỡng lỏng: box người gán và mô hình vẽ lệch nhau một chút vẫn tính là cùng một xe
@@ -40,15 +45,10 @@ SUSPECT_COLOR = {"sót?": (0, 0, 255), "thừa?": (255, 0, 255), "trùng": (0, 1
 LABEL_NAMES = [*CLASS_NAMES, IGNORE_LABEL]  # tên theo id trong nhãn gán tay (có thêm lớp ignore)
 
 
-def predict(models: list[tuple[YOLO, int, dict[int, int]]], image: np.ndarray) -> list[YoloBox]:
-    boxes = []
-    for model, imgsz, mapping in models:
-        result = cast(Results, list(model.predict(image, imgsz=imgsz, conf=PREDICT_CONF, classes=list(mapping), verbose=False))[0])
-        detected = result.boxes
-        assert detected is not None  # mô hình phát hiện đối tượng luôn trả về boxes
-        for cls, conf, (x, y, w, h) in zip(detected.cls.tolist(), detected.conf.tolist(), detected.xywhn.tolist()):
-            boxes.append(YoloBox(mapping[int(cls)], x, y, w, h, conf))
-    return boxes
+def predict(models: list[tuple[YOLO, int]], image: np.ndarray) -> list[YoloBox]:
+    """Dự đoán của mọi mô hình dò lỗi, theo lớp dự án; mô hình COCO được gộp người lái vào xe máy cho cùng cách vẽ
+    box với người gán (nếu không, box xe máy COCO chỉ bao phần xe, lệch IoU với box người gán)."""
+    return [box for model, imgsz in models for box in predict_teacher(model, image, imgsz, PREDICT_CONF)]
 
 
 def in_ignore_region(box: YoloBox, ignore_regions: list[YoloBox]) -> bool:
@@ -83,12 +83,19 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("split_dir", help="Thư mục chứa images/ và labels/ (nhãn người gán)")
     parser.add_argument("--prelabel-subdir", default="labels_prelabel_v2", help="Thư mục nhãn sơ bộ để so sánh")
+    parser.add_argument("--models", nargs="+", default=DEFAULT_REVIEW_MODELS,
+                        help="Mô hình dò lỗi, dạng trọng số[@imgsz] (không có @ thì dùng imgsz lúc train)")
     args = parser.parse_args()
 
     split_dir = Path(args.split_dir)
-    out_dir = Path("outputs/label_review") / split_dir.name
+    # Gồm cả tên thư mục cha: các tập khác nhau có thể cùng tên split (hanoi/test, vn_extra/day...)
+    out_dir = Path("outputs/label_review") / split_dir.parent.name / split_dir.name
     out_dir.mkdir(parents=True, exist_ok=True)
-    models = [(m := YOLO(weights), imgsz, class_mapping(m.names)) for weights, imgsz in REVIEW_MODELS]
+    models = []
+    for spec in map(ModelSpec.parse, args.models):
+        model = YOLO(spec.weights)
+        models.append((model, spec.imgsz or training_imgsz(model) or FALLBACK_IMGSZ))
+    print("Mô hình dò lỗi:", ", ".join(args.models))
 
     rows = []
     for image_path in sorted((split_dir / "images").glob("*.jpg")):

@@ -1,7 +1,9 @@
 """Trích frame từ video theo configs/label_frames.yaml vào <output>/<split>/images/ để gán nhãn.
+Mỗi đoạn có thể có `video` và `prefix` riêng (mặc định lấy ở gốc config), để một config lấy frame từ nhiều clip.
 
 Ví dụ:
     python scripts/extract_label_frames.py
+    python scripts/extract_label_frames.py --config configs/label_frames_extra_test.yaml
 """
 
 import argparse
@@ -22,15 +24,16 @@ def main() -> None:
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
 
     output = Path(config["output"])
-    capture = cv2.VideoCapture(config["video"])
-    if not capture.isOpened():
-        raise SystemExit(f"Không mở được video: {config['video']}")
-
     counts: dict[str, int] = {}
     for segment in config["segments"]:
         split = segment["split"]
         if args.splits and split not in args.splits:
             continue
+        video = segment.get("video", config.get("video"))
+        prefix = segment.get("prefix", config.get("prefix"))
+        capture = cv2.VideoCapture(video)
+        if not capture.isOpened():
+            raise SystemExit(f"Không mở được video: {video}")
         images_dir = output / split / "images"
         images_dir.mkdir(parents=True, exist_ok=True)
         times = sample_timestamps(parse_timestamp(segment["start"]), parse_timestamp(segment["end"]), segment["every_s"])
@@ -38,14 +41,15 @@ def main() -> None:
             capture.set(cv2.CAP_PROP_POS_MSEC, time_s * 1000)
             ok, frame = capture.read()
             if not ok:
-                raise SystemExit(f"Không đọc được frame tại {time_s:.1f}s")
+                raise SystemExit(f"{video}: không đọc được frame tại {time_s:.1f}s")
             minutes, seconds = divmod(int(time_s), 60)
             # Tên file chứa thời điểm trong video gốc, để truy ngược frame về đoạn nào
-            name = f"{config['prefix']}_{minutes:02d}m{seconds:02d}s.jpg"
+            name = f"{prefix}_{minutes:02d}m{seconds:02d}s.jpg"
             cv2.imwrite(str(images_dir / name), frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
         counts[split] = counts.get(split, 0) + len(times)
-    capture.release()
+        capture.release()
 
+    output.mkdir(parents=True, exist_ok=True)
     shutil.copy2(args.config, output / "label_frames_config.yaml")  # lưu lại cấu hình đã dùng
     for split, count in counts.items():
         print(f"{split:5s} {count:4d} frame -> {output / split / 'images'}")

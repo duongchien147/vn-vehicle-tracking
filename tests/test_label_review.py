@@ -57,3 +57,16 @@ def test_deduplicate_keeps_most_confident_per_place():
 def test_invalid_boxes_tiny_or_outside():
     boxes = [box(CAR, 0.5, 0.5), YoloBox(CAR, 0.5, 0.5, 0.001, 0.1), YoloBox(CAR, 1.2, 0.5, 0.1, 0.1)]
     assert invalid_boxes(boxes, image_width=1920, image_height=1080) == [1, 2]
+
+
+def test_drop_nested_duplicates_keeps_larger_same_class_box():
+    from vtrack.label_review import drop_nested_duplicates
+
+    with_rider = YoloBox(0, 0.5, 0.5, 0.1, 0.3)
+    vehicle_only = YoloBox(0, 0.5, 0.58, 0.08, 0.12)  # nằm trọn trong box lớn
+    car_inside_bus = YoloBox(1, 0.5, 0.5, 0.05, 0.05)  # khác lớp -> giữ
+    separate = YoloBox(0, 0.9, 0.9, 0.05, 0.05)
+
+    kept = drop_nested_duplicates([with_rider, vehicle_only, car_inside_bus, separate])
+
+    assert kept == [with_rider, car_inside_bus, separate]

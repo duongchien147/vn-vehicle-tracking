@@ -1,0 +1,1 @@
+Nhãn trong labels/ đã được người kiểm (6/10/2026; nhãn sơ bộ YOLO26x COCO, rà soát bằng YOLO26x@1280+1920). Không script nào được ghi đè thư mục labels/ của tập này.

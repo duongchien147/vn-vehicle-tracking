@@ -1,0 +1,24 @@
+# Tập chấm phụ ngày/đêm từ UA-DETRAC (camera giao thông cố định trên cầu vượt, Bắc Kinh/Thiên Tân, 960x540) —
+# scripts/eval_ua_detrac.py. Nhãn: bản gán lại có xe máy (Kaggle patrikskalos/ua-detrac-fix-masks-two-wheelers,
+# CC BY-NC-SA 3.0, 71/100 video); ảnh: bản sao gốc (Kaggle bratjay/ua-detrac-orig). Mục đích: đo mức suy giảm khi
+# trời tối trên CÙNG bộ dữ liệu (ngày vs đêm) — dự án không có cảnh đêm Việt Nam nào có nhãn. Chỉ là số tham khảo:
+# giao thông Trung Quốc, chủ yếu ô tô (≈600k box ô tô, ≈9.5k xe máy).
+annotations: D:/ua_detrac/gt_processed.json
+images_zip: D:/ua_detrac/ua-detrac-orig.zip
+images_prefix: DETRAC-Images/DETRAC-Images  # thư mục ảnh trong zip; tên ảnh: <prefix>/<MVI_xxxxx>/<imgNNNNN.jpg>
+# Lấy 1 frame mỗi 100 frame (4 s ở 25 fps) để tránh frame gần trùng, như cách lấy frame test Hà Nội
+frame_step: 100
+class_map:
+  motorcycle: motorbike
+  car: car
+  transporter: car  # xe van — cùng quy ước với dữ liệu train (VisDrone van -> car, UVH Van -> car)
+  bus: bus
+  truck: truck
+# Không thuộc 4 lớp dự án hoặc vùng bị che mặt nạ -> vùng ignore khi chấm
+ignore_classes: [bicycle, unknown, mask, trailer]
+# Điều kiện ánh sáng lấy từ nhãn GỐC của UA-DETRAC (thuộc tính sence_weather trong file XML của từng video):
+# 21 video night, 20 sunny, 19 cloudy, 11 rainy (trong 71 video được gán lại). "Ngày" = nắng + mây; bỏ mưa vì mưa là
+# yếu tố khó khác, gộp vào thì không tách được riêng ảnh hưởng của trời tối.
+conditions:
+  night: [night]
+  day: [sunny, cloudy]

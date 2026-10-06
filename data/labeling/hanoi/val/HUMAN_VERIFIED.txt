@@ -1,0 +1,1 @@
+﻿Nhãn trong labels/ đã được người kiểm (1/10). Không script nào được ghi đè thư mục labels/ của tập này.

@@ -1,0 +1,27 @@
+# Trích frame từ video Hà Nội (1080p) để gán nhãn — dùng bởi scripts/extract_label_frames.py.
+#
+# Chia theo ĐOẠN THỜI GIAN (không chọn ngẫu nhiên từng frame): hai frame cách nhau vài giây gần như giống hệt nhau.
+# Tránh các lúc camera zoom trong video gốc: ~02:50, 04:30, 05:30, 07:40 (xem data/videos/SOURCES.md).
+#
+# test  = đoạn `a` (cùng đoạn với clip data/videos/nga_tu_hanoi_a.mp4) — con số mAP cho bối cảnh Hà Nội
+# val   = chọn best.pt theo đúng bối cảnh mục tiêu
+# train = phần còn lại
+#
+# Chống rò rỉ test -> train: ở ngã tư có đèn, xe dừng đèn đỏ đứng yên 30–60s, nên frame train phải cách đoạn test
+# lâu hơn một chu kỳ đèn (ở đây >= 85s: test hết 1:35, train bắt đầu 3:00). Val được đặt sát sau test vì val không
+# dùng để train nên không gây rò rỉ. Hạn chế còn lại: xe đỗ lâu trên vỉa hè có thể xuất hiện ở cả train và test
+# (cùng một camera) -> test Hà Nội là "cùng cảnh, khác thời điểm"; phép thử khác cảnh là clip pvd_* và ham_chui_*.
+#
+# Lịch sử: bản đầu đặt train ở 1:45 (chỉ cách test 10s) — đổi ngày 30/9 trước khi gán nhãn val/train.
+# 30/9: train dùng nhãn tự động (scripts/auto_label.py); val giảm còn 10 frame (mỗi 6s) vì val là thước đo nên mọi
+# frame val phải có người kiểm — frame val không kiểm thì không dùng được (quá gần test để chuyển sang train).
+
+video: data/raw/youtube_Lzds95Kfh54_1080p.mp4
+output: data/labeling/hanoi
+prefix: hanoi
+
+segments:
+  - {split: test, start: "0:35", end: "1:35", every_s: 2}   # 30 frame (đã gán nhãn tay)
+  - {split: val, start: "1:45", end: "2:45", every_s: 6}    # 10 frame — đều có người kiểm (val là thước đo)
+  - {split: train, start: "3:00", end: "4:28", every_s: 3}  # 30 frame
+  - {split: train, start: "5:33", end: "7:28", every_s: 3}  # 39 frame

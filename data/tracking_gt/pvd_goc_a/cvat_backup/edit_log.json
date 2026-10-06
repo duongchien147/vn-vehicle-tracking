@@ -1,0 +1,848 @@
+[
+ {
+  "sửa": "vùng ignore cuối đại lộ -> dải y < 462",
+  "trước": [
+   [
+    850.0,
+    340.0,
+    1035.0,
+    395.0
+   ],
+   [
+    850.0,
+    340.0,
+    1035.0,
+    395.0
+   ]
+  ]
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 37",
+  "từ frame MOT": 19,
+  "đến": 31,
+  "keyframe": 2,
+  "dừng vì": "score 0.53 @f18"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 38",
+  "từ frame MOT": 23,
+  "đến": 44,
+  "keyframe": 4,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 41",
+  "từ frame MOT": 27,
+  "đến": 52,
+  "keyframe": 5,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 43",
+  "từ frame MOT": 8,
+  "đến": 61,
+  "keyframe": 11,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 48",
+  "từ frame MOT": 61,
+  "đến": 72,
+  "keyframe": 2,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 49",
+  "từ frame MOT": 56,
+  "đến": 78,
+  "keyframe": 4,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 52",
+  "từ frame MOT": 57,
+  "đến": 86,
+  "keyframe": 6,
+  "dừng vì": "score 0.52 @f56"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 54",
+  "từ frame MOT": 74,
+  "đến": 91,
+  "keyframe": 3,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 60",
+  "từ frame MOT": 85,
+  "đến": 96,
+  "keyframe": 2,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 63",
+  "từ frame MOT": 79,
+  "đến": 118,
+  "keyframe": 8,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 67",
+  "từ frame MOT": 122,
+  "đến": 128,
+  "keyframe": 1,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 68",
+  "từ frame MOT": 100,
+  "đến": 139,
+  "keyframe": 8,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 71",
+  "từ frame MOT": 147,
+  "đến": 154,
+  "keyframe": 1,
+  "dừng vì": "score 0.51 @f146"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 73",
+  "từ frame MOT": 151,
+  "đến": 159,
+  "keyframe": 2,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 74",
+  "từ frame MOT": 134,
+  "đến": 163,
+  "keyframe": 6,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 76",
+  "từ frame MOT": 145,
+  "đến": 177,
+  "keyframe": 6,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 82",
+  "từ frame MOT": 160,
+  "đến": 197,
+  "keyframe": 7,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 93",
+  "từ frame MOT": 199,
+  "đến": 225,
+  "keyframe": 5,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 120",
+  "từ frame MOT": 316,
+  "đến": 333,
+  "keyframe": 3,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "kéo dài ngược track MOT 127",
+  "từ frame MOT": 365,
+  "đến": 372,
+  "keyframe": 1,
+  "dừng vì": "lên tới vùng ignore"
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 20",
+  "frame MOT trống": [
+   16,
+   17
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 21",
+  "frame MOT trống": [
+   33,
+   36
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 21",
+  "frame MOT trống": [
+   150,
+   157
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 34",
+  "frame MOT trống": [
+   58,
+   63
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 42",
+  "frame MOT trống": [
+   219,
+   219
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 49",
+  "frame MOT trống": [
+   196,
+   196
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 52",
+  "frame MOT trống": [
+   89,
+   89
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 54",
+  "frame MOT trống": [
+   238,
+   238
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 55",
+  "frame MOT trống": [
+   327,
+   327
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 71",
+  "frame MOT trống": [
+   272,
+   274
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 93",
+  "frame MOT trống": [
+   242,
+   243
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 95",
+  "frame MOT trống": [
+   344,
+   344
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 98",
+  "frame MOT trống": [
+   343,
+   344
+  ]
+ },
+ {
+  "sửa": "nối chỗ đứt track MOT 141",
+  "frame MOT trống": [
+   579,
+   579
+  ]
+ },
+ {
+  "sửa": "track MOT 180 chiều cao box",
+  "frame CVAT": 585,
+  "trước": [
+   857.5,
+   444.25,
+   870.25,
+   475.75
+  ],
+  "sau": [
+   857.5,
+   447.75,
+   870.25,
+   475.75
+  ]
+ },
+ {
+  "sửa": "track MOT 180 chiều cao box",
+  "frame CVAT": 590,
+  "trước": [
+   852.25,
+   445.5,
+   866.5,
+   488.0
+  ],
+  "sau": [
+   852.25,
+   460.0,
+   866.5,
+   488.0
+  ]
+ },
+ {
+  "sửa": "track MOT 180 chiều cao box",
+  "frame CVAT": 595,
+  "trước": [
+   850.0,
+   448.75,
+   864.75,
+   490.75
+  ],
+  "sau": [
+   850.0,
+   462.75,
+   864.75,
+   490.75
+  ]
+ },
+ {
+  "sửa": "track MOT 180 chiều cao box",
+  "frame CVAT": 599,
+  "trước": [
+   847.25,
+   452.0,
+   864.0,
+   494.75
+  ],
+  "sau": [
+   847.25,
+   466.75,
+   864.0,
+   494.75
+  ]
+ },
+ {
+  "sửa": "track MOT 99 keyframe đo tay",
+  "frame CVAT": [
+   239,
+   241,
+   243,
+   245,
+   247,
+   249
+  ]
+ },
+ {
+  "sửa": "thêm vùng ignore",
+  "lý do": "2 xe máy trong cụm dày sát dòng 462 cuối clip (bám theo xe, tránh track 175/180 và ô tô 111)",
+  "keyframe CVAT": {
+   "565": [
+    884,
+    448,
+    903,
+    476
+   ],
+   "585": [
+    868,
+    450,
+    896,
+    492
+   ],
+   "599": [
+    866,
+    455,
+    890,
+    505
+   ]
+  }
+ },
+ {
+  "sửa": "thêm vùng ignore",
+  "lý do": "xe máy sát dòng 462 cuối clip, bị xe khác che",
+  "keyframe CVAT": {
+   "583": [
+    836,
+    452,
+    850,
+    486
+   ],
+   "599": [
+    836,
+    452,
+    850,
+    486
+   ]
+  }
+ },
+ {
+  "sửa": "thêm vùng ignore",
+  "lý do": "xe máy chiều đối diện lộ từng mảnh sau tán cây, mép phải",
+  "keyframe CVAT": {
+   "142": [
+    1885,
+    612,
+    1920,
+    660
+   ],
+   "158": [
+    1885,
+    612,
+    1920,
+    660
+   ]
+  }
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172188,
+  "frame MOT": [
+   34
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172202,
+  "frame MOT": [
+   248
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172204,
+  "frame MOT": [
+   1,
+   48,
+   49,
+   50,
+   51,
+   52,
+   53,
+   54,
+   55,
+   56
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172208,
+  "frame MOT": [
+   52,
+   53,
+   54,
+   55,
+   56,
+   57,
+   78
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172212,
+  "frame MOT": [
+   90,
+   91,
+   92,
+   93,
+   94,
+   95,
+   96,
+   136,
+   137,
+   138,
+   139,
+   140,
+   141,
+   142,
+   143
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172214,
+  "frame MOT": [
+   202
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172244,
+  "frame MOT": [
+   262,
+   263,
+   264,
+   265
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172258,
+  "frame MOT": [
+   385,
+   386,
+   387,
+   388,
+   389,
+   390,
+   391,
+   441,
+   442,
+   443,
+   444,
+   445,
+   446,
+   447,
+   448
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172284,
+  "frame MOT": [
+   93,
+   94,
+   95
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172285,
+  "frame MOT": [
+   126
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172289,
+  "frame MOT": [
+   193
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172290,
+  "frame MOT": [
+   201,
+   206,
+   207
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172291,
+  "frame MOT": [
+   205
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172294,
+  "frame MOT": [
+   223
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172295,
+  "frame MOT": [
+   263
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172298,
+  "frame MOT": [
+   301
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172299,
+  "frame MOT": [
+   311
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172300,
+  "frame MOT": [
+   337
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172301,
+  "frame MOT": [
+   371
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172304,
+  "frame MOT": [
+   428,
+   429,
+   430
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172305,
+  "frame MOT": [
+   431
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172307,
+  "frame MOT": [
+   443
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172309,
+  "frame MOT": [
+   457,
+   458,
+   459,
+   462
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172310,
+  "frame MOT": [
+   467
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172314,
+  "frame MOT": [
+   495,
+   496
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172315,
+  "frame MOT": [
+   497
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172317,
+  "frame MOT": [
+   509
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172319,
+  "frame MOT": [
+   512,
+   513,
+   514
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172320,
+  "frame MOT": [
+   521
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172321,
+  "frame MOT": [
+   527,
+   528
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172322,
+  "frame MOT": [
+   553,
+   554,
+   555,
+   556,
+   559
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172323,
+  "frame MOT": [
+   587,
+   588
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172324,
+  "frame MOT": [
+   595,
+   596
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172333,
+  "frame MOT": [
+   131
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172335,
+  "frame MOT": [
+   206
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172339,
+  "frame MOT": [
+   258,
+   259
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172340,
+  "frame MOT": [
+   261,
+   262
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172341,
+  "frame MOT": [
+   316,
+   317
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172342,
+  "frame MOT": [
+   325,
+   326
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172346,
+  "frame MOT": [
+   289,
+   290
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172347,
+  "frame MOT": [
+   307,
+   308
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172352,
+  "frame MOT": [
+   438,
+   439
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172353,
+  "frame MOT": [
+   449
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172355,
+  "frame MOT": [
+   482
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172359,
+  "frame MOT": [
+   520
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172361,
+  "frame MOT": [
+   533,
+   534
+  ]
+ },
+ {
+  "sửa": "box mảnh vụn -> outside (kiểm bằng mắt)",
+  "track CVAT": 28172362,
+  "frame MOT": [
+   542,
+   543
+  ]
+ },
+ {
+  "sửa": "box lệch -> keyframe mới",
+  "track CVAT": 28172223,
+  "frame CVAT": {
+   "drop": [
+    116,
+    117
+   ],
+   "set": {
+    "110": [
+     855,
+     491,
+     870,
+     522
+    ],
+    "113": [
+     853,
+     495,
+     868,
+     526
+    ],
+    "115": [
+     851,
+     497,
+     866,
+     528
+    ],
+    "117": [
+     850,
+     500,
+     865,
+     531
+    ]
+   }
+  }
+ },
+ {
+  "sửa": "box lệch -> keyframe mới",
+  "track CVAT": 28172224,
+  "frame CVAT": {
+   "drop": [
+    202
+   ],
+   "set": {
+    "202": [
+     791,
+     568,
+     816,
+     614
+    ]
+   }
+  }
+ }
+]

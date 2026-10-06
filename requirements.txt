@@ -1,0 +1,14 @@
+# torch / torchvision cài riêng bản CPU trước:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+ultralytics
+lap
+supervision
+opencv-python
+openvino
+imageio-ffmpeg
+streamlit
+pandas
+pytest
+roboflow
+kaggle
+huggingface_hub>=0.30  # tải UVH-26 từ Hugging Face

@@ -1,0 +1,22 @@
+# Chỉnh tracker trên tập DEV (VnTraffic) bằng scripts/eval_tracking.py --grid configs/tracker_tuning.yaml.
+# Clip test có nhãn đầy đủ (gán bằng CVAT) chỉ dùng để báo cáo cấu hình đã chọn, một lần, không dùng để chỉnh.
+#
+# Tiêu chí chọn (chốt TRƯỚC khi chạy): IDR (ID recall = tỉ lệ box nhãn chuẩn được bám đúng ID nhất quán) cao nhất.
+# Lý do: nhãn VnTraffic thiếu nhiều xe -> mọi chỉ số có phát hiện thừa (FP) trong công thức (MOTA, DetA, HOTA,
+# IDP, IDF1) bị méo; IDR, AssA, số lần đổi ID thì không. Hoà nhau (chênh < 0.005) thì chọn cấu hình nhanh hơn.
+selection_metric: idr
+
+# Lọc track mới (TrackAgeFilter): chỉ hiện track khi đã sống đủ N frame. Áp dụng sau trên kết quả đã lưu
+# (tương đương chạy online vì bộ lọc không tác động ngược vào tracker). 3 = min_hits mặc định của SORT.
+# Không chọn N bằng tập dev này: lợi ích của bộ lọc là giảm FP, thứ VnTraffic không đo đúng được -> chỉ báo cáo ảnh hưởng.
+min_track_ages: [1, 3]
+
+experiments:
+  - base: configs/bytetrack.yaml
+    grid:
+      track_buffer: [30, 60, 90]  # số frame giữ track đã mất; 30 frame = 1 s ở 30 fps (mặc định bài báo ByteTrack)
+  - base: configs/botsort.yaml
+    grid:
+      track_buffer: [30, 60, 90]
+      # ReID: với YOLO26 (end-to-end) ultralytics dùng yolo26n-cls.pt làm bộ trích đặc trưng ngoại hình
+      with_reid: [false, true]

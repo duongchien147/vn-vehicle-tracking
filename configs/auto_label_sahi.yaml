@@ -1,0 +1,17 @@
+# Như configs/auto_label.yaml, thêm một mô hình "thầy" kiểu SAHI (cắt ảnh 2x2 ô chồng lấn 20%) để bắt xe máy
+# trong cụm đông (dừng đèn đỏ) — điểm yếu của bản không cắt ô (recall xe máy trên val chỉ 0.80 ở ngưỡng 0.15).
+# Mỗi ô ~1100x620 vào mô hình ở 960 -> xe to ~1.75 lần so với chạy cả khung 1920 ở 960.
+# SAHI: Akyon et al., "Slicing Aided Hyper Inference and Fine-tuning for Small Object Detection", ICIP 2022.
+
+teachers:
+  - {weights: weights/yolo26n_vn_v2_best.pt, imgsz: 960, weight: 2}
+  - {weights: weights/yolo26n_vn_v2_best.pt, imgsz: 1280, weight: 1}
+  - {weights: weights/yolo26x.pt, imgsz: 1280, weight: 2}
+  - {weights: weights/yolo26n_vn_v2_best.pt, imgsz: 960, weight: 2, tiles: 2}
+
+flip_tta: true
+predict_conf: 0.05
+wbf_iou: 0.55
+skip_box_thr: 0.05
+keep_conf: 0.15
+dedup_iou: 0.6

@@ -1,0 +1,63 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.venv-label/
+.pytest_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# Dữ liệu, trọng số, kết quả (lưu trên Kaggle / local, không đưa lên git)
+data/*
+!data/.gitkeep
+!data/videos/
+data/videos/*
+!data/videos/SOURCES.md
+# Nhãn gán tay = thành quả nhiều giờ công, không có bản nào khác (Kaggle chỉ có dataset train) -> đưa vào git.
+# Chỉ file nhãn (text nhỏ); ảnh/video vẫn bỏ qua (frame YouTube, license không cho đăng lại).
+!data/labeling/
+data/labeling/*
+!data/labeling/hanoi/
+data/labeling/hanoi/*
+!data/labeling/hanoi/classes.txt
+!data/labeling/hanoi/label_frames_config.yaml
+!data/labeling/hanoi/test/
+!data/labeling/hanoi/val/
+data/labeling/hanoi/test/*
+data/labeling/hanoi/val/*
+!data/labeling/hanoi/test/labels/
+!data/labeling/hanoi/test/labels_prelabel_v2/
+!data/labeling/hanoi/test/HUMAN_VERIFIED.txt
+!data/labeling/hanoi/val/labels/
+!data/labeling/hanoi/val/HUMAN_VERIFIED.txt
+!data/tracking_gt/
+data/tracking_gt/*
+!data/tracking_gt/pvd_goc_a/
+data/tracking_gt/pvd_goc_a/*
+!data/tracking_gt/pvd_goc_a/gt/
+!data/tracking_gt/pvd_goc_a/cvat_backup/
+!data/tracking_gt/pvd_goc_a/labels.txt
+!data/tracking_gt/pvd_goc_a/run_config.json
+weights/*
+!weights/.gitkeep
+outputs/*
+!outputs/.gitkeep
+runs/
+*.pt
+*.onnx
+*_openvino_model/
+
+# Video
+*.mp4
+*.avi
+*.mov
+*.mkv
+
+# Công cụ
+.codegraph/
+.env
+.playwright-mcp/
+.unsnooze/
+# Log của trình biên dịch GPU Intel khi OpenVINO dò GPU tích hợp — vô hại
+kernel.errors.txt
+*.egg-info/

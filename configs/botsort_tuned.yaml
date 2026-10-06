@@ -1,0 +1,18 @@
+# BoT-SORT đã chỉnh trên tập dev VnTraffic (scripts/eval_tracking.py --grid configs/tracker_tuning.yaml,
+# outputs/eval_tracking/tuning_vntraffic/): chọn theo IDR (tiêu chí chốt trước) trong lưới
+# {ByteTrack, BoT-SORT} x track_buffer {30, 60, 90} x ReID {tắt, bật}.
+# So với BoT-SORT mặc định chỉ khác track_buffer 30 -> 90 (giữ track đã mất 3 s ở 30 fps):
+# IDR 0.738 -> 0.744, AssA 0.659 -> 0.668, đổi ID 128 -> 128 — cải thiện rất nhỏ.
+# ReID (đặc trưng của chính detector, model: auto) làm TỆ đi rõ (đổi ID 128 -> 208) nên để tắt.
+tracker_type: botsort
+track_high_thresh: 0.25
+track_low_thresh: 0.1
+new_track_thresh: 0.25
+track_buffer: 90
+match_thresh: 0.8
+fuse_score: true
+gmc_method: sparseOptFlow
+proximity_thresh: 0.5
+appearance_thresh: 0.8
+with_reid: false
+model: auto

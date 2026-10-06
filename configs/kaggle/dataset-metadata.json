@@ -1,0 +1,8 @@
+{
+  "title": "VN Vehicles YOLO 4 classes",
+  "id": "{username}/vn-vehicles-yolo",
+  "subtitle": "Motorbike, car, bus, truck from elevated traffic cameras (VN/ID)",
+  "description": "Dataset gộp cho đồ án phát hiện - theo dõi phương tiện giao thông Việt Nam (định dạng YOLO, 4 lớp: motorbike, car, bus, truck).\n\nNguồn (Roboflow Universe, CC BY 4.0):\n- https://universe.roboflow.com/vehicle/vehicle-vietnam-cantho-2gxc8 (v19) - chỉ dùng cho train\n- https://universe.roboflow.com/skripsi-1qzlz/vehicle-detection-ckrxi (v2) - chỉ dùng cho train\n- https://universe.roboflow.com/car-classification/vietnamese-vehicle (v3) - chia train/val/test theo nhóm ảnh gần trùng (dHash)\n\nVal/test chỉ chứa các cảnh không xuất hiện trong train. Cấu hình tạo dataset: datasets_config.yaml; thống kê: stats.csv.",
+  "licenses": [{"name": "CC-BY-4.0"}],
+  "keywords": ["computer vision", "object detection", "transportation"]
+}

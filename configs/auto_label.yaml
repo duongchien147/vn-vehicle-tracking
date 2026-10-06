@@ -1,0 +1,26 @@
+# Gán nhãn tự động (pseudo-label) cho frame Hà Nội — dùng bởi scripts/auto_label.py.
+# Ghép nhiều mô hình "thầy" bằng Weighted Boxes Fusion (WBF) + TTA lật ngang. Nhãn giả CHỈ dùng cho train;
+# val chỉ dùng nhãn tự động làm điểm xuất phát rồi người kiểm; test là nhãn tay (script từ chối chạy trên test).
+
+teachers:
+  # v2 fine-tune trên dữ liệu VN: đúng cách vẽ (box xe máy bao người lái), hiểu bối cảnh -> trọng số cao
+  - {weights: weights/yolo26n_vn_v2_best.pt, imgsz: 960, weight: 2}
+  # cùng v2 ở độ phân giải cao hơn: thấy thêm xe nhỏ ở xa
+  - {weights: weights/yolo26n_vn_v2_best.pt, imgsz: 1280, weight: 1}
+  # mô hình lớn nhất (COCO), khác dữ liệu train với v2 -> bớt điểm mù chung; box người lái được gộp vào xe máy
+  - {weights: weights/yolo26x.pt, imgsz: 1280, weight: 2}
+
+flip_tta: true
+
+# Lấy cả dự đoán điểm thấp để WBF có đủ nguồn mà gộp; lọc lại sau khi gộp bằng keep_conf
+predict_conf: 0.05
+# Mặc định của ensemble-boxes và bài báo WBF (Solovyev et al., 2021)
+wbf_iou: 0.55
+skip_box_thr: 0.05
+# Ngưỡng giữ box sau khi gộp. Giá trị tạm; sẽ chọn lại bằng 10 frame val có người kiểm (KHÔNG chọn bằng tập test).
+# 0.15 cho điểm xuất phát để người kiểm val sửa (~93 box/ảnh so với ~115 xe/ảnh ở nhãn tay test): xoá box thừa
+# nhanh hơn vẽ box sót. Ở 0.3 chỉ còn ~64 box/ảnh — sót quá nhiều. Với conf_type "avg" của WBF, xe chỉ 1–2 trong
+# 6 nguồn (3 mô hình x gốc/lật) nhìn thấy bị giảm điểm mạnh dù có thể là xe thật.
+keep_conf: 0.15
+# Sau WBF, hai box chồng nhau IoU >= giá trị này (thường cùng một xe bị các mô hình gọi khác lớp) chỉ giữ box điểm cao hơn
+dedup_iou: 0.6

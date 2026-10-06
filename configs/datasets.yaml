@@ -1,0 +1,96 @@
+# Các dataset nguồn được gộp thành dataset huấn luyện.
+#   Tải:  scripts/download_datasets.py  (mục `download` của từng nguồn)
+#   Gộp:  scripts/prepare_data.py
+# class_map: tên lớp trong dataset gốc -> tên lớp dự án (motorbike, car, bus, truck).
+# Lớp gốc không có trong class_map sẽ bị bỏ (box đó bị xoá khỏi nhãn).
+#
+# use_for:
+#   train  - toàn bộ ảnh (sau khi lấy mẫu max_images) vào tập train. Dùng cho dataset quay từ MỘT camera cố định
+#            (mọi ảnh cùng một cảnh -> không thể tách test mà không rò rỉ) hoặc dataset khác góc nhìn (drone).
+#   split  - chia train/val/test theo nhóm ảnh gần trùng (tỉ lệ ở `split` bên dưới).
+#   predefined - nguồn đã chia sẵn; `splits` ánh xạ tập đích -> thư mục con của nguồn, `repeat` lặp ảnh theo tập.
+# min_boxes: chỉ giữ ảnh có ít nhất bấy nhiêu box của mỗi lớp (tính theo lớp dự án, sau khi đổi lớp).
+# max_images: sau đó lấy ngẫu nhiên tối đa bấy nhiêu ảnh (theo `seed`); bỏ trống = lấy hết.
+#
+# Lịch sử:
+#   v1 - cantho + indo (lấy hết) + vnvehicle. Test mAP50 0.861 nhưng trên clip Hà Nội phát hiện ít xe máy hơn cả COCO:
+#        ~70% ảnh train đến từ 2 camera (học thuộc cảnh), xe nhỏ ở xa thường không được gán nhãn.
+#   v2 - giảm cantho/indo còn 300 ảnh mỗi bộ; thêm ảnh VisDrone có >= 10 xe máy (xe máy nhỏ, dày đặc, nhìn từ cao),
+#        box xe máy VisDrone được mở rộng bao cả người lái cho khớp cách vẽ của Roboflow.
+#   v3 - thêm frame Hà Nội: 69 frame train (nhãn tự động, lặp x4) + 10 frame val (nhãn người). Mọi thứ khác giữ như
+#        v2 để so sánh v2 -> v3 chỉ khác ở dữ liệu Hà Nội.
+#        Val/test giữ nguyên như v1 để so sánh công bằng.
+
+output: data/processed/vn_vehicles
+seed: 42
+
+# Tỉ lệ chia, chỉ áp dụng cho các nguồn `use_for: split`.
+split:
+  train: 0.60
+  val: 0.20
+  test: 0.20
+
+# Hai ảnh được coi là gần trùng nếu khoảng cách Hamming giữa dHash 64-bit <= ngưỡng này.
+# Để rộng (10/64 bit) cho chắc: thà gộp nhầm hai ảnh vào một nhóm còn hơn để lọt ảnh gần trùng sang test.
+near_duplicate_max_distance: 10
+
+# Ảnh có cạnh dài hơn giá trị này được thu nhỏ khi ghi ra (nhãn YOLO chuẩn hoá nên không đổi).
+# 1280 > imgsz lúc train (640–960) nên không mất thông tin, nhưng giảm dung lượng upload lên Kaggle (VisDrone ~2000px).
+max_image_side: 1280
+
+sources:
+  - name: cantho
+    path: data/raw/roboflow/vehicle-vietnam-cantho-2gxc8
+    url: https://universe.roboflow.com/vehicle/vehicle-vietnam-cantho-2gxc8 (v19, CC BY 4.0)
+    download: {type: roboflow, workspace: vehicle, project: vehicle-vietnam-cantho-2gxc8, version: 19}
+    use_for: train
+    max_images: 300
+    class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}
+
+  - name: indo
+    path: data/raw/roboflow/vehicle-detection-ckrxi
+    url: https://universe.roboflow.com/skripsi-1qzlz/vehicle-detection-ckrxi (v2, CC BY 4.0)
+    download: {type: roboflow, workspace: skripsi-1qzlz, project: vehicle-detection-ckrxi, version: 2}
+    use_for: train
+    max_images: 300
+    class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}
+
+  - name: vnvehicle
+    path: data/raw/roboflow/vietnamese-vehicle
+    url: https://universe.roboflow.com/car-classification/vietnamese-vehicle (v3, CC BY 4.0)
+    download: {type: roboflow, workspace: car-classification, project: vietnamese-vehicle, version: 3}
+    use_for: split
+    # Dataset gốc chỉ đặt tên lớp là số; thứ tự này đã kiểm tra bằng mắt trên ảnh mẫu.
+    class_map: {"0": car, "1": motorbike, "2": truck, "3": bus}
+
+  - name: visdrone
+    path: data/raw/visdrone
+    url: https://github.com/VisDrone/VisDrone-Dataset (VisDrone2019-DET train, chỉ dùng cho nghiên cứu)
+    download: {type: visdrone, split: train}
+    use_for: train
+    # VisDrone quay ở Trung Quốc, chủ yếu ô tô (lấy ngẫu nhiên: xe máy chỉ 19% số box). Chỉ lấy ảnh có >= 10 xe máy
+    # (909 ảnh, xe máy chiếm 39%) để bổ sung đúng thứ còn thiếu: xe máy nhỏ, dày đặc.
+    min_boxes: {motorbike: 10}
+    # van (xe van, minibus) gộp vào car; bỏ pedestrian/people/bicycle/tricycle.
+    class_map: {motor: motorbike, car: car, van: car, truck: truck, bus: bus}
+
+  - name: hanoi
+    path: data/labeling/hanoi
+    url: https://www.youtube.com/watch?v=Lzds95Kfh54 (frame 1080p, xem data/videos/SOURCES.md)
+    # Giữ nguyên cách chia theo đoạn thời gian của configs/label_frames.yaml (chống rò rỉ test -> train).
+    use_for: predefined
+    # Tập test Hà Nội KHÔNG đưa vào đây: chấm riêng trên máy bằng bộ chấm kiểu COCO có vùng ignore.
+    splits: {train: train, val: val}
+    # Train là nhãn tự động (configs/auto_label_sahi.yaml); val là nhãn người đã kiểm.
+    # Lặp ảnh train x4 (oversampling dữ liệu cùng miền mục tiêu): 69 frame chỉ ~3% tập train, lặp lên ~10%.
+    repeat: {train: 4}
+    # Lớp `ignore` (vùng mơ hồ) không có trong map -> bị bỏ, vì ultralytics không hỗ trợ vùng bỏ qua khi train
+    class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}
+  - name: uvh26
+    path: data/raw/uvh26/yolo
+    url: https://huggingface.co/datasets/iisc-aim/UVH-26 (IISc, CC BY 4.0; tập con dựng bởi scripts/build_uvh26_subset.py)
+    # Camera giao thông cố định Bengaluru (~2.800 camera): đúng góc nhìn của đồ án, thứ v3 thiếu (v3 bỏ sót buýt/tải
+    # ở góc camera giao thông). Chỉ dùng train: val của UVH chia theo ảnh, không theo camera -> không dùng đánh giá.
+    # Nhãn đã đổi về 4 lớp và bổ sung xe thiếu nhãn khi dựng (configs/uvh26.yaml), nên ánh xạ ở đây là 1-1.
+    use_for: train
+    class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}

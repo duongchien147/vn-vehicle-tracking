@@ -1,0 +1,147 @@
+"""Chấm mAP kiểu COCO (pycocotools — bộ chấm chính thức của COCO) cho nhãn YOLO có vùng ignore.
+
+Dùng cho tập test Hà Nội: `yolo val` của ultralytics không hỗ trợ vùng bỏ qua, còn COCO có sẵn cơ chế `iscrowd`:
+phát hiện rơi vào vùng crowd không bị tính là sai, và vùng đó không bị tính là bỏ sót.
+"""
+
+import contextlib
+import io
+import random
+from collections.abc import Sequence
+from dataclasses import dataclass, field
+from typing import Any, cast
+
+import numpy as np
+from pycocotools.coco import COCO
+from pycocotools.cocoeval import COCOeval
+
+from vtrack import CLASS_NAMES
+from vtrack.label_review import YoloBox
+
+# COCO mặc định chấm tối đa 100 phát hiện/ảnh; frame Hà Nội có ~110–140 xe nên phải nâng lên (như benchmark cảnh
+# đông CrowdHuman), nếu không mô hình tốt bị cắt bớt phát hiện và điểm thấp oan.
+MAX_DETECTIONS = 500
+
+
+@dataclass
+class EvalImage:
+    file_name: str
+    width: int
+    height: int
+    truth: list[YoloBox]  # nhãn người, không gồm vùng ignore
+    ignore: list[YoloBox]
+    predictions: list[YoloBox] = field(default_factory=list)
+
+
+@dataclass
+class CocoMetrics:
+    map50_95: float  # chỉ số chính của COCO: trung bình AP ở IoU 0.50:0.05:0.95
+    map50: float
+    map_small: float  # AP50-95 cho vật nhỏ (diện tích < 32x32 px)
+    recall: float  # AR ở MAX_DETECTIONS phát hiện/ảnh
+    ap50_per_class: dict[str, float]
+    ap50_95_per_class: dict[str, float]
+
+
+def _absolute_xywh(box: YoloBox, width: int, height: int) -> list[float]:
+    return [(box.center_x - box.width / 2) * width, (box.center_y - box.height / 2) * height,
+            box.width * width, box.height * height]
+
+
+def to_coco(images: Sequence[EvalImage]) -> tuple[dict, list[dict]]:
+    """Đổi sang định dạng COCO: (nhãn chuẩn dạng dataset COCO, danh sách phát hiện dạng kết quả COCO).
+
+    Vùng ignore không gắn với lớp nào, nên được thêm thành annotation `iscrowd=1` cho mọi lớp.
+    """
+    categories = [{"id": index + 1, "name": name} for index, name in enumerate(CLASS_NAMES)]
+    coco_images, annotations, detections = [], [], []
+    for image_id, image in enumerate(images, start=1):
+        coco_images.append({"id": image_id, "file_name": image.file_name, "width": image.width, "height": image.height})
+        crowd = [(region, category["id"]) for region in image.ignore for category in categories]
+        for box, category_id, is_crowd in [(b, b.class_id + 1, 0) for b in image.truth] + [(r, c, 1) for r, c in crowd]:
+            xywh = _absolute_xywh(box, image.width, image.height)
+            annotations.append({"id": len(annotations) + 1, "image_id": image_id, "category_id": category_id,
+                                "bbox": xywh, "area": xywh[2] * xywh[3], "iscrowd": is_crowd})
+        for box in image.predictions:
+            detections.append({"image_id": image_id, "category_id": box.class_id + 1,
+                               "bbox": _absolute_xywh(box, image.width, image.height), "score": box.confidence})
+    return {"images": coco_images, "annotations": annotations, "categories": categories}, detections
+
+
+def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
+    ground_truth, detections = to_coco(images)
+    if not detections:
+        zeros = {name: 0.0 for name in CLASS_NAMES}
+        return CocoMetrics(0.0, 0.0, 0.0, 0.0, zeros, dict(zeros))
+    with contextlib.redirect_stdout(io.StringIO()):  # pycocotools in rất nhiều dòng; chỉ lấy số
+        coco_truth = COCO()
+        coco_truth.dataset = cast(Any, ground_truth)  # stub kiểu của pycocotools quá hẹp; định dạng là dataset COCO
+        coco_truth.createIndex()
+        # loadRes nhận cả danh sách kết quả (không chỉ đường dẫn file như stub kiểu khai báo)
+        evaluator = COCOeval(coco_truth, coco_truth.loadRes(cast(Any, detections)), "bbox")
+        evaluator.params.maxDets = [1, 10, MAX_DETECTIONS]
+        evaluator.evaluate()
+        evaluator.accumulate()
+
+    # Không dùng evaluator.summarize()/stats: hàm đó viết cứng maxDets=100 cho mAP50-95 và trả -1 khi maxDets bị
+    # đổi, nên tính trực tiếp từ mảng kết quả.
+    # precision: [IoU, mức recall, lớp, vùng diện tích, maxDets]; recall: [IoU, lớp, vùng diện tích, maxDets].
+    # Vùng diện tích: 0 = tất cả, 1 = nhỏ (< 32x32 px). Giá trị -1 = không có nhãn chuẩn cho ô đó (bỏ khi lấy trung bình).
+    precision, recall = evaluator.eval["precision"], evaluator.eval["recall"]
+    all_areas, small_area, max_dets = 0, 1, -1
+    iou_50 = 0  # chỉ số đầu của dãy IoU 0.50:0.05:0.95
+
+    def mean_valid(values: np.ndarray) -> float:
+        valid = values[values > -1]
+        return float(valid.mean()) if valid.size else float("nan")
+
+    return CocoMetrics(
+        map50_95=mean_valid(precision[:, :, :, all_areas, max_dets]),
+        map50=mean_valid(precision[iou_50, :, :, all_areas, max_dets]),
+        map_small=mean_valid(precision[:, :, :, small_area, max_dets]),
+        recall=mean_valid(recall[:, :, all_areas, max_dets]),
+        ap50_per_class={
+            name: mean_valid(precision[iou_50, :, i, all_areas, max_dets]) for i, name in enumerate(CLASS_NAMES)
+        },
+        ap50_95_per_class={
+            name: mean_valid(precision[:, :, i, all_areas, max_dets]) for i, name in enumerate(CLASS_NAMES)
+        },
+    )
+
+
+def instance_counts(images: Sequence[EvalImage]) -> dict[str, int]:
+    """Số box nhãn chuẩn của mỗi lớp trong tập."""
+    counts = {name: 0 for name in CLASS_NAMES}
+    for image in images:
+        for box in image.truth:
+            counts[CLASS_NAMES[box.class_id]] += 1
+    return counts
+
+
+def well_represented_classes(images: Sequence[EvalImage], min_instances: int) -> list[str]:
+    """Lớp có ít nhất `min_instances` box nhãn chuẩn — chỉ các lớp này mới cho AP đủ tin cậy.
+
+    COCO lấy trung bình đều AP các lớp vì lớp nào cũng có hàng nghìn mẫu; khi một lớp chỉ có vài box (vd. 2 xe tải),
+    một phát hiện đúng/sai làm AP lớp đó nhảy 0 <-> 1 và kéo cả mAP theo, nên mAP chính chỉ tính trên các lớp đủ mẫu.
+    """
+    return [name for name, count in instance_counts(images).items() if count >= min_instances]
+
+
+def mean_ap50(metrics: CocoMetrics, classes: Sequence[str]) -> float:
+    return float(np.mean([metrics.ap50_per_class[name] for name in classes]))
+
+
+def bootstrap_map50(
+    images: Sequence[EvalImage], rounds: int, classes: Sequence[str], seed: int = 0
+) -> tuple[float, float]:
+    """Khoảng tin cậy 95% của mAP50 (trung bình trên `classes`) bằng bootstrap theo ảnh (lấy mẫu lại có hoàn lại).
+
+    Tập test nhỏ (30 ảnh) nên một con số mAP đơn lẻ dao động nhiều; khoảng tin cậy cho biết hai mô hình
+    có khác nhau thật hay chỉ do may rủi chọn ảnh.
+    """
+    generator = random.Random(seed)
+    scores = []
+    for _ in range(rounds):
+        sample = [images[generator.randrange(len(images))] for _ in images]
+        scores.append(mean_ap50(evaluate(sample), classes))
+    return float(np.percentile(scores, 2.5)), float(np.percentile(scores, 97.5))

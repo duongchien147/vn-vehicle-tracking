@@ -1,0 +1,51 @@
+# Tập con UVH-26 (IISc, CC BY 4.0, https://huggingface.co/datasets/iisc-aim/UVH-26) để train v5:
+# ảnh camera giao thông cố định (Bengaluru, ~2.800 camera) — đúng GÓC NHÌN của đồ án, thứ dữ liệu train đang thiếu
+# (ghi chú dự án: v3 bỏ sót buýt/tải ở góc camera giao thông). Dùng bởi scripts/build_uvh26_subset.py.
+annotations: data/raw/uvh26/UVH-26-MV-Train.json  # bỏ phiếu đa số: giữ 21.349 ảnh (bản STAPLE bỏ mất ~4.000)
+file_list: data/raw/uvh26/train_files.txt          # đường dẫn ảnh trong repo HF (liệt kê bằng huggingface_hub)
+raw_dir: D:/uvh26_raw                              # ảnh PNG gốc 1080p (~3.5 MB/ảnh) — ổ D vì ổ E không đủ chỗ
+output: data/raw/uvh26/yolo                        # nguồn dạng YOLO cho prepare_data.py (JPEG <= 1280 px)
+seed: 42
+# Ưu tiên ảnh có buýt/tải (điểm yếu cần sửa), còn lại lấy ngẫu nhiên để giữ phân bố chung.
+# Tổng 2.000 ảnh ~ 74% kích thước train v3 (2.714): đủ để thấy tác dụng mà dữ liệu Việt Nam vẫn là phần lớn.
+images_with_bus_or_truck: 1000
+images_random: 1000
+bus_or_truck_classes: [Bus, Mini-bus, Truck]
+max_image_side: 1280
+# 14 lớp UVH-26 -> 4 lớp dự án. Lớp không có ở đây bị bỏ khỏi nhãn (xe ba bánh, xe đạp, Others) nhưng vẫn
+# "chiếm chỗ" khi bổ sung nhãn, để mô hình thầy không gán nhầm chúng thành ô tô/xe tải.
+# Two-wheeler: box UVH-26 đã bao cả người lái — cùng quy ước với dự án.
+class_map:
+  Two-wheeler: motorbike
+  Hatchback: car
+  Sedan: car
+  SUV: car
+  MUV: car
+  Van: car
+  Tempo-traveller: bus  # xe khách 12–17 chỗ mui cao; gần với xe khách nhỏ ở VN
+  Mini-bus: bus
+  Bus: bus
+  Truck: truck
+  LCV: truck            # xe tải nhẹ
+# Bổ sung nhãn thiếu (đo trên 8 ảnh mẫu: YOLO26x tìm thêm 20 xe chắc chắn ngoài 110 box nhãn, phần lớn ở xa)
+completion:
+  teacher: weights/yolo26x.pt
+  imgsz: 1280
+  min_confidence: 0.5
+  max_overlap_iou: 0.3
+  max_inside_fraction: 0.5  # bỏ dự đoán nằm >= 50% trong box đã có (box xe máy có nhãn bao cả người lái)
+
+# Tập chấm phụ từ val UVH-26 (UVH không công bố tập test) — scripts/eval_uvh26.py. Mục đích: đo cả 4 lớp, nhất là
+# buýt/tải nhìn từ camera giao thông (test Hà Nội chỉ có 5 buýt, 2 tải). Ngoài phạm vi Việt Nam -> chỉ là số tham khảo.
+evaluation:
+  annotations: data/raw/uvh26/UVH-26-MV-Val.json
+  file_list: data/raw/uvh26/val_files.txt
+  n_images: 800
+  seed: 42
+  # Không thuộc 4 lớp dự án -> vùng ignore khi chấm (mô hình gọi xe ba bánh là ô tô thì không bị phạt)
+  ignore_classes: [Three-wheeler, Bicycle, Others]
+  # UVH chia train/val theo ảnh, không theo camera -> bỏ ảnh val có hash nền (dhash_bits 256 bit) gần ảnh train v5
+  # đã học. Phân bố khoảng cách KHÔNG có chỗ trũng rõ, nên ngưỡng chọn bằng mắt (5/10/2026): ghép ảnh val với ảnh
+  # train gần nhất -> d = 9, 19, 30, 40, 50, 60, 70 đều CÙNG camera; d = 80, 90, 100 khác camera. Lấy 79 (bảo thủ:
+  # loại cả vùng 72–79 chưa chắc). Giữ ~510/800 ảnh.
+  max_camera_distance: 79

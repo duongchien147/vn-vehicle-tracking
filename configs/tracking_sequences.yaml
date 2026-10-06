@@ -1,0 +1,27 @@
+# Các sequence có nhãn tracking chuẩn (định dạng MOTChallenge) dùng cho scripts/eval_tracking.py.
+#   video        : video gốc (không vẽ box)
+#   ground_truth : file nhãn frame,id,x,y,w,h,...
+#   first_frame  : số của frame đầu trong file nhãn (MOTChallenge = 1; có bộ đánh từ 0)
+#   fill_gaps    : lấp chỗ track nhãn bị rơi giữa chừng bằng box trung tính (distractor) — chỉ bật khi đã
+#                  kiểm bằng mắt rằng nhãn bị rơi trong khi xe vẫn nhìn thấy
+sequences:
+  vntraffic:
+    # VnTraffic (Le Thi-Nhung và cộng sự, Zenodo 10.5281/zenodo.18195750, CC BY 4.0, 1/2026): camera HTV
+    # ngã tư Quang Trung – Lê Trọng Tấn (Hà Nội), nhìn chéo từ trên cao, 1920x1080, 30 fps, 501 frame có nhãn,
+    # 85 track, không có lớp xe. Nhãn không đầy đủ: thiếu nhiều xe máy trong cụm đông/ở xa, và 55/85 track bị rơi
+    # box 1–19 frame giữa chừng (frame 120: xe vẫn thấy rõ) -> fill_gaps.
+    video: data/raw/vntraffic/VNTraffic/VNTraffic_Original-video.mp4
+    ground_truth: data/raw/vntraffic/VNTraffic/VNTraffic_GroundTruth.txt
+    first_frame: 0
+    fill_gaps: true
+
+  # TẬP TEST tracking (nhãn gán tay bằng CVAT theo docs/huong_dan_gan_nhan_tracking.md). Chỉ dùng để chấm cấu hình
+  # đã chọn trên VnTraffic, không dùng để chỉnh. Vùng ignore: dải y < 462 (xe máy cao < 25 px, ngưỡng KITTI) + 3 chỗ
+  # mơ hồ nhỏ. Xe khuất hẳn sau cây = outside (giữ ID khi hiện lại); xe che một phần -> box ôm phần nhìn thấy.
+  # Lịch sử chỉnh sửa: data/tracking_gt/pvd_goc_a/cvat_backup/edit_log.json
+  pvd_goc_a:
+    # data/videos/pvd_goc_a.mp4 giây 20–40 (Phạm Văn Đồng TP.HCM, góc A), 600 frame, 30 fps
+    video: data/tracking_gt/pvd_goc_a/clip.mp4
+    ground_truth: data/tracking_gt/pvd_goc_a/gt/gt.txt
+    format: cvat_mot
+    labels: data/tracking_gt/pvd_goc_a/gt/labels.txt

@@ -1,6 +1,6 @@
 """Chấm mAP kiểu COCO cho nhiều mô hình trên frame lấy từ một clip có nhãn tracking gán tay (CVAT, có lớp xe),
 vd. clip test PVD (TP.HCM) — tập test detector thứ hai, khác cảnh với test Hà Nội. Lấy 1 frame mỗi `--every-s` giây
-để tránh các frame gần trùng. Kết quả: outputs/eval_clip_detection/<sequence>/results.csv + run_config.json.
+để tránh các frame gần trùng. Kết quả: outputs/eval_clip_detection/[<--name>/]<sequence>/results.csv + run_config.json.
 
 Ví dụ:
     python scripts/eval_clip_detection.py --sequence pvd_goc_a
@@ -37,6 +37,7 @@ def main() -> None:
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
     parser.add_argument("--every-s", type=float, default=1.0, help="Lấy 1 frame mỗi bấy nhiêu giây")
     parser.add_argument("--bootstrap", type=int, default=20)
+    parser.add_argument("--name", default="", help="Tên thí nghiệm (thư mục con), để không ghi đè bảng cũ")
     args = parser.parse_args()
 
     spec = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))["sequences"][args.sequence]
@@ -61,7 +62,7 @@ def main() -> None:
         rows.append(score.to_row(counts))
         print(describe(score), flush=True)
 
-    out_dir = Path("outputs/eval_clip_detection") / args.sequence
+    out_dir = Path("outputs/eval_clip_detection") / args.name / args.sequence
     out_dir.mkdir(parents=True, exist_ok=True)
     with (out_dir / "results.csv").open("w", newline="", encoding="utf-8") as f:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))

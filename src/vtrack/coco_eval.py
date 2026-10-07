@@ -37,6 +37,9 @@ class EvalImage:
 class CocoMetrics:
     map50_95: float  # chỉ số chính của COCO: trung bình AP ở IoU 0.50:0.05:0.95
     map50: float
+    # AP ở IoU 0.75: đo độ khít của box. Lưu ý: trên tập có nhãn sửa từ nhãn sơ bộ của một mô hình, chỉ số IoU chặt
+    # thiên vị mô hình (hoặc họ mô hình) đã vẽ nhãn sơ bộ — xem ghi chú dự án
+    map75: float
     map_small: float  # AP50-95 cho vật nhỏ (diện tích < 32x32 px)
     recall: float  # AR ở MAX_DETECTIONS phát hiện/ảnh
     ap50_per_class: dict[str, float]
@@ -72,7 +75,7 @@ def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
     ground_truth, detections = to_coco(images)
     if not detections:
         zeros = {name: 0.0 for name in CLASS_NAMES}
-        return CocoMetrics(0.0, 0.0, 0.0, 0.0, zeros, dict(zeros))
+        return CocoMetrics(0.0, 0.0, 0.0, 0.0, 0.0, zeros, dict(zeros))
     with contextlib.redirect_stdout(io.StringIO()):  # pycocotools in rất nhiều dòng; chỉ lấy số
         coco_truth = COCO()
         coco_truth.dataset = cast(Any, ground_truth)  # stub kiểu của pycocotools quá hẹp; định dạng là dataset COCO
@@ -89,7 +92,7 @@ def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
     # Vùng diện tích: 0 = tất cả, 1 = nhỏ (< 32x32 px). Giá trị -1 = không có nhãn chuẩn cho ô đó (bỏ khi lấy trung bình).
     precision, recall = evaluator.eval["precision"], evaluator.eval["recall"]
     all_areas, small_area, max_dets = 0, 1, -1
-    iou_50 = 0  # chỉ số đầu của dãy IoU 0.50:0.05:0.95
+    iou_50, iou_75 = 0, 5  # vị trí của IoU 0.50 và 0.75 trong dãy 0.50:0.05:0.95
 
     def mean_valid(values: np.ndarray) -> float:
         valid = values[values > -1]
@@ -98,6 +101,7 @@ def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
     return CocoMetrics(
         map50_95=mean_valid(precision[:, :, :, all_areas, max_dets]),
         map50=mean_valid(precision[iou_50, :, :, all_areas, max_dets]),
+        map75=mean_valid(precision[iou_75, :, :, all_areas, max_dets]),
         map_small=mean_valid(precision[:, :, :, small_area, max_dets]),
         recall=mean_valid(recall[:, :, all_areas, max_dets]),
         ap50_per_class={

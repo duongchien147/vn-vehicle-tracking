@@ -12,3 +12,4 @@ pytest
 roboflow
 kaggle
 huggingface_hub>=0.30  # tải UVH-26 từ Hugging Face
+transformers==5.18.0  # RT-DETRv2 (họ Transformer); cùng phiên bản với kernel Kaggle notebooks/kaggle_train_rtdetr

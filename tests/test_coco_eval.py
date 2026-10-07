@@ -58,3 +58,12 @@ def test_main_map_uses_only_well_represented_classes():
 
 def test_no_detections_gives_zero():
     assert evaluate([image([YoloBox(CAR, 0.3, 0.3, 0.1, 0.1)], [])]).map50 == 0.0
+
+
+def test_map75_counts_only_tight_boxes():
+    """Box dịch 20% chiều rộng: IoU = 0.8/1.2 ≈ 0.67 -> đúng ở IoU 0.5, sai ở IoU 0.75."""
+    truth = [YoloBox(CAR, 0.3, 0.3, 0.1, 0.1)]
+    shifted = [YoloBox(CAR, 0.32, 0.3, 0.1, 0.1, 0.9)]
+    metrics = evaluate([image(truth, shifted)])
+    assert metrics.map50 == pytest.approx(1.0)
+    assert metrics.map75 == pytest.approx(0.0)

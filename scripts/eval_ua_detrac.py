@@ -1,6 +1,6 @@
 """Chấm detector trên UA-DETRAC chia theo điều kiện ánh sáng (ngày / đêm) — đo mức suy giảm khi trời tối trên cùng
 một bộ dữ liệu, vì dự án không có cảnh đêm Việt Nam nào có nhãn. Ảnh đọc thẳng từ file zip (không giải nén 140k ảnh).
-Cấu hình: configs/ua_detrac.yaml. Kết quả: outputs/eval_ua_detrac/{results.csv, run_config.json, sequences.csv}.
+Cấu hình: configs/ua_detrac.yaml. Kết quả: outputs/eval_ua_detrac/[<--name>/]{results.csv, run_config.json, sequences.csv}.
 
 Ví dụ:
     python scripts/eval_ua_detrac.py
@@ -62,9 +62,10 @@ def main() -> None:
     parser.add_argument("--config", default="configs/ua_detrac.yaml")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
     parser.add_argument("--bootstrap", type=int, default=20)
+    parser.add_argument("--name", default="", help="Tên thí nghiệm (thư mục con), để không ghi đè bảng cũ")
     args = parser.parse_args()
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
-    out_dir = Path("outputs/eval_ua_detrac")
+    out_dir = Path("outputs/eval_ua_detrac") / args.name
     out_dir.mkdir(parents=True, exist_ok=True)
 
     # Lấy thưa: frame 1, 1 + step, 1 + 2*step... của mỗi video

@@ -1,0 +1,15 @@
+{
+  "id": "chienduong147/vn-vehicles-rtdetrv2-train",
+  "title": "vn-vehicles-rtdetrv2-train",
+  "code_file": "train_rtdetr.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["chienduong147/vn-vehicles-yolo"],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

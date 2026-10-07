@@ -4,16 +4,14 @@ mọi tập test (frame Hà Nội, val UVH-26...) để các bảng số liệu 
 import time
 from collections.abc import Callable
 from dataclasses import dataclass
-from pathlib import Path
 
 import numpy as np
 
 from vtrack import CLASS_NAMES
 from vtrack.coco_eval import CocoMetrics, EvalImage, bootstrap_map50, evaluate, mean_ap50
 from vtrack.label_review import YoloBox
-from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
+from vtrack.detectors import load_detector
 from vtrack.mot_format import MotBox
-from vtrack.pseudo_label import predict_teacher
 
 # Ngưỡng điểm rất thấp là chuẩn khi tính mAP: đường precision-recall cần cả các phát hiện điểm thấp
 EVAL_CONF = 0.001
@@ -21,7 +19,7 @@ EVAL_CONF = 0.001
 
 @dataclass(frozen=True)
 class ModelSpec:
-    weights: str
+    weights: str  # .pt, thư mục OpenVINO, hoặc thư mục RT-DETRv2 (save_pretrained)
     imgsz: int | None  # None = imgsz lúc train/export của mô hình
 
     @classmethod
@@ -48,7 +46,8 @@ class ModelScore:
             "model": self.name, "imgsz": self.imgsz,
             "main_mAP50": self.main_map50, "main_mAP50_ci_low": self.ci_low, "main_mAP50_ci_high": self.ci_high,
             "main_mAP50-95": self.main_map50_95,
-            "mAP50_all_classes": self.metrics.map50, "mAP50-95_all_classes": self.metrics.map50_95,
+            "mAP50_all_classes": self.metrics.map50, "mAP75_all_classes": self.metrics.map75,
+            "mAP50-95_all_classes": self.metrics.map50_95,
             "recall": self.metrics.recall,
             **{f"AP50_{n}": self.metrics.ap50_per_class[n] for n in CLASS_NAMES},
             **{f"AP50-95_{n}": self.metrics.ap50_95_per_class[n] for n in CLASS_NAMES},
@@ -67,11 +66,10 @@ def score_model(
 ) -> ModelScore:
     """Dự đoán trên mọi ảnh rồi chấm. `load_frame(i)` trả ảnh thứ i (đọc khi cần: tập lớn không nạp hết vào RAM).
     Ghi dự đoán vào `images[i].predictions` (ghi đè kết quả của mô hình trước)."""
-    model = load_model(spec.weights)
-    imgsz = spec.imgsz or training_imgsz(model) or FALLBACK_IMGSZ
+    detector = load_detector(spec.weights, spec.imgsz)
     started = time.perf_counter()
     for index, image in enumerate(images):
-        image.predictions = predict_teacher(model, load_frame(index), imgsz, EVAL_CONF)
+        image.predictions = detector.predict(load_frame(index), EVAL_CONF)
     seconds_per_image = (time.perf_counter() - started) / len(images)
 
     metrics = evaluate(images)
@@ -80,7 +78,7 @@ def score_model(
     else:
         low, high = float("nan"), float("nan")
     return ModelScore(
-        name=Path(spec.weights).stem, imgsz=imgsz, metrics=metrics,
+        name=detector.name, imgsz=detector.imgsz, metrics=metrics,
         main_map50=mean_ap50(metrics, main_classes),
         main_map50_95=float(np.mean([metrics.ap50_95_per_class[n] for n in main_classes])),
         ci_low=low, ci_high=high, seconds_per_image=seconds_per_image,

@@ -10,16 +10,12 @@ Ví dụ:
 
 import argparse
 import json
-import os
-import subprocess
-import sys
 from pathlib import Path
+
+from vtrack.kaggle_cli import run_kaggle
 
 DEFAULT_NOTEBOOK_DIR = Path("notebooks/kaggle_train")
 DOWNLOAD_DIR = Path("outputs/kaggle")
-
-# Dùng kaggle CLI cài trong cùng môi trường Python đang chạy script (.venv)
-KAGGLE_CLI = str(Path(sys.executable).with_name("kaggle.exe" if os.name == "nt" else "kaggle"))
 
 
 def kernel_ref(notebook_dir: Path) -> str:
@@ -36,17 +32,13 @@ def main() -> None:
 
     ref = kernel_ref(args.notebook_dir)
     if args.action == "push":
-        command = [KAGGLE_CLI, "kernels", "push", "-p", str(args.notebook_dir)]
+        run_kaggle(["kernels", "push", "-p", str(args.notebook_dir)])
     elif args.action == "status":
-        command = [KAGGLE_CLI, "kernels", "status", ref]
+        run_kaggle(["kernels", "status", ref])
     else:
         target = DOWNLOAD_DIR / ref.split("/")[1]
         target.mkdir(parents=True, exist_ok=True)
-        command = [KAGGLE_CLI, "kernels", "output", ref, "-p", str(target)]
-    print(" ".join(command))
-    # Kaggle CLI đọc notebook bằng bảng mã mặc định của Windows (cp1252) -> lỗi với tiếng Việt;
-    # PYTHONUTF8=1 buộc Python trong tiến trình CLI dùng UTF-8.
-    subprocess.run(command, check=True, env={**os.environ, "PYTHONUTF8": "1"})
+        run_kaggle(["kernels", "output", ref, "-p", str(target)])
     if args.action == "push":
         print(f"\nTheo dõi: https://www.kaggle.com/code/{ref}")
 

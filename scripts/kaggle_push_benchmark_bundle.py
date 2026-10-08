@@ -12,11 +12,10 @@ Ví dụ:
 
 import argparse
 import json
-import os
 import shutil
-import subprocess
-import sys
 from pathlib import Path
+
+from vtrack.kaggle_cli import kaggle_username, push_dataset
 
 BUNDLE_DIR = Path("outputs/kaggle_gpu_bundle")
 DATASET_SLUG = "vtrack-gpu-benchmark"
@@ -25,13 +24,6 @@ VIDEO_NAME = "vntraffic_1080p.mp4"  # tên trong gói; kernel truyền đường
 WEIGHTS = ["weights/yolo26n_vn_v5_best.pt", "weights/yolo26s_vn_v5_best.pt", "weights/rtdetrv2_r18_vn_v5_best"]
 FILES = ["scripts/benchmark_speed.py", "scripts/infer_video.py", "configs/botsort_tuned_nogmc.yaml"]
 DEMO_CLIPS = [f"data/videos/pvd_goc_{c}.mp4" for c in "abc"] + [f"data/videos/ham_chui_dem_{i}.mp4" for i in (1, 2, 3)]
-
-KAGGLE_CLI = str(Path(sys.executable).with_name("kaggle.exe" if os.name == "nt" else "kaggle"))
-
-
-def kaggle_username() -> str:
-    credentials = Path.home() / ".kaggle" / "kaggle.json"
-    return json.loads(credentials.read_text(encoding="utf-8"))["username"]
 
 
 def copy_into_bundle(source: Path, relative: Path) -> None:
@@ -60,17 +52,7 @@ def main() -> None:
     dataset_ref = f"{kaggle_username()}/{DATASET_SLUG}"
     metadata = {"title": DATASET_SLUG, "id": dataset_ref, "licenses": [{"name": "other"}]}
     (BUNDLE_DIR / "dataset-metadata.json").write_text(json.dumps(metadata, indent=2), encoding="utf-8")
-
-    status = subprocess.run([KAGGLE_CLI, "datasets", "status", dataset_ref], capture_output=True, text=True)
-    exists = status.returncode == 0 and "ready" in status.stdout.lower()
-    # --dir-mode zip: thư mục con (src, weights...) được nén khi upload, Kaggle tự giải nén. Mặc định là private.
-    if exists:
-        command = [KAGGLE_CLI, "datasets", "version", "-p", str(BUNDLE_DIR), "-m", args.message, "--dir-mode", "zip"]
-    else:
-        command = [KAGGLE_CLI, "datasets", "create", "-p", str(BUNDLE_DIR), "--dir-mode", "zip"]
-    print(" ".join(command))
-    subprocess.run(command, check=True, env={**os.environ, "PYTHONUTF8": "1"})
-    print(f"\nXong: https://www.kaggle.com/datasets/{dataset_ref}")
+    push_dataset(BUNDLE_DIR, dataset_ref, args.message)
 
 
 if __name__ == "__main__":

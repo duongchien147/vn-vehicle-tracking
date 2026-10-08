@@ -1,1 +1,3 @@
 Nhãn trong labels/ đã được người kiểm (6/10/2026; nhãn sơ bộ YOLO26x COCO, rà soát bằng YOLO26x@1280+1920). Không script nào được ghi đè thư mục labels/ của tập này.
+
+Sửa 8/10/2026 (người gán, ảnh ham_chui_dem_2_00m05s): 2 box "car" -> "motorbike" và 1 box "bus" -> "truck" sau khi xem ảnh phóng to + tăng sáng; thêm 1 xe máy bị sót; chỉnh nhẹ 2 box. Phát hiện khi làm ảnh phân tích lỗi E4 (v5 dự đoán khác nhãn ở các box này) -> nêu trong báo cáo. Mọi bảng dùng tập đêm đã chấm lại sau khi sửa.

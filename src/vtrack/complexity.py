@@ -32,6 +32,10 @@ def yolo_input_hw(imgsz: int, frame_hw: tuple[int, int] = VIDEO_HW, stride: int 
 
 
 def count_gflops(module: torch.nn.Module, *args: torch.Tensor, **kwargs: torch.Tensor) -> float:
+    """Đầu vào được chuyển sang thiết bị của mô hình (CPU hay GPU) trước khi chạy."""
+    device = next(module.parameters()).device
+    args = tuple(a.to(device) for a in args)
+    kwargs = {k: v.to(device) for k, v in kwargs.items()}
     counter = FlopCounterMode(display=False)
     with torch.inference_mode(), counter:
         module(*args, **kwargs)

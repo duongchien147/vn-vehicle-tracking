@@ -1,0 +1,43 @@
+# Ảnh minh hoạ lỗi cho báo cáo (thí nghiệm E4), dùng bởi scripts/render_error_examples.py -> outputs/error_analysis/.
+# Ảnh được chọn (8/10/2026) bằng cách đếm lỗi của v5 trên các tập test: lấy ảnh có nhiều lỗi loại đó nhất.
+# Chỉ để minh hoạ — con số lỗi định lượng nằm ở các bảng mAP/HOTA, không suy ra từ vài ảnh này.
+weights: weights/yolo26n_vn_v5_best.pt
+# Ngưỡng hiển thị 0.25 (mặc định khi xem kết quả của ultralytics); mAP được chấm ở 0.001 nên ảnh chỉ cho thấy lỗi
+# ở điểm làm việc thực tế, không phải toàn bộ đường precision–recall.
+conf: 0.25
+tracking:
+  sequence: pvd_goc_a
+  result: outputs/eval_tracking/test_pvd_goc_a_nogmc/trackers/yolo26n_vn_v5_best-botsort_tuned_nogmc/data/pvd_goc_a.txt
+  # Nguyên nhân đọc được từ ảnh đã chọn (xe #26, frame 340–341), in làm dòng thứ hai của tiêu đề
+  note: "Xe bị cây cảnh phía trước che → box đổi dạng, tracker tạo track mới song song (780) rồi bỏ track cũ (296)"
+
+cases:
+  - name: 1_xe_nho_o_xa_bi_sot
+    title: "Xe máy rất nhỏ ở xa bị sót (vn_extra ngày, pvd_goc_b)"
+    image: data/labeling/vn_extra/day/images/pvd_goc_b_00m26s.jpg
+    focus: missed
+  - name: 2_cum_xe_day_bi_sot
+    title: "Cụm xe máy dày đặc bị sót (test Hà Nội)"
+    image: data/labeling/hanoi/test/images/hanoi_00m59s.jpg
+    focus: missed
+  - name: 3_o_to_ban_dem_bi_sot
+    title: "Ô tô ban đêm bị sót: chỉ thấy đèn, bị rào chắn che (vn_extra đêm)"
+    image: data/labeling/vn_extra/night/images/ham_chui_dem_2_00m20s.jpg
+    focus: missed
+  # Ảnh cũ (ham_chui_dem_2_00m05s) bỏ 8/10/2026: hai lỗi "sai lớp" ở đó hoá ra là lỗi NHÃN, người gán đã sửa. Ảnh này
+  # đã phóng to kiểm bằng mắt: cả hai box đúng là xe máy có người lái, mô hình gọi là ô tô.
+  - name: 4_sai_lop_ban_dem
+    title: "Xe máy ban đêm bị gọi là ô tô: đèn hậu chói, chở thùng hàng (vn_extra đêm)"
+    image: data/labeling/vn_extra/night/images/ham_chui_dem_3_00m20s.jpg
+    focus: wrong_class
+  # Xem ảnh 8/10/2026: box "thừa" ban đêm phần lớn là box LỆCH — mô hình chỉ khoanh phần đèn hậu sáng, IoU với box
+  # nhãn (người + xe) < 0.5 -> một xe bị tính cả bỏ sót (đỏ) lẫn thừa (tím), không phải vệt đèn/bóng phản chiếu.
+  - name: 5_box_lech_ban_dem
+    title: "Box lệch ban đêm: chỉ khoanh phần đèn hậu → vừa bỏ sót (đỏ) vừa thừa (tím) (vn_extra đêm)"
+    image: data/labeling/vn_extra/night/images/ham_chui_dem_3_00m35s.jpg
+    focus: false_positive
+  - name: 6_xe_van_goi_la_o_to
+    title: "Ford Transit (nhãn: buýt) bị gọi là ô tô — vấn đề định nghĩa lớp van (clip PVD)"
+    sequence: pvd_goc_a
+    frame: 418  # frame đánh số từ 1 như nhãn CVAT; xe Transit (track 79) cắt vạch đếm ở frame này
+    focus: wrong_class

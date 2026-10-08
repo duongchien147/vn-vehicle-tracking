@@ -36,19 +36,23 @@ class RtDetrDetector:
     processor: RTDetrImageProcessor
     imgsz: int
     class_ids: dict[int, int]  # id lớp của mô hình -> id lớp dự án
+    device: torch.device  # GPU nếu máy có (như ultralytics tự chọn cho YOLO), không thì CPU
 
     @classmethod
     def load(cls, model_dir: str | Path, imgsz: int | None = None) -> "RtDetrDetector":
         """`imgsz` mặc định = kích thước lúc train (lưu trong preprocessor_config.json)."""
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         model = RTDetrV2ForObjectDetection.from_pretrained(str(Path(model_dir).resolve())).eval()
+        torch.nn.Module.to(model, device)  # gọi thẳng nn.Module.to: kiểu khai báo của transformers làm pyright báo oan
         processor = RTDetrImageProcessor.from_pretrained(str(Path(model_dir).resolve()))
         size = imgsz or int(processor.size["height"])
         names = {int(k): v for k, v in (model.config.id2label or {}).items()}
-        return cls(model, processor, size, class_mapping(names))
+        return cls(model, processor, size, class_mapping(names), device)
 
     @torch.inference_mode()
     def predict(self, image_bgr: np.ndarray, conf: float) -> list[YoloBox]:
-        rgb = torch.from_numpy(np.ascontiguousarray(image_bgr[:, :, ::-1])).permute(2, 0, 1)
+        # Resize trên cùng thiết bị với mô hình: trên GPU tránh để CPU resize ảnh 1080p thành nút cổ chai
+        rgb = torch.from_numpy(np.ascontiguousarray(image_bgr[:, :, ::-1])).permute(2, 0, 1).to(self.device)
         pixels = F.resize(rgb, [self.imgsz, self.imgsz]).float().div(255).unsqueeze(0)
         outputs = self.model(pixel_values=pixels)
         result = self.processor.post_process_object_detection(outputs, threshold=0.0)[0]

@@ -104,7 +104,8 @@ def main() -> None:
         writer.writerows(asdict(t) for t in timings)
     environment = {"cpu": platform.processor(), "python": platform.python_version(), "torch": torch.__version__,
                    "torch_threads": torch.get_num_threads(), "openvino": openvino.__version__,
-                   "ultralytics": ultralytics.__version__, "transformers": transformers.__version__}
+                   "ultralytics": ultralytics.__version__, "transformers": transformers.__version__,
+                   "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}
     run_config = {**vars(args), "environment": environment}
     (out_dir / "run_config.json").write_text(json.dumps(run_config, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nĐã ghi {out_dir / 'results.csv'}")

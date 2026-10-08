@@ -20,8 +20,10 @@ from vtrack.mot_format import MotBox
 # ByteTrack/BoT-SORT dùng cả detection điểm thấp cho bước ghép thứ hai (nối track bị che khuất);
 # việc tạo track mới do `new_track_thresh` trong config tracker quyết định, nên conf đầu vào để thấp.
 DEFAULT_DETECTION_CONF = 0.1
-# Tracker đã chỉnh trên tập dev VnTraffic (xem chú thích trong file)
-DEFAULT_TRACKER = "configs/botsort_tuned.yaml"
+# Tracker đã chỉnh trên tập dev VnTraffic, tắt bù chuyển động camera (GMC): camera trong phạm vi đồ án đứng yên.
+# Trên dev, tắt GMC cho IDR như nhau (0.827) và đổi ID 61 vs 62, pipeline OpenVINO nhanh hơn 1.4 lần
+# (outputs/eval_tracking/gmc_dev/). Video camera rung/quay theo thì dùng configs/botsort_tuned.yaml (có GMC).
+DEFAULT_TRACKER = "configs/botsort_tuned_nogmc.yaml"
 # Track phải sống đủ 3 frame mới hiện/được đếm: bằng min_hits mặc định của SORT. Trên VnTraffic giảm đổi ID
 # 128 -> 118 và MOTA +0.04, đổi lại IDR -0.004 (mất 2 frame đầu của mỗi xe). Bộ chấm tracking vẫn báo kết quả thô.
 DEFAULT_MIN_TRACK_AGE = 3

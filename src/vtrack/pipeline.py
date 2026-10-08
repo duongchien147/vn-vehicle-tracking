@@ -15,6 +15,7 @@ import supervision as sv
 from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
+from vtrack.count_eval import make_line_zone
 from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER, track_video
 from vtrack.video_io import to_h264
@@ -95,11 +96,7 @@ def process_video(
     if max_frames is not None:
         total = min(total, max_frames) if total else max_frames
 
-    line_zone = sv.LineZone(
-        start=sv.Point(line[0] * w, line[1] * h),
-        end=sv.Point(line[2] * w, line[3] * h),
-        triggering_anchors=[sv.Position.BOTTOM_CENTER],
-    )
+    line_zone = make_line_zone(line, w, h)  # dùng chung với bộ chấm sai số đếm (vtrack.count_eval)
     thickness = sv.calculate_optimal_line_thickness((w, h))
     text_scale = sv.calculate_optimal_text_scale((w, h))
     box_annotator = sv.BoxAnnotator(thickness=thickness)

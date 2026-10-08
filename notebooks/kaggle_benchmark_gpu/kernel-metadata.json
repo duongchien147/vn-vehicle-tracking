@@ -1,0 +1,15 @@
+{
+  "id": "chienduong147/vtrack-gpu-benchmark-run",
+  "title": "vtrack-gpu-benchmark-run",
+  "code_file": "benchmark_gpu.py",
+  "language": "python",
+  "kernel_type": "script",
+  "is_private": true,
+  "enable_gpu": true,
+  "enable_tpu": false,
+  "enable_internet": true,
+  "dataset_sources": ["chienduong147/vtrack-gpu-benchmark"],
+  "competition_sources": [],
+  "kernel_sources": [],
+  "model_sources": []
+}

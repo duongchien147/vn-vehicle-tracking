@@ -8,6 +8,7 @@ from collections import Counter
 from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from pathlib import Path
+from typing import cast
 
 import cv2
 import numpy as np
@@ -16,6 +17,7 @@ from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
 from vtrack.count_eval import make_line_zone
+from vtrack.display_ids import DisplayIds, label_mask
 from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER, track_video
 from vtrack.video_io import to_h264
@@ -25,7 +27,8 @@ from vtrack.video_io import to_h264
 class CrossingEvent:
     frame: int  # chỉ số frame trong video gốc
     time_s: float
-    track_id: int
+    track_id: int  # ID gốc của tracker (để truy ngược)
+    display_id: int  # số hiển thị trên video (vtrack.display_ids)
     class_name: str
     direction: str  # "in" hoặc "out"
 
@@ -58,10 +61,20 @@ class VideoResult:
     def write_events_csv(self, path: str | Path) -> Path:
         path = Path(path)
         with path.open("w", newline="", encoding="utf-8") as f:
-            writer = csv.DictWriter(f, fieldnames=["frame", "time_s", "track_id", "class_name", "direction"])
+            writer = csv.DictWriter(f, fieldnames=["frame", "time_s", "track_id", "display_id", "class_name", "direction"])
             writer.writeheader()
             writer.writerows(asdict(e) for e in self.events)
         return path
+
+
+def read_events_csv(path: str | Path) -> list[CrossingEvent]:
+    """Đọc ngược file của VideoResult.write_events_csv (để xem lại kết quả đã xử lý sẵn)."""
+    with Path(path).open(newline="", encoding="utf-8") as f:
+        return [
+            CrossingEvent(frame=int(row["frame"]), time_s=float(row["time_s"]), track_id=int(row["track_id"]),
+                          display_id=int(row["display_id"]), class_name=row["class_name"], direction=row["direction"])
+            for row in csv.DictReader(f)
+        ]
 
 
 def process_video(
@@ -100,7 +113,8 @@ def process_video(
     thickness = sv.calculate_optimal_line_thickness((w, h))
     text_scale = sv.calculate_optimal_text_scale((w, h))
     box_annotator = sv.BoxAnnotator(thickness=thickness)
-    label_annotator = sv.LabelAnnotator(text_scale=text_scale, text_thickness=thickness)
+    # smart_position: supervision tự dịch nhãn để không chồng lên nhau (xe máy đi sát nhau rất hay đè nhãn)
+    label_annotator = sv.LabelAnnotator(text_scale=text_scale, text_thickness=thickness, smart_position=True)
     trace_annotator = sv.TraceAnnotator(
         thickness=thickness,
         trace_length=int(info.fps / vid_stride * 2),
@@ -111,6 +125,7 @@ def process_video(
     )
 
     events: list[CrossingEvent] = []
+    display_ids = DisplayIds()
     running = Counter[str]()
     raw_path = output.with_name(output.stem + "_raw.mp4")
     frames = 0
@@ -135,6 +150,7 @@ def process_video(
                             frame=frame_index,
                             time_s=frame_index / info.fps,
                             track_id=int(track_ids[i]),
+                            display_id=display_ids.get(int(track_ids[i])),
                             class_name=name,
                             direction=direction,
                         )
@@ -143,11 +159,16 @@ def process_video(
             annotated = tracked.image.copy()
             if len(detections):
                 labels = [
-                    f"#{tid} {CLASS_NAMES[c]}" for tid, c in zip(track_ids, class_ids)
+                    f"#{display_ids.get(int(tid))} {CLASS_NAMES[c]}" for tid, c in zip(track_ids, class_ids)
                 ]
                 annotated = trace_annotator.annotate(annotated, detections)
                 annotated = box_annotator.annotate(annotated, detections)
-                annotated = label_annotator.annotate(annotated, detections, labels)
+                labelled = label_mask(detections.xyxy, h)
+                # Lọc Detections bằng mảng bool trả về Detections; kiểu khai báo của supervision rộng hơn nên cần cast
+                labelled_detections = cast(sv.Detections, detections[labelled])
+                annotated = label_annotator.annotate(
+                    annotated, labelled_detections, [text for text, keep in zip(labels, labelled) if keep]
+                )
             annotated = line_annotator.annotate(annotated, line_counter=line_zone)
             draw_count_panel(annotated, running, text_scale, thickness)
             sink.write_frame(annotated)

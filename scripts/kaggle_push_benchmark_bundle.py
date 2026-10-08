@@ -1,7 +1,9 @@
-"""Đóng gói những gì cần để đo tốc độ trên GPU Kaggle (mã nguồn vtrack, script đo, cấu hình tracker, trọng số,
-một video 1080p) rồi đưa lên Kaggle dưới dạng dataset PRIVATE; kernel notebooks/kaggle_benchmark_gpu dùng dataset này.
+"""Đóng gói những gì cần để chạy trên GPU Kaggle (mã nguồn vtrack, script, cấu hình tracker, trọng số, video) rồi đưa
+lên Kaggle dưới dạng dataset PRIVATE; dùng bởi kernel notebooks/kaggle_benchmark_gpu (đo tốc độ) và
+notebooks/kaggle_demo_gpu (xử lý sẵn video demo).
 
-Video là VnTraffic (camera HTV Hà Nội, 1080p, CC BY 4.0 — được phép phân phối lại), không dùng clip lấy từ YouTube.
+Video đo tốc độ là VnTraffic (CC BY 4.0, được phép phân phối lại). Clip demo PVD / hầm chui lấy từ YouTube: chỉ được
+dùng cho học tập, KHÔNG đăng lại -> dataset phải luôn để private (người làm đồ án đồng ý đưa lên 8/10/2026).
 
 Ví dụ:
     python scripts/kaggle_push_benchmark_bundle.py
@@ -21,7 +23,8 @@ DATASET_SLUG = "vtrack-gpu-benchmark"
 VIDEO = Path("data/raw/vntraffic/VNTraffic/VNTraffic_Original-video.mp4")
 VIDEO_NAME = "vntraffic_1080p.mp4"  # tên trong gói; kernel truyền đường dẫn này cho benchmark_speed.py
 WEIGHTS = ["weights/yolo26n_vn_v5_best.pt", "weights/yolo26s_vn_v5_best.pt", "weights/rtdetrv2_r18_vn_v5_best"]
-FILES = ["scripts/benchmark_speed.py", "configs/botsort_tuned_nogmc.yaml"]
+FILES = ["scripts/benchmark_speed.py", "scripts/infer_video.py", "configs/botsort_tuned_nogmc.yaml"]
+DEMO_CLIPS = [f"data/videos/pvd_goc_{c}.mp4" for c in "abc"] + [f"data/videos/ham_chui_dem_{i}.mp4" for i in (1, 2, 3)]
 
 KAGGLE_CLI = str(Path(sys.executable).with_name("kaggle.exe" if os.name == "nt" else "kaggle"))
 
@@ -43,7 +46,7 @@ def copy_into_bundle(source: Path, relative: Path) -> None:
 def build_bundle() -> None:
     shutil.rmtree(BUNDLE_DIR, ignore_errors=True)
     copy_into_bundle(Path("src/vtrack"), Path("src/vtrack"))
-    for path in [*FILES, *WEIGHTS]:
+    for path in [*FILES, *WEIGHTS, *DEMO_CLIPS]:
         copy_into_bundle(Path(path), Path(path))
     copy_into_bundle(VIDEO, Path("data") / VIDEO_NAME)
 

@@ -52,8 +52,10 @@ def main() -> None:
 
     csv_path = result.write_events_csv(out_dir / f"{source.stem}_events.csv")
 
-    # imgsz thực tế đã dùng (kể cả khi đọc tự động) và bộ lọc tuổi track mặc định của pipeline
-    run_config = {**vars(args), "imgsz": result.imgsz, "min_track_age": DEFAULT_MIN_TRACK_AGE}
+    # imgsz thực tế đã dùng (kể cả khi đọc tự động), bộ lọc tuổi track mặc định của pipeline, và số frame/tốc độ để
+    # web demo nạp lại được kết quả (vtrack.saved_runs) mà không phải xử lý lại
+    run_config = {**vars(args), "imgsz": result.imgsz, "min_track_age": DEFAULT_MIN_TRACK_AGE,
+                  "frames": result.frames, "processing_fps": round(result.processing_fps, 2)}
     config_path = out_dir / f"{source.stem}_run_config.json"
     config_path.write_text(json.dumps(run_config, indent=2, ensure_ascii=False), encoding="utf-8")
 

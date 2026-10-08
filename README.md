@@ -77,7 +77,8 @@ Trọng số được tạo bằng các notebook huấn luyện trong `notebooks
 # Bản OpenVINO (nhanh hơn trên CPU) và vạch đếm tuỳ chọn (toạ độ tương đối 0–1)
 .venv\Scripts\python.exe scripts\infer_video.py --source <video> --weights weights\yolo26n_vn_v5_best_openvino_model --line 0 0.6 1 0.6
 
-# Web demo: chọn clip hoặc tải video lên, chọn mô hình / tracker / vạch đếm -> video kết quả, bảng đếm, biểu đồ, CSV
+# Web demo: chọn clip hoặc tải video lên, chọn mô hình / tracker / vạch đếm -> video kết quả, bảng đếm, biểu đồ, CSV.
+# Chế độ "Kết quả GPU xử lý sẵn" xem lại video đã xử lý trên GPU T4 (notebooks/kaggle_demo_gpu) mà không chạy lại.
 .venv\Scripts\streamlit.exe run app\streamlit_app.py
 ```
 

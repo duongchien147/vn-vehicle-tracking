@@ -1,6 +1,7 @@
 """Web demo Streamlit: chọn clip có sẵn hoặc tải video lên -> phát hiện, theo dõi, đếm xe qua vạch -> xem video kết quả,
 bảng đếm theo lớp/hướng, biểu đồ theo thời gian, tải CSV. Chỉ là lớp giao diện: mọi xử lý nằm trong
-vtrack.pipeline.process_video() (giống hệt CLI scripts/infer_video.py).
+vtrack.pipeline.process_video() (giống hệt CLI scripts/infer_video.py). Chế độ "Kết quả GPU xử lý sẵn" chỉ nạp lại
+video + CSV mà notebooks/kaggle_demo_gpu đã tạo bằng cùng pipeline trên GPU T4 (trên CPU không chạy kịp thời gian thực).
 
 Chạy:  .venv\\Scripts\\streamlit.exe run app\\streamlit_app.py
 """
@@ -18,11 +19,18 @@ from ultralytics import YOLO
 from vtrack import CLASS_NAMES
 from vtrack.models import DEFAULT_WEIGHTS, load_model
 from vtrack.pipeline import VideoResult, process_video
+from vtrack.saved_runs import find_saved_runs, load_saved_run
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
 from vtrack.video_io import read_frame, safe_upload_name
 
 VIDEO_DIR = Path("data/videos")
 OUTPUT_DIR = Path("outputs/streamlit")
+GPU_DEMO_DIR = Path("outputs/kaggle/vtrack-demo-gpu/demo")  # tải về bằng: scripts/kaggle_train.py download
+# Clip mở sẵn: clip test PVD có nhãn tracking — video khớp bảng HOTA và sai số đếm trong báo cáo
+GPU_DEFAULT_CLIP = "pvd_goc_a"
+# Chế độ đầu tiên là mặc định: trình chiếu video GPU xử lý sẵn (mượt, có ngay); hai chế độ chạy trực tiếp trên CPU
+# giữ lại để chạy video mới khi được hỏi (chậm ~10 frame/s)
+MODES = ("Kết quả GPU xử lý sẵn", "Clip có sẵn (chạy CPU)", "Tải video lên (chạy CPU)")
 UPLOAD_SUFFIXES = ("mp4", "avi", "mov")
 # Mô hình chọn sẵn trong demo: cùng trọng số v5 nhưng chạy bằng OpenVINO — cả pipeline 6.9 so với 5.3 frame/s trên
 # CPU (outputs/benchmark_speed/), mAP50 val Hà Nội 0.916 so với 0.919 của bản PyTorch (chênh trong mức dao động)
@@ -59,9 +67,8 @@ def available_models() -> list[str]:
     return [weights for weights in MODEL_LABELS if Path(weights).exists()]
 
 
-def choose_source() -> Path | None:
-    mode = st.sidebar.radio("Video", ["Clip có sẵn", "Tải video lên"], horizontal=True)
-    if mode == "Clip có sẵn":
+def choose_source(mode: str) -> Path | None:
+    if mode == MODES[1]:
         clips = sorted(p for p in VIDEO_DIR.glob("*.mp4") if p.name not in HIDDEN_CLIPS)
         if not clips:
             st.sidebar.warning(f"Không có video trong {VIDEO_DIR}")
@@ -104,11 +111,11 @@ def show_line_preview(source: Path, line: tuple[float, float, float, float]) -> 
     st.image(cv2.cvtColor(frame, cv2.COLOR_BGR2RGB), caption="Frame đầu và vạch đếm (đỏ)", width="stretch")
 
 
-def show_results(result: VideoResult, duration_s: float, settings: dict) -> None:
+def show_results(result: VideoResult, duration_s: float, settings: dict, events_csv: Path, hardware: str) -> None:
     st.video(str(result.output_path))
     a, b, c = st.columns(3)
     a.metric("Frame đã xử lý", result.frames)
-    b.metric("Tốc độ (frame/s, CPU)", f"{result.processing_fps:.1f}")
+    b.metric(f"Tốc độ cả quy trình (frame/s, {hardware})", f"{result.processing_fps:.1f}")
     c.metric("Kích thước ảnh vào mô hình", result.imgsz)
 
     st.subheader("Số xe qua vạch")
@@ -125,11 +132,27 @@ def show_results(result: VideoResult, duration_s: float, settings: dict) -> None
     with st.expander(f"Danh sách {len(events)} sự kiện qua vạch"):
         st.dataframe(events, hide_index=True, width="stretch")
     left, right = st.columns(2)
-    csv_path = result.write_events_csv(result.output_path.with_name(result.output_path.stem + "_events.csv"))
-    left.download_button("Tải CSV sự kiện", csv_path.read_bytes(), csv_path.name, "text/csv")
+    left.download_button("Tải CSV sự kiện", events_csv.read_bytes(), events_csv.name, "text/csv")
     right.download_button("Tải video kết quả", result.output_path.read_bytes(), result.output_path.name, "video/mp4")
     with st.expander("Cấu hình đã dùng (để tái lập kết quả)"):
         st.code(json.dumps({**settings, "imgsz": result.imgsz}, indent=2, ensure_ascii=False), language="json")
+
+
+def show_gpu_demo() -> None:
+    clips = find_saved_runs(GPU_DEMO_DIR)
+    if not clips:
+        st.info(f"Chưa có kết quả trong {GPU_DEMO_DIR}: chạy kernel notebooks/kaggle_demo_gpu rồi tải output về.")
+        return
+    default = clips.index(GPU_DEFAULT_CLIP) if GPU_DEFAULT_CLIP in clips else 0
+    clip = st.sidebar.selectbox("Clip", clips, index=default)
+    run = load_saved_run(GPU_DEMO_DIR, clip)
+    st.markdown(
+        f"**{clip}** — xử lý sẵn trên GPU Tesla T4 (Kaggle) bằng đúng pipeline của dự án: "
+        f"`{Path(run.config['weights']).name}` + `{Path(run.config['tracker']).name}`, vạch đếm {run.config['line']}. "
+        "Tốc độ dưới đây gồm cả vẽ box và mã hoá video; riêng phát hiện + theo dõi đạt ~42 frame/s."
+    )
+    video_fps = sv.VideoInfo.from_video_path(str(run.result.output_path)).fps
+    show_results(run.result, run.result.frames / video_fps, run.config, run.events_csv, hardware="GPU T4")
 
 
 def main() -> None:
@@ -137,7 +160,12 @@ def main() -> None:
     st.title("Phát hiện, phân loại và theo dõi phương tiện giao thông Việt Nam")
     st.caption("YOLO26 fine-tune trên dữ liệu Việt Nam + BoT-SORT; đếm xe qua vạch là ứng dụng minh hoạ của tracking.")
 
-    source = choose_source()
+    mode = st.sidebar.radio("Video", MODES, horizontal=True)
+    if mode == MODES[0]:
+        show_gpu_demo()
+        return
+
+    source = choose_source(mode)
     models = available_models()
     weights = st.sidebar.selectbox("Mô hình", models, format_func=lambda w: MODEL_LABELS[w])
     tracker = st.sidebar.selectbox("Tracker", list(TRACKER_LABELS), format_func=lambda t: TRACKER_LABELS[t])
@@ -182,7 +210,8 @@ def main() -> None:
             conf=conf, vid_stride=vid_stride, max_frames=max_frames, on_progress=on_progress,
         )
         progress.empty()
-        st.session_state["last_run"] = (result, max_seconds, settings)
+        events_csv = result.write_events_csv(result.output_path.with_name(result.output_path.stem + "_events.csv"))
+        st.session_state["last_run"] = (result, max_seconds, settings, events_csv, "CPU")
 
     if "last_run" in st.session_state:
         show_results(*st.session_state["last_run"])

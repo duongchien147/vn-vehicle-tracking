@@ -1,0 +1,121 @@
+% =====================================================================
+% Định dạng báo cáo, theo mẫu báo cáo môn học của trường (file Word cũ):
+% A4; lề trên/dưới 3 cm, trái 3.5 cm, phải 2 cm; Times 13 pt; giãn dòng 1.5;
+% tên chương 15 pt đậm, căn giữa; chú thích hình dưới hình, bảng trên bảng.
+% Biên dịch bằng XeLaTeX (Overleaf: Menu -> Compiler -> XeLaTeX).
+%
+% Overleaf miễn phí chỉ cho 10 giây mỗi lần biên dịch, nên preamble chỉ nạp gói thật cần:
+% toán dùng newtxmath (nhanh hơn nhiều so với unicode-math), không nạp TikZ (sơ đồ vẽ sẵn thành PDF),
+% không dùng độ rộng số tự động trong mục lục (nó bắt biên dịch thêm một lượt).
+% =====================================================================
+
+% ---------- Font: Times cho chữ (TeX Gyre Termes, đủ dấu tiếng Việt) và cho toán (newtxmath) ----------
+\usepackage{amsmath}
+\usepackage{newtxmath}
+\usepackage[no-math]{fontspec}
+\setmainfont{texgyretermes}[
+  Extension      = .otf,
+  UprightFont    = *-regular,
+  BoldFont       = *-bold,
+  ItalicFont     = *-italic,
+  BoldItalicFont = *-bolditalic]
+
+% ---------- Ngôn ngữ ----------
+\usepackage{polyglossia}
+\setdefaultlanguage{vietnamese}
+\setotherlanguage{english}
+\usepackage{etoolbox}
+\newcommand{\setreportnames}{%
+  \renewcommand{\contentsname}{MỤC LỤC}%
+  \renewcommand{\listfigurename}{DANH SÁCH HÌNH ẢNH}%
+  \renewcommand{\listtablename}{DANH SÁCH BẢNG}%
+  \renewcommand{\bibname}{TÀI LIỆU THAM KHẢO}%
+  \renewcommand{\figurename}{Hình}%
+  \renewcommand{\tablename}{Bảng}%
+  \renewcommand{\chaptername}{CHƯƠNG}%
+}
+% Đặt cả hai chỗ: cách polyglossia nạp tên mục khác nhau giữa các phiên bản TeX Live
+\gappto\captionsvietnamese{\setreportnames}
+\AtBeginDocument{\setreportnames}
+
+% ---------- Trang ----------
+\usepackage[a4paper, top=3cm, bottom=3cm, left=3.5cm, right=2cm,
+            headheight=24pt, headsep=0.6cm, footskip=1.2cm]{geometry}
+\usepackage{setspace}
+% Word "1.5 lines" với Times ~ 1.5 x 1.15 cỡ chữ; LaTeX mặc định 1.2 cỡ chữ -> hệ số 1.5 x 1.15 / 1.2 ~ 1.43
+\setstretch{1.43}
+\setlength{\parindent}{1cm}
+\setlength{\parskip}{3pt plus 1pt}
+\usepackage{indentfirst}
+% Tên bộ dữ liệu, tham số (\texttt) không ngắt được: cho phép giãn khoảng trắng thêm thay vì tràn lề
+\setlength{\emergencystretch}{3em}
+
+% ---------- Header / footer: tên đề tài có gạch dưới, số trang giữa chân trang ----------
+\usepackage[headsepline]{scrlayer-scrpage}
+\setlength{\footheight}{24pt}
+\clearpairofpagestyles
+% Cỡ 9 pt để tên đề tài nằm trên một dòng như header của mẫu
+\ihead{\fontsize{9}{11}\selectfont ỨNG DỤNG HỌC SÂU TRONG PHÁT HIỆN, PHÂN LOẠI VÀ THEO DÕI PHƯƠNG TIỆN GIAO THÔNG}
+\cfoot*{\pagemark}
+\setkomafont{pageheadfoot}{\normalfont}
+\setkomafont{pagenumber}{\normalfont}
+\renewcommand*{\chapterpagestyle}{scrheadings}
+
+% ---------- Tiêu đề chương / mục ----------
+\setkomafont{disposition}{\normalfont\bfseries}
+\setkomafont{chapter}{\fontsize{15}{19}\selectfont\bfseries}
+\setkomafont{section}{\fontsize{13}{16}\selectfont\bfseries}
+\setkomafont{subsection}{\fontsize{13}{16}\selectfont\bfseries}
+\setkomafont{subsubsection}{\fontsize{13}{16}\selectfont\bfseries\itshape}
+\renewcommand*{\raggedchapter}{\centering}
+\renewcommand*{\chapterformat}{\chaptername~\thechapter.\space}
+\RedeclareSectionCommand[beforeskip=0pt, afterskip=1.2\baselineskip]{chapter}
+\RedeclareSectionCommands[beforeskip=0.8\baselineskip, afterskip=0.4\baselineskip]{section,subsection}
+\RedeclareSectionCommand[beforeskip=0.6\baselineskip, afterskip=0.3\baselineskip]{subsubsection}
+\setcounter{secnumdepth}{\subsubsectionnumdepth}
+\setcounter{tocdepth}{\subsectiontocdepth}
+
+% Mục lục ghi "CHƯƠNG 1. TÊN", danh sách hình/bảng ghi "Hình 1.1 ..."/"Bảng 1.1 ...".
+% Độ rộng ô số đặt cố định (vừa "CHƯƠNG 4." và "Hình 4.10") thay cho tính tự động.
+\setuptoc{toc}{totoc}  % đưa chính MỤC LỤC vào mục lục như mẫu
+\newcommand*{\chapterprefixintoc}[1]{\chaptername~#1\unskip.\space}
+\RedeclareSectionCommand[tocentrynumberformat=\chapterprefixintoc, tocnumwidth=2.6cm]{chapter}
+\newcommand*{\figureprefixintoc}[1]{\figurename~#1}
+\newcommand*{\tableprefixintoc}[1]{\tablename~#1}
+\DeclareTOCStyleEntry[entrynumberformat=\figureprefixintoc, numwidth=2.1cm]{tocline}{figure}
+\DeclareTOCStyleEntry[entrynumberformat=\tableprefixintoc, numwidth=2.1cm]{tocline}{table}
+
+% ---------- Hình, bảng, chú thích ----------
+\usepackage{graphicx}
+\graphicspath{{figures/}}
+\usepackage{float}
+\usepackage[table]{xcolor}
+\definecolor{tableheader}{HTML}{5B9BD5}
+\usepackage{array, tabularx, longtable}
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}
+\renewcommand{\arraystretch}{1.15}
+\usepackage{caption}
+\usepackage{subcaption}
+\DeclareCaptionFont{twelve}{\fontsize{12}{14.5}\selectfont}
+\captionsetup{font={twelve,it}, labelsep=space, justification=centering, skip=6pt}
+\captionsetup[table]{position=top}
+% Hàng tiêu đề bảng: nền xanh, chữ đậm như mẫu
+\newcommand{\thead}[1]{\cellcolor{tableheader}\textbf{#1}}
+
+% ---------- Danh sách ----------
+\usepackage{enumitem}
+\setlist[itemize,1]{label=--, leftmargin=1.5cm, itemsep=1pt, topsep=2pt}
+\setlist[itemize,2]{label=+, leftmargin=*, itemsep=0pt}
+\setlist[enumerate]{leftmargin=1.5cm, itemsep=1pt, topsep=2pt}
+
+% ---------- Toán ----------
+\numberwithin{equation}{chapter}
+
+% ---------- Khung trang bìa (eso-pic nhẹ hơn TikZ và không cần biên dịch thêm lượt) ----------
+\usepackage{eso-pic}
+
+% ---------- Khác ----------
+% Không dùng hyperref: báo cáo nộp bản in, bỏ liên kết bấm được để mỗi lượt biên dịch nhanh hơn ~0.3 s
+\usepackage{url}
+\urlstyle{same}

@@ -1,0 +1,50 @@
+% Hai trang bìa (bìa ngoài và bìa trong) giống nội dung trong file Word mẫu, có khung viền đôi.
+% Khung vẽ bằng eso-pic: toạ độ tính bằng cm từ góc dưới trái trang A4 (21 x 29.7 cm).
+\newcommand{\coverframe}{%
+  \AddToShipoutPictureBG*{%
+    \setlength{\unitlength}{1cm}%
+    % khung ngoài, nét 1.6 pt: x 2.6 -> 19.6 cm, y 2.1 -> 27.6 cm
+    \put(2.6,2.1){\rule{\dimexpr17cm+1.6pt\relax}{1.6pt}}%
+    \put(2.6,27.6){\rule{\dimexpr17cm+1.6pt\relax}{1.6pt}}%
+    \put(2.6,2.1){\rule{1.6pt}{25.5cm}}%
+    \put(19.6,2.1){\rule{1.6pt}{25.5cm}}%
+    % khung trong, nét 0.5 pt: x 2.8 -> 19.4 cm, y 2.3 -> 27.4 cm
+    \put(2.8,2.3){\rule{\dimexpr16.6cm+0.5pt\relax}{0.5pt}}%
+    \put(2.8,27.4){\rule{\dimexpr16.6cm+0.5pt\relax}{0.5pt}}%
+    \put(2.8,2.3){\rule{0.5pt}{25.1cm}}%
+    \put(19.4,2.3){\rule{0.5pt}{25.1cm}}%
+  }%
+}
+
+\newcommand{\coverpage}{%
+  \thispagestyle{empty}%
+  \coverframe
+  \begin{center}
+    \setstretch{1.15}
+    {\bfseries BỘ GIÁO DỤC VÀ ĐÀO TẠO\\
+     TRƯỜNG ĐẠI HỌC CÔNG NGHỆ KỸ THUẬT HƯNG YÊN\par}
+    \vspace{1.2cm}
+    \includegraphics[width=3.6cm]{logo.png}\par
+    \vspace{1.3cm}
+    {\fontsize{22}{26}\selectfont\bfseries BÀI TẬP LỚN\par}
+    \vspace{0.3cm}
+    {\fontsize{15}{18}\selectfont\bfseries HỌC SÂU\par}
+    \vspace{1.1cm}
+    {\fontsize{16}{22}\selectfont\bfseries ỨNG DỤNG HỌC SÂU TRONG PHÁT HIỆN, PHÂN LOẠI\\
+     VÀ THEO DÕI PHƯƠNG TIỆN GIAO THÔNG\par}
+    \vspace{1.3cm}
+    NGÀNH: KHOA HỌC MÁY TÍNH\\
+    CHUYÊN NGÀNH: TRÍ TUỆ NHÂN TẠO VÀ KHOA HỌC DỮ LIỆU\par
+    \vspace{1.1cm}
+    SINH VIÊN: DƯƠNG MINH CHIẾN\\
+    MÃ SINH VIÊN: 12423062\\
+    MÃ LỚP: 124231\\
+    GIẢNG VIÊN HƯỚNG DẪN: PGS.TS. NGUYỄN MINH TIẾN\par
+    \vfill
+    {\bfseries HƯNG YÊN -- 2026\par}
+  \end{center}
+  \clearpage
+}
+
+\coverpage % bìa ngoài
+\coverpage % bìa trong

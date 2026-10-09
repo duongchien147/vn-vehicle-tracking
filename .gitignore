@@ -72,3 +72,11 @@ runs/
 # Log của trình biên dịch GPU Intel khi OpenVINO dò GPU tích hợp — vô hại
 kernel.errors.txt
 *.egg-info/
+# Trình biên dịch báo cáo (tải tự động bởi report/build_pdf.ps1) và file tạm khi biên dịch báo cáo
+tools/
+report/build/
+report/overleaf_moi/
+report/overleaf_truoc/
+# Sản phẩm tạo lại được của báo cáo: PDF (report/build_pdf.ps1) và gói zip cho Overleaf
+report/bao_cao.pdf
+report/*.zip

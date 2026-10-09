@@ -1,0 +1,86 @@
+\addchap{MỞ ĐẦU}
+
+\addsec{Lý do chọn đề tài}
+
+Đường phố đô thị Việt Nam có mật độ xe máy rất cao. Xe máy và ô tô đi xen kẽ, dừng thành cụm ở ngã tư và thường che
+khuất nhau trong khung hình camera. Đếm lưu lượng xe theo loại và theo hướng từ camera giao thông là việc hữu ích cho
+quản lý giao thông, nhưng khó làm tự động bằng các mô hình huấn luyện sẵn trên bộ dữ liệu phổ thông. Khi chạy trực
+tiếp mô hình YOLO26n huấn luyện trên COCO lên 30 frame gán nhãn tay từ video ngã tư Hà Nội, mAP50 trung bình của hai
+lớp xe máy và ô tô chỉ đạt 0.686, riêng AP50 của xe máy là 0.530 (Bảng~\ref{tab:e1-hanoi}).
+
+Dữ liệu có nhãn đúng bối cảnh này lại ít. Các bộ dữ liệu xe Việt Nam công khai mà đề tài tìm được phần lớn chỉ gồm
+một vài camera, góc nhìn chéo từ trên cao của camera giao thông hầu như không có, và trong quá trình tìm kiếm đề tài
+không tìm được tập cảnh đêm Việt Nam nào có nhãn. Ngoài ra, mô hình đạt điểm cao trên tập test của bộ dữ liệu có sẵn
+chưa chắc đã tốt trên video thật: phiên bản đầu tiên của đề tài đạt mAP50 0.861 trên tập test Roboflow, nhưng mAP50
+trung bình xe máy và ô tô trên frame Hà Nội chỉ còn 0.395.
+
+Từ đó, đề tài chọn hướng tinh chỉnh (fine-tune) mô hình phát hiện trên dữ liệu gần với bối cảnh mục tiêu, tự xây các
+tập đánh giá Việt Nam có người kiểm, rồi kết hợp với thuật toán theo dõi đa đối tượng để gán ID cho từng xe và đếm xe
+qua vạch.
+
+\addsec{Mục tiêu đề tài}
+
+\textbf{Mục tiêu tổng quát:} xây dựng hệ thống phát hiện, phân loại (4 lớp xe máy, ô tô, xe buýt, xe tải) và theo dõi
+phương tiện từ video camera giao thông Việt Nam; đánh giá phần phát hiện bằng mAP kiểu COCO và phần theo dõi bằng
+HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
+
+\textbf{Mục tiêu cụ thể:}
+\begin{itemize}
+  \item Thu thập, gộp và chuẩn hoá dữ liệu huấn luyện từ nhiều nguồn; tự xây các tập test Việt Nam có người kiểm, gồm
+        cả cảnh ban đêm, và một clip có nhãn theo dõi.
+  \item Tinh chỉnh YOLO26n qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
+  \item So sánh kiến trúc CNN (YOLO26n, YOLO26s) với kiến trúc Transformer (RT-DETRv2-S) theo một giao thức công bằng,
+        đo cả độ chính xác lẫn tốc độ.
+  \item Chọn và tinh chỉnh thuật toán theo dõi (ByteTrack, BoT-SORT, OC-SORT) trên tập phát triển, chấm một lần trên
+        tập test.
+  \item Xây dựng ứng dụng đếm xe qua vạch theo lớp và hướng, web demo bằng Streamlit, đo tốc độ trên CPU laptop và GPU.
+\end{itemize}
+
+\addsec{Giới hạn và phạm vi đề tài}
+
+\textbf{Phạm vi:}
+\begin{itemize}
+  \item Video từ camera cố định nhìn chéo từ trên cao, kiểu camera giao thông; ban ngày và ban đêm.
+  \item Bốn lớp phương tiện: \texttt{motorbike}, \texttt{car}, \texttt{bus}, \texttt{truck}. Box xe máy bao cả người lái.
+  \item Góc drone nhìn thẳng xuống và góc ngang tầm mắt chỉ dùng để phân tích lỗi, không tối ưu cho chúng.
+\end{itemize}
+
+\textbf{Giới hạn:}
+\begin{itemize}
+  \item Máy chạy suy luận là laptop chỉ có CPU (Intel Core i5-8250U); việc huấn luyện chạy trên GPU Tesla T4 của Kaggle,
+        với hạn mức khoảng 30 giờ GPU mỗi tuần.
+  \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ (20--30 frame mỗi tập, một clip theo dõi dài 20 giây).
+  \item Mỗi cấu hình huấn luyện chỉ chạy một lần (một seed).
+\end{itemize}
+
+\addsec{Nội dung thực hiện}
+
+\begin{enumerate}
+  \item Dữ liệu: gộp sáu nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test; tạo nhãn tự động cho
+        frame huấn luyện cắt từ video Hà Nội.
+  \item Huấn luyện: năm phiên bản YOLO26n (v1 đến v5), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle.
+  \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên tập phát triển VnTraffic, chấm trên clip Phạm Văn
+        Đồng gán nhãn tay bằng CVAT.
+  \item Ứng dụng: pipeline đếm xe qua vạch, web demo Streamlit, video demo xử lý trên GPU.
+  \item Đánh giá qua bốn thí nghiệm: E1 (độ chính xác phát hiện), E2 (tốc độ), E3 (theo dõi và sai số đếm), E4 (phân
+        tích lỗi).
+\end{enumerate}
+
+\addsec{Phương pháp tiếp cận}
+
+Đề tài kết hợp nghiên cứu tài liệu với thực nghiệm. Phần lý thuyết tổng hợp các mô hình phát hiện họ YOLO và DETR,
+các thuật toán theo dõi họ SORT và các chỉ số đánh giá chuẩn. Phần thực nghiệm tuân theo ba nguyên tắc:
+\begin{itemize}
+  \item Mọi lựa chọn (mô hình, thuật toán theo dõi, kích thước ảnh đầu vào) được quyết định trên tập phát triển (dev)
+        theo tiêu chí đặt ra trước khi chạy. Tập test chỉ dùng để chấm một lần cấu hình đã chọn. Hai phương án chênh
+        nhau dưới 0.005 điểm mAP được coi là hoà, khi đó chọn phương án nhanh hơn.
+  \item Mỗi quyết định đối chiếu với quy ước của các bộ dữ liệu và benchmark lớn (COCO, KITTI, VisDrone, MOTChallenge);
+        chỗ nào lệch quy ước thì nêu rõ lý do.
+  \item Mọi số liệu trong báo cáo được xuất từ file kết quả của từng lần chạy, kèm cấu hình đã dùng, để có thể truy
+        ngược.
+\end{itemize}
+
+Báo cáo gồm bốn chương. Chương~\ref{chap:gioithieu} giới thiệu bài toán, ứng dụng và khó khăn.
+Chương~\ref{chap:lythuyet} trình bày cơ sở lý thuyết về mô hình phát hiện, thuật toán theo dõi và chỉ số đánh giá.
+Chương~\ref{chap:xaydung} mô tả dữ liệu, cách gán nhãn, quá trình huấn luyện và pipeline hệ thống.
+Chương~\ref{chap:ketqua} trình bày kết quả thực nghiệm, ứng dụng web, thảo luận, hạn chế và hướng phát triển.

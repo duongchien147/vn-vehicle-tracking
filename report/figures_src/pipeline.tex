@@ -1,0 +1,33 @@
+% Sơ đồ luồng xử lý (Hình 3.3). Biên dịch riêng thành figures/pipeline.pdf để báo cáo chính không phải nạp TikZ
+% (giữ thời gian biên dịch dưới giới hạn 10 s của Overleaf miễn phí):
+%   tectonic -X compile report/figures_src/pipeline.tex --outdir report/overleaf/figures
+\documentclass[border=2pt]{standalone}
+\usepackage{fontspec}
+\setmainfont{texgyretermes}[Extension=.otf, UprightFont=*-regular, BoldFont=*-bold]
+\usepackage{xcolor}
+\definecolor{tableheader}{HTML}{5B9BD5}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta, positioning}
+\begin{document}
+\begin{tikzpicture}[
+    node distance=0.55cm and 0.5cm,
+    box/.style={draw, rounded corners=2pt, align=center, minimum height=1.1cm, text width=2.55cm,
+                font=\small, fill=tableheader!12},
+    arrow/.style={-{Stealth[length=2.2mm]}, thick}]
+  \node[box] (video) {Video\\1080p};
+  \node[box, right=of video] (det) {Phát hiện\\YOLO26n v5\\(ảnh 960, conf 0.1)};
+  \node[box, right=of det] (track) {Theo dõi\\BoT-SORT\\(gán ID)};
+  \node[box, right=of track] (vote) {Bỏ phiếu lớp\\theo track};
+  \node[box, below=1.0cm of vote] (line) {Đếm qua vạch\\(LineZone)};
+  \node[box, left=of line] (draw) {Vẽ box, ID,\\vết, vạch};
+  \node[box, left=of draw] (out) {Video H.264\\+ CSV sự kiện};
+  \node[box, left=of out] (app) {Web demo\\Streamlit};
+  \draw[arrow] (video) -- (det);
+  \draw[arrow] (det) -- (track);
+  \draw[arrow] (track) -- (vote);
+  \draw[arrow] (vote) -- (line);
+  \draw[arrow] (line) -- (draw);
+  \draw[arrow] (draw) -- (out);
+  \draw[arrow] (out) -- (app);
+\end{tikzpicture}
+\end{document}

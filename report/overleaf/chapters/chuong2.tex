@@ -1,0 +1,388 @@
+\chapter{CƠ SỞ LÝ THUYẾT}
+\label{chap:lythuyet}
+
+Chương này trình bày nền tảng của các thành phần trong hệ thống: mạng nơ-ron tích chập và bài toán phát hiện đối
+tượng, hai họ mô hình phát hiện được so sánh (YOLO và DETR), các thuật toán theo dõi đa đối tượng họ SORT, và các chỉ
+số đánh giá.
+
+\section{Mạng nơ-ron tích chập và bài toán phát hiện đối tượng}
+
+\subsection{Mạng nơ-ron tích chập}
+
+Mạng nơ-ron tích chập (CNN) xử lý ảnh bằng các lớp tích chập: mỗi lớp trượt một tập bộ lọc nhỏ trên bản đồ đặc trưng
+đầu vào. Với đầu vào $X$ có $C$ kênh, bộ lọc kích thước $k \times k$ và bước trượt $s$, kênh thứ $c'$ của đầu ra là
+\begin{equation}
+  Y(i, j, c') = \sum_{c=1}^{C} \sum_{u=0}^{k-1} \sum_{v=0}^{k-1} W(u, v, c, c')\, X(i s + u,\; j s + v,\; c) + b_{c'}
+  \label{eq:conv}
+\end{equation}
+Công thức (\ref{eq:conv}): phép tích chập hai chiều.
+
+Với:
+\begin{itemize}
+  \item $W$: trọng số bộ lọc, dùng chung cho mọi vị trí trong ảnh;
+  \item $b_{c'}$: độ lệch của kênh đầu ra $c'$;
+  \item $s$: bước trượt; $s = 2$ làm bản đồ đặc trưng nhỏ đi một nửa mỗi chiều.
+\end{itemize}
+
+Vì trọng số dùng chung theo vị trí, số tham số không phụ thuộc kích thước ảnh và mạng nhận ra cùng một mẫu (bánh xe,
+kính chắn gió) ở mọi chỗ trong ảnh. Xếp chồng nhiều lớp tích chập, chuẩn hoá theo batch và hàm kích hoạt phi tuyến (các
+mô hình YOLO gần đây dùng SiLU, $\mathrm{SiLU}(x) = x \cdot \sigma(x)$) giúp vùng nhìn (receptive field) của mỗi nơ-ron
+lớn dần: lớp nông bắt cạnh và góc, lớp sâu bắt hình dạng cả chiếc xe. Mạng ResNet~\cite{he2016resnet} thêm kết nối tắt
+$y = F(x) + x$ để huấn luyện được mạng sâu; RT-DETRv2-S dùng ResNet-18 làm phần trích đặc trưng.
+
+\subsection{Bài toán phát hiện đối tượng}
+
+Mô hình phát hiện nhận một ảnh và trả về tập dự đoán $\{(b_k, c_k, s_k)\}$, trong đó $b_k = (x, y, w, h)$ là box (toạ độ
+tâm, chiều rộng, chiều cao), $c_k$ là lớp và $s_k$ là điểm tin cậy. Các mô hình hiện đại thường gồm ba phần:
+\begin{itemize}
+  \item \textbf{Backbone}: mạng trích đặc trưng, cho ra các bản đồ đặc trưng ở nhiều độ phân giải (thường là 1/8, 1/16 và
+        1/32 ảnh gốc);
+  \item \textbf{Neck}: trộn đặc trưng giữa các mức để mức độ phân giải cao (dành cho vật nhỏ) cũng mang thông tin ngữ
+        nghĩa của mức sâu;
+  \item \textbf{Head}: dự đoán box và lớp tại từng vị trí trên các bản đồ đặc trưng.
+\end{itemize}
+
+Mức độ trùng khớp giữa hai box $A$ và $B$ được đo bằng tỉ lệ giao trên hợp (IoU):
+\begin{equation}
+  \mathrm{IoU}(A, B) = \frac{|A \cap B|}{|A \cup B|}
+  \label{eq:iou}
+\end{equation}
+Công thức (\ref{eq:iou}): tỉ lệ giao trên hợp của hai box, nhận giá trị từ 0 (không giao nhau) đến 1 (trùng khít).
+
+IoU được dùng ở ba chỗ: khi gán nhãn huấn luyện (dự đoán nào chịu trách nhiệm cho xe nào), khi chấm điểm (một dự đoán
+là đúng nếu IoU với box nhãn vượt ngưỡng) và khi theo dõi (ghép box giữa hai frame).
+
+Nhiều mô hình phát hiện, kể cả các bản YOLO trước YOLOv10, cho ra nhiều box chồng lên cùng một xe. Bước hậu xử lý
+\emph{loại bỏ không cực đại} (NMS) giữ box có điểm cao nhất rồi xoá các box khác có IoU với nó vượt ngưỡng. NMS có
+một tham số phải chỉnh tay và hoạt động kém ở cảnh xe đứng sát nhau: hai xe máy dừng cạnh nhau có IoU cao, NMS có thể
+xoá nhầm một xe. Cả YOLO26 và họ DETR dùng trong đề tài đều không cần NMS.
+
+\section{Họ mô hình YOLO và YOLO26}
+
+\subsection{Ý tưởng phát hiện một giai đoạn}
+
+YOLO~\cite{redmon2016yolo} coi phát hiện đối tượng là một bài toán hồi quy: một lần truyền xuôi qua mạng cho ra trực
+tiếp toạ độ box và xác suất lớp tại mọi vị trí, thay cho cách hai giai đoạn (đề xuất vùng rồi phân loại từng vùng). Cách
+làm này nhanh, phù hợp xử lý video. Các phiên bản sau giữ ý tưởng đó và cải tiến dần backbone, neck đa tỉ lệ, cách gán
+nhãn và hàm mất mát.
+
+\subsection{YOLO26}
+
+YOLO26~\cite{jocher2026yolo26} là thế hệ YOLO mới nhất của Ultralytics~\cite{ultralytics}, có năm cỡ n, s, m, l, x. Đề
+tài dùng cỡ n (2.5 triệu tham số) làm mô hình triển khai và cỡ s (10.0 triệu tham số) để so sánh. Các điểm khác biệt
+chính so với thế hệ trước:
+\begin{itemize}
+  \item \textbf{Phát hiện đầu cuối, không cần NMS.} Theo hướng của YOLOv10~\cite{wang2024yolov10}, khi suy luận mô hình
+        dùng đầu ra gán nhãn một-một: mỗi xe chỉ ứng với một dự đoán, nên đầu ra dùng được ngay, không qua NMS.
+  \item \textbf{Bỏ Distribution Focal Loss (DFL).} Box được hồi quy trực tiếp, giúp mô hình gọn hơn khi xuất sang các
+        định dạng triển khai như OpenVINO.
+  \item \textbf{ProgLoss và STAL.} ProgLoss cân bằng dần các thành phần mất mát trong quá trình huấn luyện; STAL là cách
+        gán nhãn chú ý tới vật nhỏ. Cả hai nhắm vào vật nhỏ, đúng với xe máy ở xa trong bài toán này.
+  \item \textbf{Optimizer MuSGD}, kết hợp SGD với Muon, dùng cho các lần huấn luyện dài.
+\end{itemize}
+
+Nhật ký huấn luyện của đề tài ghi ba thành phần mất mát: mất mát box dựa trên IoU, mất mát phân lớp và mất mát L1 trên
+toạ độ box. Mất mát phân lớp là entropy chéo nhị phân (BCE) tính riêng cho từng lớp:
+\begin{equation}
+  \mathcal{L}_{\mathrm{cls}} = -\frac{1}{N} \sum_{i=1}^{N} \sum_{c=1}^{K}
+  \Big[ y_{ic} \log p_{ic} + (1 - y_{ic}) \log (1 - p_{ic}) \Big]
+  \label{eq:bce}
+\end{equation}
+Công thức (\ref{eq:bce}): mất mát phân lớp entropy chéo nhị phân.
+
+Với:
+\begin{itemize}
+  \item $N$: số dự đoán được tính mất mát; $K = 4$: số lớp;
+  \item $y_{ic}$: nhãn đích của dự đoán $i$ với lớp $c$;
+  \item $p_{ic}$: xác suất mô hình dự đoán (sau hàm sigmoid).
+\end{itemize}
+
+Tổng mất mát là tổng có trọng số $\mathcal{L} = \lambda_{\mathrm{box}} \mathcal{L}_{\mathrm{box}} +
+\lambda_{\mathrm{cls}} \mathcal{L}_{\mathrm{cls}} + \lambda_{L1} \mathcal{L}_{L1}$, với các hệ số lấy theo mặc định
+của thư viện.
+
+\textbf{Ưu điểm:} nhanh, nhẹ, có sẵn công cụ huấn luyện, xuất mô hình và theo dõi đối tượng trong cùng thư viện;
+không cần NMS. \textbf{Nhược điểm:} ảnh được thu nhỏ về 960 điểm ảnh cạnh dài (với cấu hình của đề tài), nên xe rất
+nhỏ ở xa mất chi tiết; cỡ n có ít tham số nên kém hơn cỡ lớn ở cảnh khó.
+
+\section{Transformer và họ mô hình DETR}
+
+\subsection{Cơ chế attention}
+
+Transformer~\cite{vaswani2017attention} xây dựng trên cơ chế attention: mỗi phần tử của chuỗi đầu vào tổng hợp thông
+tin từ mọi phần tử khác theo trọng số học được.
+\begin{equation}
+  \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left( \frac{Q K^{\top}}{\sqrt{d_k}} \right) V
+  \label{eq:attention}
+\end{equation}
+Công thức (\ref{eq:attention}): attention tích vô hướng có chuẩn hoá.
+
+Với:
+\begin{itemize}
+  \item $Q$, $K$, $V$: ma trận truy vấn (query), khoá (key) và giá trị (value), là các phép chiếu tuyến tính của đầu
+        vào;
+  \item $d_k$: số chiều của khoá; chia cho $\sqrt{d_k}$ để hàm softmax không bị bão hoà.
+\end{itemize}
+
+Attention nhiều đầu (multi-head) chạy song song nhiều phép attention với các phép chiếu khác nhau rồi ghép kết quả.
+Khác với tích chập chỉ nhìn một vùng lân cận, attention nhìn toàn ảnh, nhưng chi phí tăng theo bình phương số phần tử.
+
+\subsection{DETR: phát hiện như bài toán dự đoán tập hợp}
+
+DETR~\cite{carion2020detr} dùng CNN trích đặc trưng, đưa qua bộ mã hoá và bộ giải mã Transformer với $N$ truy vấn đối
+tượng (object query); mỗi truy vấn cho ra một box và một lớp, có thể là lớp ``không có đối tượng'' ($\varnothing$).
+Khi huấn luyện, $N$ dự đoán được ghép một-một với các box nhãn bằng thuật toán Hungarian:
+\begin{equation}
+  \begin{split}
+    \hat{\sigma} &= \arg\min_{\sigma} \sum_{i=1}^{N} \mathcal{L}_{\mathrm{match}}\big(y_i, \hat{y}_{\sigma(i)}\big) \\
+    \mathcal{L}_{\mathrm{match}} &= -\mathbf{1}_{\{c_i \neq \varnothing\}}\, \hat{p}_{\sigma(i)}(c_i)
+      + \mathbf{1}_{\{c_i \neq \varnothing\}}\, \mathcal{L}_{\mathrm{box}}\big(b_i, \hat{b}_{\sigma(i)}\big)
+  \end{split}
+  \label{eq:detr-match}
+\end{equation}
+Công thức (\ref{eq:detr-match}): ghép cặp tối ưu giữa nhãn và dự đoán trong DETR.
+
+Với:
+\begin{itemize}
+  \item $\sigma$: một hoán vị gán mỗi nhãn $y_i = (c_i, b_i)$ cho một dự đoán $\hat{y}_{\sigma(i)}$;
+  \item $\hat{p}_{\sigma(i)}(c_i)$: xác suất dự đoán $\sigma(i)$ gán cho lớp đúng $c_i$;
+  \item $\mathcal{L}_{\mathrm{box}} = \lambda_{L1} \lVert b_i - \hat{b}_{\sigma(i)} \rVert_1 +
+        \lambda_{\mathrm{giou}} \mathcal{L}_{\mathrm{giou}}$: mất mát box.
+\end{itemize}
+
+Thành phần GIoU khắc phục việc IoU bằng 0 cho mọi cặp box không giao nhau:
+\begin{equation}
+  \mathrm{GIoU}(A, B) = \mathrm{IoU}(A, B) - \frac{|C| - |A \cup B|}{|C|},
+  \qquad \mathcal{L}_{\mathrm{giou}} = 1 - \mathrm{GIoU}
+  \label{eq:giou}
+\end{equation}
+Công thức (\ref{eq:giou}): IoU tổng quát, với $C$ là box nhỏ nhất bao cả $A$ và $B$.
+
+Vì ghép một-một, mỗi xe chỉ ứng với một dự đoán và DETR không cần NMS. Nhược điểm của DETR gốc là hội tụ chậm (hàng
+trăm epoch trên COCO) và chậm khi suy luận.
+
+\subsection{RT-DETR và RT-DETRv2}
+
+RT-DETR~\cite{zhao2024rtdetr} đưa họ DETR về tốc độ thời gian thực trên GPU nhờ ba thay đổi:
+\begin{itemize}
+  \item \textbf{Bộ mã hoá lai.} Attention trong cùng một mức (AIFI) chỉ chạy trên bản đồ đặc trưng sâu nhất (1/32),
+        nơi số phần tử ít; việc trộn đặc trưng giữa các mức (CCFM) làm bằng tích chập.
+  \item \textbf{Chọn truy vấn theo IoU.} Truy vấn khởi tạo cho bộ giải mã được chọn từ các vị trí có điểm phân lớp và
+        IoU dự kiến cao, thay cho truy vấn học tự do.
+  \item \textbf{Attention biến dạng trong bộ giải mã.} Mỗi truy vấn chỉ lấy mẫu một số ít điểm quanh điểm tham chiếu:
+\end{itemize}
+\begin{equation}
+  \mathrm{DeformAttn}(z_q, p_q, x) = \sum_{m=1}^{M} W_m \Big[ \sum_{k=1}^{K} A_{mqk} \cdot W'_m\, x\big(p_q +
+  \Delta p_{mqk}\big) \Big]
+  \label{eq:deform}
+\end{equation}
+Công thức (\ref{eq:deform}): attention biến dạng.
+
+Với:
+\begin{itemize}
+  \item $z_q$, $p_q$: đặc trưng và điểm tham chiếu của truy vấn $q$;
+  \item $M$: số đầu attention; $K$: số điểm lấy mẫu mỗi đầu;
+  \item $\Delta p_{mqk}$: độ lệch vị trí học được; $A_{mqk}$: trọng số attention, tổng theo $k$ bằng 1.
+\end{itemize}
+
+Mất mát phân lớp của RT-DETR là Varifocal Loss (VFL), dùng IoU giữa box dự đoán và box nhãn làm nhãn mềm $q$:
+\begin{equation}
+  \mathrm{VFL}(p, q) =
+  \begin{cases}
+    -q \big( q \log p + (1 - q) \log (1 - p) \big), & q > 0 \\
+    -\alpha\, p^{\gamma} \log (1 - p), & q = 0
+  \end{cases}
+  \label{eq:vfl}
+\end{equation}
+Công thức (\ref{eq:vfl}): Varifocal Loss, với $p$ là điểm dự đoán, $\alpha$ và $\gamma$ là hệ số giảm trọng số cho
+mẫu nền.
+
+RT-DETRv2~\cite{lv2024rtdetrv2} giữ kiến trúc trên và thêm một số cải tiến không làm chậm suy luận (bag-of-freebies):
+số điểm lấy mẫu khác nhau cho từng mức đặc trưng, toán tử lấy mẫu rời rạc thuận tiện khi triển khai, tăng cường dữ
+liệu động và siêu tham số điều chỉnh theo cỡ mô hình. Khi huấn luyện còn dùng thêm truy vấn nhiễu (denoising) để bộ giải
+mã hội tụ nhanh hơn. Bản RT-DETRv2-S dùng backbone ResNet-18 và có 20.1 triệu tham số.
+
+\textbf{Ưu điểm:} box khít, không cần NMS, nhìn được ngữ cảnh toàn ảnh. \textbf{Nhược điểm:} nặng hơn YOLO cùng thế
+hệ; trên CPU chậm hơn nhiều lần (mục~\ref{sec:toc-do}).
+
+\section{Theo dõi đa đối tượng}
+
+\subsection{Theo dõi dựa trên phát hiện}
+
+Các thuật toán theo dõi trong đề tài đều theo vòng lặp sau cho mỗi frame $t$:
+\begin{enumerate}
+  \item chạy mô hình phát hiện, được tập box $D_t$;
+  \item dự đoán vị trí ở frame $t$ của mọi quỹ đạo (track) đang theo dõi bằng bộ lọc Kalman;
+  \item ghép box $D_t$ với các track dựa trên IoU giữa box và vị trí dự đoán;
+  \item cập nhật track được ghép, tạo track mới cho box chưa ghép đủ tin cậy, giữ track chưa ghép ở trạng thái ``mất''
+        thêm một số frame trước khi xoá.
+\end{enumerate}
+
+\subsection{Bộ lọc Kalman}
+
+Bộ lọc Kalman~\cite{kalman1960} ước lượng trạng thái của từng xe dưới giả thiết vận tốc không đổi. Với BoT-SORT, trạng
+thái là $\mathbf{x} = [x_c, y_c, w, h, \dot{x}_c, \dot{y}_c, \dot{w}, \dot{h}]^{\top}$ (tâm, kích thước box và vận tốc
+của chúng). Mỗi frame gồm hai bước:
+\begin{equation}
+  \hat{\mathbf{x}}_{t|t-1} = F \hat{\mathbf{x}}_{t-1}, \qquad P_{t|t-1} = F P_{t-1} F^{\top} + Q
+  \label{eq:kalman-predict}
+\end{equation}
+Công thức (\ref{eq:kalman-predict}): bước dự đoán.
+\begin{equation}
+  \begin{split}
+    K_t &= P_{t|t-1} H^{\top} \big( H P_{t|t-1} H^{\top} + R \big)^{-1} \\
+    \hat{\mathbf{x}}_{t} &= \hat{\mathbf{x}}_{t|t-1} + K_t \big( \mathbf{z}_t - H \hat{\mathbf{x}}_{t|t-1} \big) \\
+    P_t &= (I - K_t H) P_{t|t-1}
+  \end{split}
+  \label{eq:kalman-update}
+\end{equation}
+Công thức (\ref{eq:kalman-update}): bước cập nhật khi track được ghép với một box.
+
+Với:
+\begin{itemize}
+  \item $F$: ma trận chuyển trạng thái (vị trí cộng vận tốc); $H$: ma trận quan sát, lấy 4 thành phần box từ trạng thái;
+  \item $P$: hiệp phương sai của ước lượng; $Q$, $R$: nhiễu của mô hình chuyển động và nhiễu đo;
+  \item $\mathbf{z}_t$: box được ghép ở frame $t$; $K_t$: hệ số Kalman, cân bằng giữa dự đoán và quan sát.
+\end{itemize}
+
+Khi xe bị che vài frame, track không được cập nhật nhưng bước dự đoán vẫn đẩy vị trí theo vận tốc, nên khi xe xuất hiện
+lại vẫn có thể ghép đúng.
+
+\subsection{Ghép cặp bằng thuật toán Hungarian}
+
+Giữa $n$ track và $m$ box, ma trận chi phí có phần tử $c_{ij} = 1 - \mathrm{IoU}(\hat{b}_i, d_j)$. Thuật toán
+Hungarian~\cite{kuhn1955hungarian} tìm phép gán một-một có tổng chi phí nhỏ nhất:
+\begin{equation}
+  \min_{x_{ij} \in \{0, 1\}} \sum_{i=1}^{n} \sum_{j=1}^{m} c_{ij} x_{ij}
+  \quad \text{sao cho} \quad \sum_{j} x_{ij} \le 1,\; \sum_{i} x_{ij} \le 1
+  \label{eq:hungarian}
+\end{equation}
+Công thức (\ref{eq:hungarian}): bài toán gán. Các cặp có chi phí vượt ngưỡng ghép bị loại dù được thuật toán chọn.
+
+\subsection{Các thuật toán theo dõi họ SORT}
+
+\textbf{SORT}~\cite{bewley2016sort} là dạng cơ bản: Kalman để dự đoán, Hungarian theo IoU để ghép. Track mới chỉ được
+xác nhận sau vài frame liên tiếp có box (\texttt{min\_hits}) và bị xoá sau một số frame không được ghép.
+
+\textbf{ByteTrack}~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp. Box được chia hai nhóm theo điểm tin cậy: lần
+ghép thứ nhất chỉ dùng box điểm cao; các track còn lại được ghép lần hai với box điểm thấp. Xe bị che một phần thường
+có điểm thấp, nên lần ghép thứ hai giúp track không bị đứt. Chỉ box điểm cao chưa ghép mới tạo track mới. Vì lý do
+này, ngưỡng tin cậy của mô hình phát hiện trong hệ thống được đặt ở 0.1 thay cho 0.25 thông thường: các box từ 0.1 đến
+0.25 không tạo track mới nhưng được dùng ở lần ghép thứ hai.
+
+\textbf{BoT-SORT}~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến: trạng thái Kalman dùng trực tiếp
+chiều rộng và chiều cao box; bù chuyển động camera (GMC) bằng cách ước lượng phép biến đổi giữa hai frame từ luồng
+quang học thưa rồi áp vào vị trí dự đoán; và tuỳ chọn kết hợp đặc trưng ngoại hình (ReID) với IoU khi ghép.
+
+\textbf{OC-SORT}~\cite{cao2023ocsort} xử lý trường hợp xe bị che lâu: khi track được ghép lại sau thời gian mất, thuật
+toán dựng lại quỹ đạo ảo từ quan sát cuối để sửa sai số tích luỹ của Kalman, và dùng hướng chuyển động thực tế làm
+thêm một thành phần chi phí khi ghép.
+
+\section{Các chỉ số đánh giá}
+\label{sec:chi-so}
+
+\subsection{Chỉ số phát hiện: Precision, Recall, AP và mAP}
+
+Một dự đoán là đúng (TP) nếu cùng lớp và có IoU với một box nhãn chưa được ghép vượt ngưỡng; các dự đoán được xét lần
+lượt theo điểm tin cậy giảm dần. Dự đoán không ghép được là phát hiện thừa (FP), box nhãn không được ghép là bỏ sót (FN).
+\begin{equation}
+  \mathrm{Precision} = \frac{TP}{TP + FP}, \qquad \mathrm{Recall} = \frac{TP}{TP + FN}
+  \label{eq:pr}
+\end{equation}
+Công thức (\ref{eq:pr}): độ chính xác và độ bao phủ.
+
+Quét ngưỡng tin cậy từ cao xuống thấp cho đường cong Precision–Recall. Độ chính xác trung bình (AP) theo quy ước
+COCO~\cite{lin2014coco} là trung bình độ chính xác nội suy tại 101 mức recall:
+\begin{equation}
+  \mathrm{AP} = \frac{1}{101} \sum_{r \in \{0, 0.01, \ldots, 1\}} p_{\mathrm{interp}}(r), \qquad
+  p_{\mathrm{interp}}(r) = \max_{\tilde{r} \ge r} p(\tilde{r})
+  \label{eq:ap}
+\end{equation}
+Công thức (\ref{eq:ap}): AP nội suy 101 điểm của COCO.
+
+mAP là trung bình AP trên các lớp. mAP50 tính ở ngưỡng IoU 0.5; mAP50-95 lấy trung bình thêm trên 10 ngưỡng IoU 0.50,
+0.55, \ldots, 0.95, nên đòi hỏi box khít hơn. Trong đề tài, \textbf{mAP50 chính} là trung bình AP50 của xe máy và ô tô:
+các tập test Việt Nam có rất ít xe buýt và xe tải (tập test Hà Nội chỉ có 5 xe buýt và 2 xe tải), AP của hai lớp này
+nhảy giữa 0 và 1 theo từng box nên không đưa vào chỉ số chính.
+
+Một số vùng trong ảnh có xe nhưng không thể gán nhãn rõ ràng (xe bị cây che gần hết, cụm xe quá xa). Theo quy ước vùng
+bỏ qua của KITTI~\cite{geiger2012kitti} (\texttt{DontCare}) và COCO (\texttt{iscrowd}), các vùng này được gán lớp
+\texttt{ignore}: dự đoán rơi vào vùng ignore không bị tính là thừa, và xe trong vùng không bị tính là bỏ sót.
+
+\subsection{MOTA}
+
+MOTA~\cite{bernardin2008clear} gộp ba loại lỗi trên toàn bộ video:
+\begin{equation}
+  \mathrm{MOTA} = 1 - \frac{\sum_{t} \big( \mathrm{FN}_t + \mathrm{FP}_t + \mathrm{IDSW}_t \big)}{\sum_{t} \mathrm{GT}_t}
+  \label{eq:mota}
+\end{equation}
+Công thức (\ref{eq:mota}): độ chính xác theo dõi đa đối tượng.
+
+Với:
+\begin{itemize}
+  \item $\mathrm{FN}_t$, $\mathrm{FP}_t$: số box bỏ sót và thừa ở frame $t$;
+  \item $\mathrm{IDSW}_t$: số lần một xe bị đổi ID so với frame trước;
+  \item $\mathrm{GT}_t$: số box nhãn ở frame $t$.
+\end{itemize}
+
+MOTA bị chi phối bởi FN và FP, tức chủ yếu đo chất lượng phát hiện; số lần đổi ID thường nhỏ so với hai thành phần kia.
+
+\subsection{IDF1}
+
+IDF1~\cite{ristani2016idf1} đo mức giữ đúng danh tính. Toàn bộ quỹ đạo nhãn và quỹ đạo dự đoán được ghép một-một sao
+cho số frame trùng khớp lớn nhất; IDTP là số box thuộc cặp quỹ đạo được ghép và trùng khớp, IDFP và IDFN là phần còn lại.
+\begin{equation}
+  \begin{gathered}
+    \mathrm{IDF1} = \frac{2\,\mathrm{IDTP}}{2\,\mathrm{IDTP} + \mathrm{IDFP} + \mathrm{IDFN}} \\
+    \mathrm{IDP} = \frac{\mathrm{IDTP}}{\mathrm{IDTP} + \mathrm{IDFP}}, \qquad
+    \mathrm{IDR} = \frac{\mathrm{IDTP}}{\mathrm{IDTP} + \mathrm{IDFN}}
+  \end{gathered}
+  \label{eq:idf1}
+\end{equation}
+Công thức (\ref{eq:idf1}): IDF1, độ chính xác danh tính IDP và độ bao phủ danh tính IDR.
+
+IDR chỉ phụ thuộc vào quỹ đạo nhãn được theo đúng bao nhiêu, không bị phạt khi hệ thống phát hiện thêm xe không có
+nhãn. Tính chất này được dùng khi đánh giá trên tập VnTraffic có nhãn thiếu (mục~\ref{sec:theo-doi}).
+
+\subsection{HOTA}
+
+HOTA~\cite{luiten2021hota} tách đánh giá thành hai phần, phát hiện (DetA) và liên kết (AssA), rồi lấy trung bình nhân.
+Tại ngưỡng IoU $\alpha$, sau khi ghép box nhãn với box dự đoán:
+\begin{equation}
+  \begin{gathered}
+    \mathrm{DetA}_{\alpha} = \frac{|TP|}{|TP| + |FN| + |FP|} \\
+    \mathrm{AssA}_{\alpha} = \frac{1}{|TP|} \sum_{c \in TP} \frac{|TPA(c)|}{|TPA(c)| + |FNA(c)| + |FPA(c)|}
+  \end{gathered}
+  \label{eq:deta-assa}
+\end{equation}
+\begin{equation}
+  \mathrm{HOTA}_{\alpha} = \sqrt{\mathrm{DetA}_{\alpha} \cdot \mathrm{AssA}_{\alpha}}, \qquad
+  \mathrm{HOTA} = \frac{1}{19} \sum_{\alpha \in \{0.05, 0.10, \ldots, 0.95\}} \mathrm{HOTA}_{\alpha}
+  \label{eq:hota}
+\end{equation}
+Công thức (\ref{eq:deta-assa}) và (\ref{eq:hota}): các thành phần của HOTA.
+
+Với:
+\begin{itemize}
+  \item $TPA(c)$: tập các cặp TP có cùng ID nhãn và cùng ID dự đoán với cặp $c$, tức những frame quỹ đạo được nối đúng;
+  \item $FNA(c)$, $FPA(c)$: các box của cùng xe nhãn (hoặc cùng track dự đoán) với $c$ nhưng không được ghép với nhau.
+\end{itemize}
+
+Nhờ tách hai thành phần, HOTA cho biết điểm thấp là do phát hiện kém hay do nối quỹ đạo kém. Đề tài tính MOTA, IDF1
+và HOTA bằng TrackEval~\cite{trackeval}, bộ chấm được dùng cho benchmark MOTChallenge~\cite{milan2016mot16}.
+
+\subsection{Khoảng tin cậy bootstrap}
+
+Các tập test của đề tài nhỏ, nên một chênh lệch mAP nhỏ có thể chỉ do mẫu ảnh. Để biết chênh lệch có đáng tin không,
+đề tài lấy mẫu lại có hoàn lại các ảnh của tập test 20 lần, tính lại mAP trên mỗi mẫu, rồi lấy phân vị 2.5\% và 97.5\%
+làm khoảng tin cậy 95\%. Hai mô hình có khoảng tin cậy chồng nhau được coi là chưa phân biệt được. Bootstrap chỉ đo dao
+động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện.
+
+\section{Kết luận chương}
+
+Chương này đã trình bày cơ sở của hai họ mô hình phát hiện được dùng trong đề tài: YOLO26 thuộc họ CNN, phát hiện đầu
+cuối không cần NMS, và RT-DETRv2 thuộc họ Transformer, ghép cặp Hungarian khi huấn luyện. Phần theo dõi gồm bộ lọc
+Kalman, thuật toán Hungarian và các biến thể SORT, ByteTrack, BoT-SORT, OC-SORT. Các chỉ số mAP, MOTA, IDF1 và HOTA đo
+lần lượt chất lượng phát hiện, độ chính xác theo dõi tổng thể, khả năng giữ danh tính và sự cân bằng giữa phát hiện
+với liên kết. Chương~\ref{chap:xaydung} mô tả cách các thành phần này được ghép thành hệ thống và huấn luyện trên dữ
+liệu Việt Nam.

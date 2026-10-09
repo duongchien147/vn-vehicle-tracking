@@ -1,0 +1,23 @@
+\addchap{NHẬN XÉT}
+
+\noindent\textbf{Nhận xét của giảng viên hướng dẫn:}
+
+\begingroup
+\setstretch{1.6}
+% 15 dòng chấm để giảng viên viết nhận xét
+\newcount\dotlines
+\dotlines=0
+\loop
+  \noindent\makebox[\linewidth]{\dotfill}\par
+  \advance\dotlines by 1
+\ifnum\dotlines<15 \repeat
+\endgroup
+
+\vspace{0.8cm}
+\begin{flushright}
+  \begin{minipage}{7cm}
+    \centering
+    \textbf{GIẢNG VIÊN HƯỚNG DẪN}\\
+    \textit{(Ký và ghi rõ họ tên)}
+  \end{minipage}
+\end{flushright}

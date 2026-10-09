@@ -36,6 +36,8 @@ FRAME_TIME_S = 30  # lấy frame giữa clip demo 60 s
 JPEG_QUALITY = 85
 MAX_SIDE = 1600  # thu nhỏ ảnh để gói Overleaf gọn, vẫn đủ nét khi in
 SPEED_TICKS_MS = [100, 200, 500, 1000, 2000]
+# Không ghi ngày tạo vào PDF: chạy lại script không sinh thay đổi giả trong git
+PDF_METADATA = {"CreationDate": None}
 
 
 def style_axes(ax: Axes) -> None:
@@ -103,7 +105,7 @@ def accuracy_vs_speed() -> None:
     axes[0].set_ylabel("mAP50 chính", fontsize=9, color=TEXT)
     axes[0].set_xlim(60, 2000)
     fig.tight_layout()
-    fig.savefig(OUT / "accuracy_vs_speed.pdf")
+    fig.savefig(OUT / "accuracy_vs_speed.pdf", metadata=PDF_METADATA)
     plt.close(fig)
 
 
@@ -129,7 +131,7 @@ def learning_curves() -> None:
     ax.legend(frameon=False, fontsize=9, loc="lower right")
     style_axes(ax)
     fig.tight_layout()
-    fig.savefig(OUT / "learning_curves.pdf")
+    fig.savefig(OUT / "learning_curves.pdf", metadata=PDF_METADATA)
     plt.close(fig)
 
 

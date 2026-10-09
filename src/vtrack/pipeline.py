@@ -6,7 +6,7 @@ import math
 import time
 from collections import Counter
 from collections.abc import Callable
-from dataclasses import asdict, dataclass
+from dataclasses import asdict, dataclass, replace
 from pathlib import Path
 from typing import cast
 
@@ -17,7 +17,7 @@ from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
 from vtrack.count_eval import make_line_zone
-from vtrack.display_ids import DisplayIds, label_mask
+from vtrack.display_ids import CountedClasses, DisplayIds, label_mask
 from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER, track_video
 from vtrack.video_io import to_h264
@@ -126,6 +126,7 @@ def process_video(
 
     events: list[CrossingEvent] = []
     display_ids = DisplayIds()
+    counted_classes = CountedClasses()
     running = Counter[str]()
     raw_path = output.with_name(output.stem + "_raw.mp4")
     frames = 0
@@ -145,6 +146,7 @@ def process_video(
                 for i in np.flatnonzero(crossed):
                     name = CLASS_NAMES[class_ids[i]]
                     running[name] += 1
+                    counted_classes.lock(int(track_ids[i]), int(class_ids[i]))
                     events.append(
                         CrossingEvent(
                             frame=frame_index,
@@ -158,14 +160,17 @@ def process_video(
 
             annotated = tracked.image.copy()
             if len(detections):
+                # Xe đã đếm giữ màu và nhãn của lớp lúc cắt vạch (vtrack.display_ids.CountedClasses)
+                shown_classes = counted_classes.shown(track_ids, class_ids)
+                shown = replace(detections, class_id=shown_classes)
                 labels = [
-                    f"#{display_ids.get(int(tid))} {CLASS_NAMES[c]}" for tid, c in zip(track_ids, class_ids)
+                    f"#{display_ids.get(int(tid))} {CLASS_NAMES[c]}" for tid, c in zip(track_ids, shown_classes)
                 ]
-                annotated = trace_annotator.annotate(annotated, detections)
-                annotated = box_annotator.annotate(annotated, detections)
-                labelled = label_mask(detections.xyxy, h)
+                annotated = trace_annotator.annotate(annotated, shown)
+                annotated = box_annotator.annotate(annotated, shown)
+                labelled = label_mask(shown.xyxy, h)
                 # Lọc Detections bằng mảng bool trả về Detections; kiểu khai báo của supervision rộng hơn nên cần cast
-                labelled_detections = cast(sv.Detections, detections[labelled])
+                labelled_detections = cast(sv.Detections, shown[labelled])
                 annotated = label_annotator.annotate(
                     annotated, labelled_detections, [text for text, keep in zip(labels, labelled) if keep]
                 )

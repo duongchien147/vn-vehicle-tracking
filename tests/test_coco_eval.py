@@ -9,6 +9,7 @@ from vtrack.coco_eval import (
     instance_counts,
     iou50_matches,
     mean_ap50,
+    time_blocks,
     to_coco,
     well_represented_classes,
 )
@@ -109,3 +110,35 @@ def test_bootstrap_interval_is_reproducible_and_contains_estimate():
     low, high = bootstrap_map50(images, rounds=200, classes=classes, seed=1)
     assert (low, high) == bootstrap_map50(images, rounds=200, classes=classes, seed=1)
     assert low <= mean_ap50(evaluate(images), classes) <= high
+
+
+def test_time_blocks_start_at_first_frame_of_each_clip():
+    clips = ["a", "a", "a", "a", "b", "b"]
+    seconds = [35, 37, 45, 56, 2, 14]
+    assert time_blocks(clips, seconds, block_seconds=10) == ["a#0", "a#0", "a#1", "a#2", "b#0", "b#1"]
+
+
+def test_singleton_groups_give_same_interval_as_per_image_bootstrap():
+    images = mixed_images() * 4
+    classes = ["motorbike", "car"]
+    per_image = bootstrap_map50(images, rounds=200, classes=classes, seed=1)
+    singletons = [str(index) for index in range(len(images))]
+    assert bootstrap_map50(images, rounds=200, classes=classes, seed=1, groups=singletons) == per_image
+
+
+def test_block_bootstrap_needs_enough_blocks():
+    images = mixed_images() * 4
+    low, high = bootstrap_map50(images, rounds=50, classes=["car"], groups=["x"] * 6 + ["y"] * 6)
+    assert low != low and high != high  # nan: 2 khối không đủ để ước lượng phân vị
+
+
+def test_correlated_blocks_widen_the_interval():
+    """Ảnh trong cùng khối giống hệt nhau (như frame liền nhau của một clip): lấy mẫu theo ảnh tưởng có 12 ảnh độc lập,
+    lấy mẫu theo khối chỉ có 6 đơn vị -> khoảng tin cậy phải rộng hơn."""
+    good = image([YoloBox(CAR, 0.3, 0.3, 0.1, 0.1)], [YoloBox(CAR, 0.3, 0.3, 0.1, 0.1, 0.9)])
+    bad = image([YoloBox(CAR, 0.3, 0.3, 0.1, 0.1)], [])
+    images = [good, good, bad, bad, good, good, bad, bad, good, good, good, good]
+    groups = [str(index // 2) for index in range(len(images))]
+    per_image = bootstrap_map50(images, rounds=1000, classes=["car"])
+    per_block = bootstrap_map50(images, rounds=1000, classes=["car"], groups=groups)
+    assert per_block[1] - per_block[0] > per_image[1] - per_image[0]

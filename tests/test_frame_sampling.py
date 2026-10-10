@@ -1,6 +1,6 @@
 import pytest
 
-from vtrack.frame_sampling import parse_timestamp, sample_timestamps
+from vtrack.frame_sampling import parse_frame_name, parse_timestamp, sample_timestamps
 
 
 def test_parse_timestamp():
@@ -18,3 +18,9 @@ def test_sample_timestamps_excludes_end():
 def test_sample_timestamps_rejects_bad_step():
     with pytest.raises(ValueError):
         sample_timestamps(0, 10, 0)
+
+
+def test_parse_frame_name():
+    assert parse_frame_name("pvd_goc_b_00m05s") == ("pvd_goc_b", 5.0)
+    assert parse_frame_name("hanoi_01m45s") == ("hanoi", 105.0)
+    assert parse_frame_name("frame_000031") is None

@@ -102,8 +102,10 @@ def main() -> None:
         counts = instance_counts(eval_images)
         print(f"== {condition}: {n_sequences} video, {len(chosen)} frame, số box {counts}; mAP chính trên {main_classes}")
         for spec in args.models:
+            # Frame cùng video chung xe và cảnh -> thêm khoảng tin cậy bootstrap theo cụm = video (cluster bootstrap)
             score = score_model(ModelSpec.parse(spec), eval_images,
-                                lambda i, chosen=chosen: images.read(chosen[i].file_name), main_classes, args.bootstrap)
+                                lambda i, chosen=chosen: images.read(chosen[i].file_name), main_classes, args.bootstrap,
+                                groups=[sequence_and_frame(im.file_name)[0] for im in chosen])
             rows.append({"condition": condition, "n_sequences": n_sequences, "n_frames": len(chosen),
                          "main_classes": "+".join(main_classes), **score.to_row(counts)})
             print(describe(score), flush=True)

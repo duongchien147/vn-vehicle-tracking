@@ -13,13 +13,10 @@ import csv
 import json
 from pathlib import Path
 
-import cv2
-import numpy as np
-
-from vtrack import IGNORE_CLASS_ID
-from vtrack.coco_eval import BOOTSTRAP_ROUNDS, EvalImage, instance_counts, well_represented_classes
-from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, score_model
-from vtrack.label_review import read_yolo_file
+from vtrack.coco_eval import (
+    BLOCK_SECONDS, BOOTSTRAP_ROUNDS, frame_name_blocks, instance_counts, well_represented_classes,
+)
+from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, load_split, score_model
 
 DEFAULT_MODELS = [
     "weights/yolo26n.pt@640",
@@ -30,23 +27,6 @@ DEFAULT_MODELS = [
 ]
 # Lớp có ít hơn số box này trong tập test cho AP quá dao động (test Hà Nội: bus 5, truck 2 box)
 MIN_INSTANCES_FOR_MAIN_MAP = 30
-
-
-def load_split(split_dir: Path) -> list[tuple[EvalImage, np.ndarray]]:
-    """Ảnh (đọc một lần, dùng chung cho mọi mô hình) kèm nhãn người, tách box xe và vùng ignore."""
-    loaded = []
-    for image_path in sorted((split_dir / "images").glob("*.jpg")):
-        frame = cv2.imread(str(image_path))
-        if frame is None:
-            raise SystemExit(f"Không đọc được ảnh: {image_path}")
-        labels = read_yolo_file(split_dir / "labels" / f"{image_path.stem}.txt")
-        image = EvalImage(
-            file_name=image_path.name, width=frame.shape[1], height=frame.shape[0],
-            truth=[b for b in labels if b.class_id != IGNORE_CLASS_ID],
-            ignore=[b for b in labels if b.class_id == IGNORE_CLASS_ID],
-        )
-        loaded.append((image, frame))
-    return loaded
 
 
 def main() -> None:
@@ -70,10 +50,15 @@ def main() -> None:
     main_classes = well_represented_classes(images, args.min_instances)
     print(f"{len(images)} ảnh, {sum(len(i.ignore) for i in images)} vùng ignore, số box: {counts}")
     print(f"mAP chính tính trên các lớp có >= {args.min_instances} box: {main_classes}")
+    # Frame cắt từ video: thêm khoảng tin cậy bootstrap theo khối BLOCK_SECONDS giây (frame gần nhau chung nhiều xe)
+    blocks = frame_name_blocks([image.file_name for image in images])
+    if blocks is not None:
+        print(f"Bootstrap theo khối {BLOCK_SECONDS:g} s: {len(set(blocks))} khối")
 
     rows = []
     for spec in args.models:
-        score = score_model(ModelSpec.parse(spec), images, lambda i: loaded[i][1], main_classes, args.bootstrap)
+        score = score_model(ModelSpec.parse(spec), images, lambda i: loaded[i][1], main_classes, args.bootstrap,
+                            groups=blocks)
         rows.append(score.to_row(counts))
         print(describe(score), flush=True)
 
@@ -81,7 +66,8 @@ def main() -> None:
         writer = csv.DictWriter(f, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    run_config = {**vars(args), "eval_conf": EVAL_CONF, "n_images": len(images)}
+    run_config = {**vars(args), "eval_conf": EVAL_CONF, "n_images": len(images),
+                  "block_seconds": BLOCK_SECONDS if blocks else None, "n_blocks": len(set(blocks)) if blocks else None}
     (out_dir / "run_config.json").write_text(json.dumps(run_config, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nĐã ghi {out_dir / 'results.csv'}")
 

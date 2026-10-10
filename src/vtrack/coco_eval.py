@@ -8,6 +8,7 @@ import contextlib
 import io
 from collections.abc import Sequence
 from dataclasses import dataclass, field
+from pathlib import Path
 from typing import Any, cast
 
 import numpy as np
@@ -15,6 +16,7 @@ from pycocotools.coco import COCO
 from pycocotools.cocoeval import COCOeval
 
 from vtrack import CLASS_NAMES
+from vtrack.frame_sampling import parse_frame_name
 from vtrack.label_review import YoloBox
 
 # COCO mặc định chấm tối đa 100 phát hiện/ảnh; frame Hà Nội có ~110–140 xe nên phải nâng lên (như benchmark cảnh
@@ -205,20 +207,63 @@ def average_precision(parts: Sequence[ClassMatches]) -> float:
     return float(interpolated.mean())
 
 
+# Độ dài khối thời gian của bootstrap theo khối: trên nhãn tracking clip PVD, 90% số xe ở trong khung hình < 8.2 s
+# (trung vị 1.3 s), nên hai frame cách nhau > 10 s gần như không chung xe nào -> coi các khối 10 s là độc lập.
+BLOCK_SECONDS = 10.0
+# Ít khối quá thì số cách lấy mẫu lại khác nhau rất ít (2 khối -> 3 tổ hợp), phân vị 2.5%/97.5% vô nghĩa
+MIN_BOOTSTRAP_UNITS = 5
+
+
+def time_blocks(clips: Sequence[str], seconds: Sequence[float], block_seconds: float = BLOCK_SECONDS) -> list[str]:
+    """Nhãn khối của từng frame: frame cùng clip, cách frame đầu của clip trong cùng một đoạn `block_seconds` giây.
+
+    Tính từ frame đầu của mỗi clip (không từ giây 0) để các khối có số frame đều nhau.
+    """
+    first = {clip: min(t for c, t in zip(clips, seconds) if c == clip) for clip in set(clips)}
+    return [f"{clip}#{int((t - first[clip]) // block_seconds)}" for clip, t in zip(clips, seconds)]
+
+
+def frame_name_blocks(file_names: Sequence[str], block_seconds: float = BLOCK_SECONDS) -> list[str] | None:
+    """Khối thời gian từ tên frame '<clip>_MMmSSs.jpg' (extract_label_frames.py); None nếu có tên không theo mẫu
+    (vd. ảnh Roboflow) -> không chia khối được."""
+    clips, seconds = [], []
+    for name in file_names:
+        parsed = parse_frame_name(Path(name).stem)
+        if parsed is None:
+            return None
+        clips.append(parsed[0])
+        seconds.append(parsed[1])
+    return time_blocks(clips, seconds, block_seconds)
+
+
 def bootstrap_map50(
-    images: Sequence[EvalImage], rounds: int, classes: Sequence[str], seed: int = 0
+    images: Sequence[EvalImage], rounds: int, classes: Sequence[str], seed: int = 0,
+    groups: Sequence[str] | None = None,
 ) -> tuple[float, float]:
-    """Khoảng tin cậy 95% của mAP50 (trung bình trên `classes`) bằng bootstrap theo ảnh (lấy mẫu lại có hoàn lại).
+    """Khoảng tin cậy 95% của mAP50 (trung bình trên `classes`) bằng bootstrap (lấy mẫu lại có hoàn lại).
 
     Tập test nhỏ (30 ảnh) nên một con số mAP đơn lẻ dao động nhiều; khoảng tin cậy cho biết hai mô hình
-    có khác nhau thật hay chỉ do may rủi chọn ảnh. Lưu ý: các frame trong cùng một clip giống nhau, mà bootstrap coi
-    chúng độc lập, nên khoảng thật có thể rộng hơn.
+    có khác nhau thật hay chỉ do may rủi chọn ảnh.
+    - `groups=None`: lấy mẫu lại từng ảnh. Các frame gần nhau trong một clip chung nhiều xe mà cách này coi chúng
+      độc lập, nên khoảng ra hẹp hơn thực tế.
+    - `groups` = nhãn khối/cụm của từng ảnh (vd. `time_blocks`, hay tên video): lấy mẫu lại cả khối (block / cluster
+      bootstrap, cách chuẩn cho dữ liệu có tương quan). Ít hơn MIN_BOOTSTRAP_UNITS khối -> (nan, nan).
     """
+    if groups is None:
+        units = [[index] for index in range(len(images))]
+    else:
+        by_group: dict[str, list[int]] = {}
+        for index, group in enumerate(groups):
+            by_group.setdefault(group, []).append(index)
+        units = list(by_group.values())
+        if len(units) < MIN_BOOTSTRAP_UNITS:
+            return float("nan"), float("nan")
     matches = iou50_matches(images)
     class_rows = [matches[CLASS_NAMES.index(name)] for name in classes]
     generator = np.random.default_rng(seed)
     scores = []
     for _ in range(rounds):
-        sample = generator.integers(0, len(images), size=len(images))
+        picked = generator.integers(0, len(units), size=len(units))
+        sample = [index for unit in picked for index in units[unit]]
         scores.append(np.mean([average_precision([rows[i] for i in sample]) for rows in class_rows]))
     return float(np.nanpercentile(scores, 2.5)), float(np.nanpercentile(scores, 97.5))

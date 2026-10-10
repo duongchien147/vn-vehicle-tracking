@@ -4,14 +4,24 @@ Chạy khi máy rảnh và đang cắm sạc (không có tiến trình nặng kh
 Kết quả: outputs/benchmark_speed/<--name>/results.csv (mỗi mô hình một dòng), timings.csv (từng frame, để kiểm tra
 xu hướng chậm dần), run_config.json (thông tin CPU, phiên bản thư viện).
 
+Mô hình OpenVINO (kiểm 10/10/2026):
+- Luôn ghi rõ thiết bị (#cpu / #gpu, xem vtrack.models): không ghi thì OpenVINO tự chọn và đưa bản FP32 lên GPU Intel
+  tích hợp.
+- Đo nhóm CPU và nhóm GPU tích hợp ở hai lần chạy riêng: chung một tiến trình thì số CPU bị lệch.
+- Đặt KMP_BLOCKTIME=0 và OMP_WAIT_POLICY=PASSIVE: mặc định luồng OpenMP của torch (dùng cho tiền xử lý) chờ quay vòng
+  sau mỗi lần dùng và tranh lõi CPU với OpenVINO (INT8 trên CPU 108 -> 65 ms khi tắt).
+
 Ví dụ:
     python scripts/benchmark_speed.py --name e2_architectures --models weights/yolo26n_vn_v5_best.pt \
         weights/yolo26s_vn_v5_best.pt weights/rtdetrv2_r18_v5_best
+    KMP_BLOCKTIME=0 OMP_WAIT_POLICY=PASSIVE python scripts/benchmark_speed.py --name e2_igpu \
+        --models weights/yolo26n_vn_v5_best.pt "weights/yolo26n_vn_v5_best_openvino_model#gpu"
 """
 
 import argparse
 import csv
 import json
+import os
 import platform
 import time
 from dataclasses import asdict
@@ -108,7 +118,8 @@ def main() -> None:
     environment = {"cpu": platform.processor(), "python": platform.python_version(), "torch": torch.__version__,
                    "torch_threads": torch.get_num_threads(), "openvino": openvino.__version__,
                    "ultralytics": ultralytics.__version__, "transformers": transformers.__version__,
-                   "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None}
+                   "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else None,
+                   "openmp_env": {name: os.environ.get(name) for name in ("KMP_BLOCKTIME", "OMP_WAIT_POLICY")}}
     run_config = {**vars(args), "environment": environment}
     (out_dir / "run_config.json").write_text(json.dumps(run_config, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"\nĐã ghi {out_dir / 'results.csv'}")

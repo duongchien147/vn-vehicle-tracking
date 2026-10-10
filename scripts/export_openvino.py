@@ -1,17 +1,22 @@
 """Export mô hình YOLO sang OpenVINO (FP32, hoặc INT8 lượng tử hoá sau huấn luyện bằng NNCF) để chạy nhanh trên CPU.
 
-imgsz = đúng imgsz lúc train (đọc từ file trọng số). INT8 hiệu chỉnh bằng 300 ảnh ngẫu nhiên của tập TRAIN
-(vtrack.quantization: không lấy val vì val Hà Nội là tập dev dùng để quyết định có nhận bản INT8 không).
-Kết quả: thư mục <weights>_openvino_model hoặc <weights>_int8_openvino_model cạnh file trọng số;
-danh sách ảnh hiệu chỉnh + cấu hình đã dùng ở outputs/openvino_export/<tên>/.
+imgsz = đúng imgsz lúc train (đọc từ file trọng số), đầu vào vuông như mặc định của ultralytics. `--input-hw 544 960`:
+đầu vào chữ nhật đúng khung video 16:9 (cạnh dài vẫn = imgsz lúc train) — giống ảnh PyTorch nhận khi suy luận video,
+ít hơn 43% điểm ảnh so với 960x960 nên nhanh hơn; chỉ dùng cho video 16:9 (ảnh tỉ lệ khác bị thu nhỏ thêm).
+INT8 hiệu chỉnh bằng 300 ảnh ngẫu nhiên của tập TRAIN (vtrack.quantization: không lấy val vì val Hà Nội là tập dev
+dùng để quyết định có nhận bản INT8 không).
+Kết quả: thư mục <weights>[_int8][_<cao>x<rộng>]_openvino_model cạnh file trọng số; danh sách ảnh hiệu chỉnh + cấu hình
+đã dùng ở outputs/openvino_export/<tên>/.
 
 Ví dụ:
     python scripts/export_openvino.py --weights weights/yolo26n_vn_v5_best.pt --int8
     python scripts/export_openvino.py --weights weights/yolo26s_vn_v5_best.pt
+    python scripts/export_openvino.py --weights weights/yolo26n_vn_v5_best.pt --input-hw 544 960
 """
 
 import argparse
 import json
+import shutil
 from pathlib import Path
 
 import yaml
@@ -28,6 +33,8 @@ def main() -> None:
     parser.add_argument("--int8", action="store_true", help="Lượng tử hoá INT8 (cần ảnh hiệu chỉnh), mặc định FP32")
     parser.add_argument("--calibration-images", type=int, default=CALIBRATION_IMAGES)
     parser.add_argument("--seed", type=int, default=0, help="Seed chọn ảnh hiệu chỉnh")
+    parser.add_argument("--input-hw", type=int, nargs=2, metavar=("CAO", "RỘNG"),
+                        help="Đầu vào chữ nhật (vd. 544 960 cho video 16:9); mặc định vuông imgsz x imgsz")
     parser.add_argument("--out-dir", default="outputs/openvino_export")
     args = parser.parse_args()
 
@@ -37,10 +44,13 @@ def main() -> None:
     if imgsz is None:
         raise SystemExit(f"Không đọc được imgsz lúc train từ {weights}")
 
-    out_dir = Path(args.out_dir) / (weights.stem + ("_int8" if args.int8 else "_fp32"))
+    if args.input_hw and max(args.input_hw) != imgsz:
+        raise SystemExit(f"Cạnh dài của --input-hw phải bằng imgsz lúc train ({imgsz})")
+    shape_tag = f"_{args.input_hw[0]}x{args.input_hw[1]}" if args.input_hw else ""
+    out_dir = Path(args.out_dir) / (weights.stem + ("_int8" if args.int8 else "_fp32") + shape_tag)
     out_dir.mkdir(parents=True, exist_ok=True)
-    export_args: dict = {"format": "openvino", "imgsz": imgsz}
-    config: dict = {"weights": str(weights), "imgsz": imgsz, "precision": "int8" if args.int8 else "fp32"}
+    export_args: dict = {"format": "openvino", "imgsz": list(args.input_hw) if args.input_hw else imgsz}
+    config: dict = {"weights": str(weights), "imgsz": export_args["imgsz"], "precision": "int8" if args.int8 else "fp32"}
     if args.int8:
         names = yaml.safe_load((DATASET_DIR / "data.yaml").read_text(encoding="utf-8"))["names"]
         images = sample_calibration_images(DATASET_DIR / "train" / "images", args.calibration_images, args.seed)
@@ -48,7 +58,19 @@ def main() -> None:
         config.update(calibration_split="train", calibration_images=len(images), seed=args.seed)
         print(f"Hiệu chỉnh INT8 bằng {len(images)} ảnh train (seed {args.seed})")
 
-    exported = model.export(**export_args)
+    if shape_tag:
+        # ultralytics luôn ghi ra <stem>[_int8]_openvino_model cạnh file trọng số -> export từ bản sao trong out_dir
+        # rồi chuyển sang tên có kích thước, để không ghi đè bản đầu vào vuông đang dùng
+        source = out_dir / weights.name
+        shutil.copy2(weights, source)
+        built = Path(load_model(str(source)).export(**export_args))
+        exported = weights.parent / (built.name.removesuffix("_openvino_model") + shape_tag + "_openvino_model")
+        if exported.exists():
+            shutil.rmtree(exported)
+        shutil.move(str(built), str(exported))
+        source.unlink()
+    else:
+        exported = model.export(**export_args)
     config["exported"] = str(exported)
     (out_dir / "export_config.json").write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
     print(f"Đã export: {exported}")

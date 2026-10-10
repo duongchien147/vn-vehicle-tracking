@@ -2,9 +2,10 @@ from pathlib import Path
 from types import SimpleNamespace
 from typing import cast
 
+import pytest
 from ultralytics import YOLO
 
-from vtrack.models import class_mapping, training_imgsz
+from vtrack.models import class_mapping, split_device, training_imgsz
 
 
 def fake_model(overrides: dict, model_name: str = "") -> YOLO:
@@ -30,3 +31,11 @@ def test_training_imgsz_from_export_metadata(tmp_path: Path):
 
 def test_training_imgsz_unknown():
     assert training_imgsz(fake_model({}, "khong_ton_tai")) is None
+
+
+def test_split_device_suffix():
+    assert split_device("weights/x_openvino_model#gpu") == ("weights/x_openvino_model", "intel:gpu")
+    assert split_device("weights/x_openvino_model#cpu") == ("weights/x_openvino_model", "intel:cpu")
+    assert split_device("weights/x.pt") == ("weights/x.pt", None)
+    with pytest.raises(ValueError):
+        split_device("weights/x_openvino_model#npu")

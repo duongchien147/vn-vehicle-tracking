@@ -24,8 +24,28 @@ NAME_ALIASES = {
 }
 
 
+# Thiết bị chạy mô hình OpenVINO, ghi sau dấu '#': 'weights/x_openvino_model#cpu' hoặc '#gpu' (GPU Intel tích hợp).
+# Không ghi thì ultralytics để OpenVINO tự chọn (AUTO): trên laptop có GPU Intel tích hợp, mô hình FP32 được đưa lên GPU
+# đó còn mô hình INT8 có thể chạy trên CPU -> khi đo tốc độ hay so sánh phải ghi rõ thiết bị (đã kiểm 10/10/2026).
+OPENVINO_DEVICES = {"cpu": "intel:cpu", "gpu": "intel:gpu"}
+
+
+def split_device(weights: str) -> tuple[str, str | None]:
+    """'x_openvino_model#gpu' -> ('x_openvino_model', 'intel:gpu'); không có '#' -> (weights, None)."""
+    path, _, device = weights.partition("#")
+    if not device:
+        return path, None
+    if device not in OPENVINO_DEVICES:
+        raise ValueError(f"Thiết bị không hợp lệ '{device}', chọn một trong {sorted(OPENVINO_DEVICES)}")
+    return path, OPENVINO_DEVICES[device]
+
+
 def load_model(weights: str) -> YOLO:
-    return YOLO(weights, task="detect")
+    path, device = split_device(weights)
+    model = YOLO(path, task="detect")
+    if device is not None:
+        model.overrides["device"] = device  # mọi lần predict/track sau đó đều chạy trên thiết bị này
+    return model
 
 
 def class_mapping(model_names: dict[int, str]) -> dict[int, int]:

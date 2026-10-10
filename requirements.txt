@@ -16,3 +16,4 @@ transformers==5.18.0  # RT-DETRv2 (họ Transformer); cùng phiên bản với k
 ensemble-boxes==1.0.9  # WBF ghép dự đoán nhiều mô hình khi gán nhãn tự động (vtrack.pseudo_label)
 pycocotools==2.0.11  # bộ chấm mAP chính thức của COCO (vtrack.coco_eval)
 trackeval==1.3.0  # chấm tracking HOTA/MOTA/IDF1 (bản fork trên PyPI, repo gốc đã không còn)
+nncf>=2.14.0  # lượng tử hoá INT8 cho OpenVINO (scripts/export_openvino.py --int8)

@@ -20,7 +20,7 @@ import supervision as sv
 import yaml
 from ultralytics import YOLO
 
-from vtrack.models import DEFAULT_WEIGHTS, FALLBACK_IMGSZ, training_imgsz
+from vtrack.models import DEFAULT_WEIGHTS, FALLBACK_IMGSZ, load_model, training_imgsz
 from vtrack import IGNORE_LABEL
 from vtrack.mot_format import (
     MOT_TARGET_CLASS,
@@ -130,7 +130,7 @@ def main() -> None:
 
     run_info = {}
     for weights in args.weights:
-        model = YOLO(weights, task="detect")
+        model = load_model(weights)
         imgsz = args.imgsz or training_imgsz(model) or FALLBACK_IMGSZ
         for tracker in trackers:
             base_name = f"{Path(weights).stem}-{Path(tracker).stem}"

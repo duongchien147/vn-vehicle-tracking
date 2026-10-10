@@ -78,8 +78,11 @@ class CrossingMatch:
 def match_crossings(
     truth: Sequence[Crossing], predicted: Sequence[Crossing], tolerance_s: float = MATCH_TOLERANCE_S,
 ) -> CrossingMatch:
-    """Ghép một-một từng hướng, tổng độ lệch thời gian nhỏ nhất (thuật toán Hungary, như ghép box khi chấm MOT);
-    không ghép hai lượt lệch nhau quá tolerance_s. Không xét lớp khi ghép: sai lớp là một loại lỗi riêng."""
+    """Ghép một-một từng hướng bằng thuật toán Hungary (như ghép box khi chấm MOT), chỉ ghép hai lượt lệch nhau không
+    quá tolerance_s, theo thứ tự ưu tiên: (1) ghép được nhiều cặp nhất; (2) cặp cùng lớp; (3) lệch thời gian ít nhất.
+
+    Nếu chỉ cực tiểu tổng độ lệch thời gian, một độ trễ đều của người bấm (vd. 0.5 s) làm phép ghép trượt sang xe kế bên
+    trong dòng xe dày, sinh ra lỗi sai lớp và sót/thừa giả ở hai đầu chuỗi (đã gặp khi tự kiểm công cụ)."""
     match = CrossingMatch([], [], [])
     for direction in DIRECTIONS:
         truth_d = [c for c in truth if c.direction == direction]
@@ -88,10 +91,17 @@ def match_crossings(
         paired_predicted: set[int] = set()
         if truth_d and predicted_d:
             gaps = np.abs(np.array([[t.time_s - p.time_s for p in predicted_d] for t in truth_d]))
-            too_far = tolerance_s + 1.0  # chi phí lớn hơn mọi cặp hợp lệ: chỉ được chọn khi buộc phải, rồi bị loại
-            rows, cols = linear_sum_assignment(np.where(gaps <= tolerance_s, gaps, too_far))
+            other_class = np.array([[t.class_name != p.class_name for p in predicted_d] for t in truth_d])
+            valid = gaps <= tolerance_s
+            # Thứ tự ưu tiên chặt: tổng độ lệch thời gian <= n * tolerance_s < phạt một cặp khác lớp; tổng mọi chi phí
+            # <= n * (tolerance_s + phạt khác lớp) < thưởng một cặp hợp lệ (n = số cặp tối đa)
+            most_pairs = min(len(truth_d), len(predicted_d))
+            class_penalty = tolerance_s * (most_pairs + 1)
+            pair_reward = (tolerance_s + class_penalty) * (most_pairs + 1)
+            cost = np.where(valid, gaps + class_penalty * other_class - pair_reward, 0.0)
+            rows, cols = linear_sum_assignment(cost)
             for row, col in zip(rows, cols):
-                if gaps[row, col] <= tolerance_s:
+                if valid[row, col]:
                     match.pairs.append((truth_d[row], predicted_d[col]))
                     paired_truth.add(int(row))
                     paired_predicted.add(int(col))

@@ -58,3 +58,12 @@ def test_in_direction_agrees_with_line_zone():
             crossed_in |= bool(entered[0])
             assert not exited[0]
         assert crossed_in, line
+
+
+def test_constant_lag_does_not_create_fake_class_errors():
+    """Người bấm trễ đều 0.5 s trong dòng xe dày: phải ghép đúng từng xe, không trượt sang xe kế bên khác lớp."""
+    classes = ["motorbike", "car", "motorbike", "bus", "motorbike", "car"]
+    predicted = [crossing(1.0 + 0.5 * i, name) for i, name in enumerate(classes)]
+    truth = [crossing(c.time_s + 0.5, c.class_name) for c in predicted]
+    match = match_crossings(truth, predicted, tolerance_s=1.0)
+    assert len(match.pairs) == 6 and not match.wrong_class and not match.missed and not match.extra

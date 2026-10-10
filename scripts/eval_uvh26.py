@@ -18,7 +18,7 @@ import numpy as np
 import yaml
 from huggingface_hub import hf_hub_download
 
-from vtrack.coco_eval import EvalImage, instance_counts, well_represented_classes
+from vtrack.coco_eval import BOOTSTRAP_ROUNDS, EvalImage, instance_counts, well_represented_classes
 from vtrack.coco_source import CocoImage, load_coco, to_eval_image
 from vtrack.dataset import dhash_bits, nearest_hamming_distances
 from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, score_model
@@ -63,7 +63,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="configs/uvh26.yaml")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
-    parser.add_argument("--bootstrap", type=int, default=20)
+    parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP_ROUNDS)
     parser.add_argument("--show-distances", action="store_true", help="Chỉ in phân bố khoảng cách camera rồi dừng")
     parser.add_argument("--name", default="v3_vs_v5")
     args = parser.parse_args()

@@ -374,9 +374,15 @@ và HOTA bằng TrackEval~\cite{trackeval}, bộ chấm được dùng cho bench
 \subsection{Khoảng tin cậy bootstrap}
 
 Các tập test của đề tài nhỏ, nên một chênh lệch mAP nhỏ có thể chỉ do mẫu ảnh. Để biết chênh lệch có đáng tin không,
-đề tài lấy mẫu lại có hoàn lại các ảnh của tập test 20 lần, tính lại mAP trên mỗi mẫu, rồi lấy phân vị 2.5\% và 97.5\%
-làm khoảng tin cậy 95\%. Hai mô hình có khoảng tin cậy chồng nhau được coi là chưa phân biệt được. Bootstrap chỉ đo dao
-động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện.
+đề tài lấy mẫu lại có hoàn lại các ảnh của tập test 1.000 lần, tính lại mAP trên mỗi mẫu, rồi lấy phân vị 2.5\% và
+97.5\% làm khoảng tin cậy 95\%. Cần khoảng 1.000 lần trở lên thì hai phân vị này mới ổn định; với vài chục lần, chúng gần
+như chỉ là giá trị nhỏ nhất và lớn nhất của các mẫu. Việc ghép dự đoán với nhãn được làm một lần cho từng ảnh, mỗi lần
+lấy mẫu chỉ gộp lại kết quả đã ghép của các ảnh được chọn rồi tính AP theo đúng công thức (\ref{eq:ap}), nên 1.000 lần
+vẫn nhanh. Hai mô hình có khoảng tin cậy chồng nhau được coi là chưa phân biệt được.
+
+Bootstrap có hai giới hạn. Nó chỉ đo dao động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện. Và nó coi các
+ảnh là độc lập, trong khi các frame cắt từ cùng một clip cách nhau vài giây rất giống nhau; vì vậy khoảng tin cậy
+thật có thể rộng hơn khoảng tính được.
 
 \section{Kết luận chương}
 

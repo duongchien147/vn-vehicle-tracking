@@ -13,6 +13,11 @@ mỗi ảnh, có vùng bỏ qua), mỗi mô hình chạy ở đúng kích thư�
 mà nhãn sơ bộ không đến từ mô hình đang so sánh (\texttt{vn\_extra}, val UVH-26, UA-DETRAC); lý do ở
 mục~\ref{sec:thao-luan}. Tập test Roboflow, val UVH-26 dùng cả bốn lớp; UA-DETRAC dùng xe máy, ô tô và xe buýt.
 
+Các tập test chia làm hai nhóm. Tập test Hà Nội dùng \textbf{cùng camera} với frame huấn luyện của v3--v5
+(mục~\ref{sec:chia-tap}), nên đo độ chính xác trên camera đã tinh chỉnh. Các tập \texttt{vn\_extra}, clip Phạm Văn Đồng,
+val UVH-26 và UA-DETRAC dùng \textbf{camera chưa từng xuất hiện} trong dữ liệu huấn luyện, nên đo khả năng tổng quát.
+Khi hai nhóm cho kết luận khác nhau, nhóm thứ hai quyết định.
+
 \textbf{Theo dõi.} Trên tập test (clip Phạm Văn Đồng) báo đủ HOTA, DetA, AssA, MOTA, IDF1, IDR, IDP và số lần đổi ID.
 Trên tập dev VnTraffic chỉ dùng AssA, IDR và số lần đổi ID vì nhãn thiếu xe.
 
@@ -23,22 +28,23 @@ Trên tập dev VnTraffic chỉ dùng AssA, IDR và số lần đổi ID vì nh�
 \section{Kết quả phát hiện}
 \label{sec:ket-qua-phat-hien}
 
-\subsection{Tập test Hà Nội}
+\subsection{Tập test Hà Nội (camera đã dùng để tinh chỉnh)}
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả phát hiện trên tập test Hà Nội (30 frame; 2.982 xe máy, 539 ô tô)}
+  \caption{Kết quả phát hiện trên tập test Hà Nội (30 frame; 2.982 xe máy, 539 ô tô; cùng camera với frame huấn luyện
+           của v3--v5)}
   \label{tab:e1-hanoi}
   \small
   \begin{tabularx}{\linewidth}{|L|c|c|c|c|}
     \hline
     \thead{Mô hình} & \thead{Ảnh} & \thead{mAP50 chính [CI 95\%]} & \thead{AP50 xe máy} & \thead{AP50 ô tô} \\ \hline
-    YOLO26n gốc COCO & 1280 & 0.686 [0.674--0.701] & 0.530 & 0.842 \\ \hline
-    v1 & 640 & 0.395 [0.368--0.414] & 0.045 & 0.744 \\ \hline
-    v2 & 960 & 0.890 [0.882--0.901] & 0.819 & 0.961 \\ \hline
-    v3 & 960 & 0.921 [0.915--0.934] & 0.865 & 0.978 \\ \hline
-    v4 & 1280 & 0.919 [0.910--0.927] & 0.862 & 0.975 \\ \hline
-    \textbf{v5} & 960 & \textbf{0.923} [0.915--0.932] & 0.864 & 0.982 \\ \hline
+    YOLO26n gốc COCO & 1280 & 0.686 [0.668--0.705] & 0.530 & 0.842 \\ \hline
+    v1 & 640 & 0.395 [0.369--0.417] & 0.045 & 0.744 \\ \hline
+    v2 & 960 & 0.890 [0.877--0.901] & 0.819 & 0.961 \\ \hline
+    v3 & 960 & 0.921 [0.911--0.933] & 0.865 & 0.978 \\ \hline
+    v4 & 1280 & 0.919 [0.907--0.929] & 0.862 & 0.975 \\ \hline
+    \textbf{v5} & 960 & \textbf{0.923} [0.913--0.932] & 0.864 & 0.982 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -47,6 +53,12 @@ Bảng~\ref{tab:e1-hanoi} cho thấy tinh chỉnh trên dữ liệu phù hợp n
 test Roboflow, kém cả mô hình gốc ở đây vì gần như không bắt được xe máy nhỏ. Ba bản v3, v4, v5 có khoảng tin cậy chồng
 nhau, tức tập test Hà Nội không phân biệt được chúng; khác biệt giữa chúng thể hiện ở cảnh khó hơn và ở chất lượng
 theo dõi.
+
+Phần tăng từ v2 lên v3 cần đọc thận trọng. v3 khác v2 ở chỗ được học thêm frame của chính camera Hà Nội này, và mAP50
+chính trên test Hà Nội tăng từ 0.890 lên 0.921. Nhưng trên các cảnh mới (Bảng~\ref{tab:vn-extra}), mức tăng tương ứng
+chỉ từ 0.736 lên 0.757 ban ngày, còn ban đêm giảm từ 0.496 xuống 0.437. Phần lớn mức tăng ở Hà Nội vì thế là do mô hình
+đã quen cảnh này, không phải do mô hình tổng quát tốt hơn. Con số 0.923 của v5 nên được hiểu là độ chính xác khi tinh
+chỉnh cho đúng camera triển khai.
 
 \subsection{Cảnh mới ban ngày và ban đêm}
 
@@ -61,19 +73,21 @@ Nhãn sơ bộ từ YOLO26x nên dùng được cả mAP50-95.
   \begin{tabularx}{\linewidth}{|p{3.3cm}|C|>{\centering\arraybackslash}p{1.6cm}|C|>{\centering\arraybackslash}p{1.6cm}|}
     \hline
     \thead{Mô hình} & \thead{Ngày mAP50 [CI]} & \thead{Ngày mAP50-95} & \thead{Đêm mAP50 [CI]} & \thead{Đêm mAP50-95} \\ \hline
-    YOLO26n gốc COCO @1280 & 0.458 [0.432--0.489] & 0.286 & 0.437 [0.396--0.499] & 0.308 \\ \hline
+    YOLO26n gốc COCO @1280 & 0.458 [0.416--0.502] & 0.286 & 0.437 [0.363--0.498] & 0.308 \\ \hline
     v1 @640 & 0.081 & 0.035 & 0.183 & 0.106 \\ \hline
     v2 & 0.736 & 0.424 & 0.496 & 0.306 \\ \hline
     v3 & 0.757 & 0.460 & 0.437 & 0.263 \\ \hline
-    v4 @1280 & \textbf{0.808} [0.779--0.824] & 0.517 & 0.481 & 0.321 \\ \hline
-    \textbf{v5} & 0.745 [0.715--0.769] & 0.438 & \textbf{0.628} [0.598--0.659] & 0.404 \\ \hline
-    v5 @1280 (chỉ phân tích) & 0.834 [0.808--0.842] & 0.519 & 0.657 [0.619--0.691] & 0.449 \\ \hline
+    v4 @1280 & \textbf{0.808} [0.770--0.843] & 0.517 & 0.481 & 0.321 \\ \hline
+    \textbf{v5} & 0.745 [0.699--0.787] & 0.438 & \textbf{0.628} [0.575--0.681] & 0.404 \\ \hline
+    v5 @1280 (chỉ phân tích) & 0.834 [0.799--0.866] & 0.519 & 0.657 [0.607--0.705] & 0.449 \\ \hline
   \end{tabularx}
 \end{table}
 
 Kết quả ban ngày và ban đêm khác nhau (Bảng~\ref{tab:vn-extra}):
 \begin{itemize}
-  \item \textbf{Ban ngày}, v4 (ảnh 1280) tốt nhất. Phân tích theo kích thước xe (ngưỡng tin cậy 0.25, IoU 0.5) cho thấy với
+  \item \textbf{Ban ngày}, v4 (ảnh 1280) có điểm cao nhất trong các bản YOLO26n chạy ở kích thước ảnh lúc huấn luyện,
+        nhưng khoảng tin cậy còn chồng nhẹ với v5 (0.808 [0.770--0.843] so với 0.745 [0.699--0.787]). Phân tích theo kích
+        thước xe (ngưỡng tin cậy 0.25, IoU 0.5) cho thấy với
         xe cao dưới 20 điểm ảnh, recall của v3 là 0.29, v5 là 0.31, v4 là 0.45; với xe cao từ 32 điểm ảnh trở lên, mọi mô
         hình tinh chỉnh đều đạt khoảng 0.85--0.89. Khoảng cách ban ngày đến từ xe rất nhỏ ở xa, và ở cảnh này độ phân giải
         đầu vào có tác dụng rõ: chính v5 chạy ở ảnh 1280 đạt 0.834.
@@ -96,11 +110,11 @@ thước ảnh thực tế phụ thuộc cảnh: camera nhìn đoạn đường 
   \begin{tabular}{|l|c|c|}
     \hline
     \thead{Mô hình} & \thead{Ảnh} & \thead{mAP50 chính [CI 95\%]} \\ \hline
-    YOLO26n gốc COCO & 1280 & 0.664 [0.651--0.693] \\ \hline
-    v2 & 960 & 0.860 [0.838--0.886] \\ \hline
-    v3 & 960 & 0.891 [0.869--0.911] \\ \hline
-    v4 & 1280 & 0.907 [0.889--0.920] \\ \hline
-    v5 & 960 & 0.892 [0.876--0.915] \\ \hline
+    YOLO26n gốc COCO & 1280 & 0.664 [0.638--0.693] \\ \hline
+    v2 & 960 & 0.860 [0.833--0.890] \\ \hline
+    v3 & 960 & 0.891 [0.865--0.915] \\ \hline
+    v4 & 1280 & 0.907 [0.883--0.929] \\ \hline
+    v5 & 960 & 0.892 [0.866--0.923] \\ \hline
   \end{tabular}
 \end{table}
 
@@ -118,9 +132,9 @@ vấn đề định nghĩa lớp, không phải mô hình không nhận được
   \begin{tabularx}{\linewidth}{|L|c|c|c|}
     \hline
     \thead{Tập} & \thead{COCO @1280} & \thead{v3} & \thead{v5} \\ \hline
-    Val UVH-26 (4 lớp) & 0.594 [0.577--0.621] & 0.335 [0.328--0.377] & \textbf{0.850} [0.832--0.864] \\ \hline
-    UA-DETRAC đêm & 0.689 [0.659--0.736] & 0.722 [0.664--0.755] & \textbf{0.845} [0.790--0.865] \\ \hline
-    UA-DETRAC ngày & 0.690 [0.665--0.723] & 0.709 [0.655--0.756] & \textbf{0.812} [0.765--0.854] \\ \hline
+    Val UVH-26 (4 lớp) & 0.594 [0.573--0.619] & 0.335 [0.314--0.361] & \textbf{0.850} [0.832--0.868] \\ \hline
+    UA-DETRAC đêm & 0.689 [0.654--0.739] & 0.722 [0.668--0.774] & \textbf{0.845} [0.797--0.890] \\ \hline
+    UA-DETRAC ngày & 0.690 [0.661--0.753] & 0.709 [0.649--0.764] & \textbf{0.812} [0.755--0.870] \\ \hline
     Test Roboflow (4 lớp) & 0.255 & -- & 0.834 \\ \hline
   \end{tabularx}
 \end{table}
@@ -186,14 +200,16 @@ Từ Bảng~\ref{tab:kien-truc} và~\ref{tab:kien-truc-5095} rút ra ba kết lu
         cảnh khó: \texttt{vn\_extra} ngày 0.886 so với 0.798, đêm 0.816 so với 0.713, val UVH-26 0.894 so với 0.859;
         hoà ở cảnh dễ (Hà Nội, PVD).
   \item Khi cho YOLO26s nhìn cùng số điểm ảnh (ảnh 1280), hai họ \textbf{hoà nhau} trên dữ liệu Việt Nam 1080p: khoảng tin
-        cậy chồng nhau (ngày 0.875 [0.849--0.893] so với 0.886 [0.853--0.894]; đêm 0.800 [0.764--0.826] so với 0.816
-        [0.782--0.840]), mAP50-95 ngày 0.588 so với 0.578, đêm 0.548 so với 0.547. Phần lớn lợi thế của RT-DETRv2 ở
+        cậy chồng nhau (ngày 0.875 [0.844--0.902] so với 0.886 [0.855--0.914]; đêm 0.800 [0.765--0.832] so với 0.816
+        [0.777--0.854]), mAP50-95 ngày 0.588 so với 0.578, đêm 0.548 so với 0.547. Phần lớn lợi thế của RT-DETRv2 ở
         \texttt{vn\_extra} đến từ độ phân giải đầu vào chứ không phải từ kiến trúc.
   \item Trên hai tập có nhãn độc lập, RT-DETRv2-S có mAP50-95 cao hơn YOLO26s đều khoảng 0.03, tức box khít hơn. Ảnh
         UA-DETRAC chỉ 960×540 nên tăng ảnh lên 1280 không giúp YOLO (0.862 thấp hơn 0.876).
 \end{enumerate}
 
-YOLO26s hơn YOLO26n rõ ở \texttt{vn\_extra} và UA-DETRAC ngày, ngang nhau ở Hà Nội, PVD và UVH-26.
+YOLO26s hơn YOLO26n rõ ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]); ở \texttt{vn\_extra}
+ngày cũng cao hơn (0.798 so với 0.745) nhưng khoảng tin cậy chồng nhẹ; ở val UVH-26 và UA-DETRAC cũng cao hơn
+nhưng khoảng tin cậy chồng nhau; ngang nhau ở Hà Nội và PVD.
 Hình~\ref{fig:acc-speed} đặt độ chính xác cạnh tốc độ CPU: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
 lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
 
@@ -221,11 +237,11 @@ theo dõi.
     \hline
     \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector} & \thead{frame/s} &
       \thead{Pipeline (frame/s)} \\ \hline
-    YOLO26n v5, PyTorch & 544×960 & 2.51 M / 7.4 & 107.6 [92.0--129.3] & 9.3 & 206.4 (4.8) \\ \hline
-    YOLO26n v5, OpenVINO & 544×960 & -- & 67.6 [64.7--74.1] & 14.8 & 155.7 (6.4) \\ \hline
-    YOLO26s & 544×960 & 9.95 M / 28.7 & 284.8 [263.1--322.2] & 3.5 & 404.4 (2.5) \\ \hline
-    YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & 497.3 [461.6--614.8] & 2.0 & 705.1 (1.4) \\ \hline
-    RT-DETRv2-S & 960×960 & 20.08 M / 133.9 & 1561.0 [1441.7--1719.5] & 0.64 & -- \\ \hline
+    YOLO26n v5, PyTorch & 544×960 & 2.51 M / 7.4 & 100.5 [88.4--109.4] & 9.9 & 133.7 (7.5) \\ \hline
+    YOLO26n v5, OpenVINO & 544×960 & -- & 62.8 [62.3--64.3] & 15.9 & 91.8 (10.9) \\ \hline
+    YOLO26s & 544×960 & 9.95 M / 28.7 & 261.9 [254.8--267.5] & 3.8 & 285.3 (3.5) \\ \hline
+    YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & 455.2 [445.4--472.2] & 2.2 & 493.0 (2.0) \\ \hline
+    RT-DETRv2-S & 960×960 & 20.08 M / 133.9 & 1526.2 [1498.6--1602.4] & 0.66 & -- \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -246,11 +262,12 @@ theo dõi.
 
 Trên CPU (Bảng~\ref{tab:toc-do-cpu}):
 \begin{itemize}
-  \item OpenVINO tăng tốc riêng phần phát hiện 1.6 lần (107.6 xuống 67.6 ms) nhưng cả pipeline chỉ 1.3 lần, vì pipeline
-        còn tốn khoảng 90--100 ms mỗi frame cho giải mã video 1080p và tracker (lúc đo vẫn bật GMC). Trong một phép đo
-        riêng cùng điều kiện, tắt GMC giảm thời gian pipeline OpenVINO từ 128 xuống 92 ms (7.8 lên 10.8 frame/s).
-  \item RT-DETRv2-S mất 1.56 giây mỗi frame: chậm hơn YOLO26s ở ảnh 960 khoảng 5.5 lần, hơn YOLO26s ở ảnh 1280 (độ chính
-        xác ngang nhau trên dữ liệu Việt Nam) 3.1 lần, hơn v5 14 lần và hơn v5 OpenVINO 23 lần. Mô hình này không dùng
+  \item OpenVINO tăng tốc riêng phần phát hiện 1.6 lần (100.5 xuống 62.8 ms) và cả pipeline 1.5 lần (133.7 xuống 91.8
+        ms); với v5 OpenVINO, hệ thống xử lý được 10.9 frame/s video 1080p trên laptop. Ngoài khâu phát hiện, pipeline
+        tốn thêm khoảng 30 ms mỗi frame cho giải mã video và tracker. Ở lần đo trước khi tắt bù chuyển động camera (GMC),
+        phần này là 90--100 ms: GMC chiếm phần lớn thời gian của tracker mà không có ích với camera đứng yên.
+  \item RT-DETRv2-S mất 1.53 giây mỗi frame: chậm hơn YOLO26s ở ảnh 960 khoảng 5.8 lần, hơn YOLO26s ở ảnh 1280 (độ chính
+        xác ngang nhau trên dữ liệu Việt Nam) 3.4 lần, hơn v5 15 lần và hơn v5 OpenVINO 24 lần. Mô hình này không dùng
         được cho video trên CPU.
 \end{itemize}
 
@@ -320,12 +337,23 @@ y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62).
       \thead{Đổi ID} \\ \hline
     v5 + BoT-SORT đã chỉnh, không GMC (mặc định) & 0.718 & 0.670 & 0.784 & 0.813 & 0.880 & 0.822 & 0.947 & 26 \\ \hline
     v5 + BoT-SORT đã chỉnh, có GMC & 0.718 & 0.672 & 0.783 & 0.815 & 0.880 & 0.822 & 0.946 & 28 \\ \hline
+    v5, mặc định, lọc track dưới 3 frame & 0.708 & 0.656 & 0.778 & 0.795 & 0.871 & 0.801 & 0.955 & 21 \\ \hline
+    YOLO26s, mặc định & 0.758 & 0.713 & 0.819 & 0.841 & 0.904 & 0.878 & 0.930 & 31 \\ \hline
+    YOLO26s, mặc định, lọc track dưới 3 frame (cấu hình video demo) & 0.751 & 0.702 & 0.816 & 0.827 & 0.897 & 0.859 &
+      0.938 & 22 \\ \hline
   \end{tabularx}
 \end{table}
 
 Trên tập test có nhãn đầy đủ, cấu hình mặc định đạt HOTA 0.718, MOTA 0.813, IDF1 0.880, đổi ID 26 lần trên 183 xe
 (Bảng~\ref{tab:tracking-test}). IDP 0.947 cao hơn IDR 0.822: hệ thống ít khi gán nhầm danh tính, phần mất chủ yếu
 do bỏ sót (2.157 box bỏ sót so với 357 box thừa).
+
+Bảng cũng có hai cấu hình đúng như lúc chạy ứng dụng. Pipeline video bỏ các track tồn tại dưới 3 frame: số lần đổi ID
+giảm (26 xuống 21) nhưng HOTA giảm nhẹ (0.718 xuống 0.708) vì mất vài frame đầu của mỗi xe. Video demo xử lý trên GPU
+dùng YOLO26s; mô hình này được chấm sau khi đã chọn cấu hình, không dùng để chọn. YOLO26s theo dõi tốt hơn v5 ở mọi chỉ
+số tổng hợp (HOTA 0.758 so với 0.718, IDF1 0.904 so với 0.880), chủ yếu nhờ bỏ sót ít hơn (1.445 so với 2.157 box),
+đổi lại phát hiện thừa nhiều hơn (683 so với 357) và đổi ID nhiều hơn một chút (31 so với 26). Kết quả này khớp với
+khuyến nghị ở mục~\ref{sec:toc-do}: có GPU thì dùng YOLO26s.
 
 \begin{table}[H]
   \centering
@@ -379,6 +407,10 @@ Hệ thống đếm 72 lượt so với 73 lượt thật (Bảng~\ref{tab:dem-x
         tán cây bên phải.
   \item Lượt xe buýt là một chiếc Ford Transit bị đếm thành ô tô, đúng vấn đề định nghĩa lớp van đã nêu.
 \end{itemize}
+
+Với YOLO26s (mô hình của video demo, cùng tracker và bộ lọc), hệ thống đếm 71 lượt ``ra'', đúng bằng số lượt ``ra''
+thật: xe máy 52 so với 52, ô tô 19 so với 18, xe buýt 0 so với 1. Lượt ô tô thừa chính là chiếc Ford Transit, tức lỗi
+duy nhất giống hệt v5; sai số theo hướng là 2 lượt, đều ở hai lượt ``vào'' của nhãn đã giải thích ở trên.
 
 Như vậy lỗi thật của hệ thống trên clip này là 1 lượt sai lớp; không có xe bị sót hay bị đếm trùng. Khi triển khai, nên
 đặt vạch đếm ở vùng không bị che.
@@ -514,12 +546,26 @@ HOTA của v3 cao hơn v5 chỉ ở các ngưỡng IoU chặt: ở IoU 0.5 HOTA 
 tập này đề tài chỉ dùng mAP50 và các chỉ số theo dõi ở ngưỡng mặc định; so box khít (mAP50-95) chỉ trên tập có nhãn độc
 lập. Tập \texttt{vn\_extra} được làm sau khi nhận ra vấn đề này, với nhãn sơ bộ từ một mô hình không tham gia so sánh.
 
+\textbf{Tập test Hà Nội và khả năng tổng quát.} Frame test, val và train Hà Nội lấy từ cùng một camera, chỉ khác thời
+điểm. Đề tài tránh lỗi ``test cùng cảnh với train'' cho các bộ dữ liệu một camera (cantho, vehicle-detection) nhưng với
+video Hà Nội thì chỉ tách được theo thời gian, vì đây là video duy nhất của cảnh mục tiêu có thể dùng để huấn luyện.
+Vì vậy số liệu trên test Hà Nội (0.923) cao hơn rõ số liệu trên camera mới: 0.892 trên clip Phạm Văn Đồng, 0.745 trên
+\texttt{vn\_extra} ngày, 0.628 trên \texttt{vn\_extra} đêm. Kết luận về khả năng tổng quát của đề tài dựa trên các tập
+camera mới; test Hà Nội cho biết mức có thể đạt khi tinh chỉnh bằng video của đúng camera triển khai.
+
+\textbf{Những lần tập test được dùng lại.} Mọi lựa chọn được chốt trên tập dev, nhưng tập test không chỉ được chấm đúng
+một lần: clip Phạm Văn Đồng được chấm lại sau khi tắt bù chuyển động camera (đã chọn trên dev; kết quả gần như không
+đổi), và được dùng thêm cho các phép so sánh phụ (Bảng~\ref{tab:ablation}); nhãn của một ảnh \texttt{vn\_extra} đêm
+được sửa sau khi xem ảnh phân tích lỗi (đổi lớp 3 box, thêm 1 box, chỉnh 2 box; mọi mô hình thay đổi không quá 0.005
+điểm, thứ hạng không đổi). Các lần dùng lại
+này không dẫn tới thay đổi lựa chọn nào, nhưng được ghi lại để người đọc tự đánh giá.
+
 \textbf{Vì sao chọn v5 và BoT-SORT.} Trên tập phát hiện Hà Nội, v3, v4, v5 hoà nhau; v5 được chọn vì tác động lên theo
 dõi (đổi ID giảm một nửa trên dev) và vì tốt hơn rõ ở cảnh đêm, UVH-26 và UA-DETRAC. Điều này cho thấy dữ liệu đúng góc
 camera giao thông quan trọng hơn kích thước ảnh: v4 (ảnh 1280) chỉ sửa được 1/4 số frame xe máy từng bị sót, còn v5 ở
 ảnh 960 nhận ra được phần lớn các trường hợp đó. Ngoại lệ là cảnh có nhiều xe rất nhỏ ở xa, nơi ảnh 1280 có lợi rõ.
 
-\textbf{Đánh đổi độ chính xác và tốc độ.} RT-DETRv2-S chính xác nhất và cho box khít nhất, nhưng chậm 23 lần so với v5
+\textbf{Đánh đổi độ chính xác và tốc độ.} RT-DETRv2-S chính xác nhất và cho box khít nhất, nhưng chậm 24 lần so với v5
 OpenVINO trên CPU. Khi cho YOLO cùng số điểm ảnh, khoảng cách độ chính xác trên dữ liệu Việt Nam gần như biến mất. Vì vậy
 mô hình triển khai là v5 (OpenVINO) trên CPU; nếu có GPU thì dùng YOLO26s; RT-DETRv2-S là mức trần độ chính xác để tham
 chiếu.
@@ -529,19 +575,25 @@ chiếu.
 \subsection{Những kết quả chính}
 
 \begin{itemize}
-  \item Mô hình v5 (YOLO26n tinh chỉnh) đạt mAP50 chính 0.923 trên test Hà Nội so với 0.686 của mô hình gốc COCO, 0.628
-        trên cảnh đêm Việt Nam (gốc COCO 0.437) và 0.850 trên val UVH-26.
-  \item Theo dõi trên clip test: HOTA 0.718, MOTA 0.813, IDF1 0.880, 26 lần đổi ID trên 183 xe.
+  \item Trên các camera mới, mô hình v5 (YOLO26n tinh chỉnh) đạt mAP50 chính 0.892 trên clip Phạm Văn Đồng (gốc COCO
+        0.664), 0.745 ban ngày và 0.628 ban đêm trên \texttt{vn\_extra} (gốc COCO 0.458 và 0.437), 0.850 trên val UVH-26.
+        Trên camera đã dùng để tinh chỉnh (test Hà Nội), v5 đạt 0.923 so với 0.686 của mô hình gốc.
+  \item Theo dõi trên clip test: HOTA 0.718, MOTA 0.813, IDF1 0.880, 26 lần đổi ID trên 183 xe với v5; YOLO26s (mô hình
+        của video demo) đạt HOTA 0.758, MOTA 0.841, IDF1 0.904.
   \item Đếm xe qua vạch: 72 lượt so với 73 lượt thật, lỗi thật duy nhất là một lượt sai lớp.
   \item So sánh kiến trúc: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960, nhưng hoà khi YOLO nhìn cùng số điểm ảnh; box
-        của RT-DETRv2 khít hơn khoảng 0.03 mAP50-95; đổi lại chậm hơn 5.5 lần trên CPU.
-  \item Tốc độ: v5 OpenVINO 14.8 frame/s riêng phần phát hiện trên CPU laptop; trên GPU T4 cả pipeline khoảng 42 frame/s.
+        của RT-DETRv2 khít hơn khoảng 0.03 mAP50-95; đổi lại chậm hơn 5.8 lần trên CPU.
+  \item Tốc độ cả pipeline (phát hiện + theo dõi, video 1080p): v5 OpenVINO 10.9 frame/s trên CPU laptop; trên GPU T4
+        khoảng 42 frame/s.
 \end{itemize}
 
 \subsection{Hạn chế}
 
 \begin{itemize}
-  \item Mỗi cấu hình chỉ huấn luyện một lần; khoảng tin cậy bootstrap chỉ đo dao động do mẫu ảnh test.
+  \item Mỗi cấu hình chỉ huấn luyện một lần; khoảng tin cậy bootstrap chỉ đo dao động do mẫu ảnh test, và coi các frame
+        cùng clip là độc lập dù chúng rất giống nhau, nên khoảng thật có thể rộng hơn.
+  \item Tập test Hà Nội dùng cùng camera với frame huấn luyện, nên không đo khả năng tổng quát; toàn bộ dữ liệu test
+        Việt Nam chỉ gồm ba địa điểm (một ngã tư Hà Nội, đại lộ Phạm Văn Đồng với ba góc máy, một lối vào hầm chui).
   \item Các tập test nhỏ (20--30 frame mỗi tập); theo dõi chỉ có một clip test 20 giây; sai số đếm chỉ trên 73 lượt.
   \item Nhãn VnTraffic thiếu xe nên trên dev chỉ dùng được AssA, IDR, số lần đổi ID.
   \item Thiên lệch do nhãn sơ bộ ở test Hà Nội và clip Phạm Văn Đồng, nên trên hai tập này chỉ dùng mAP50.

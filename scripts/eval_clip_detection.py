@@ -15,7 +15,7 @@ import supervision as sv
 import yaml
 
 from vtrack import IGNORE_LABEL
-from vtrack.coco_eval import instance_counts, well_represented_classes
+from vtrack.coco_eval import BOOTSTRAP_ROUNDS, instance_counts, well_represented_classes
 from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, frames_to_eval_images, score_model
 from vtrack.mot_format import read_cvat_mot_labeled
 from vtrack.video_io import read_frame
@@ -36,7 +36,7 @@ def main() -> None:
     parser.add_argument("--sequence", default="pvd_goc_a")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
     parser.add_argument("--every-s", type=float, default=1.0, help="Lấy 1 frame mỗi bấy nhiêu giây")
-    parser.add_argument("--bootstrap", type=int, default=20)
+    parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP_ROUNDS)
     parser.add_argument("--name", default="", help="Tên thí nghiệm (thư mục con), để không ghi đè bảng cũ")
     args = parser.parse_args()
 

@@ -31,8 +31,8 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
   \item Tinh chỉnh YOLO26n qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
   \item So sánh kiến trúc CNN (YOLO26n, YOLO26s) với kiến trúc Transformer (RT-DETRv2-S) theo một giao thức công bằng,
         đo cả độ chính xác lẫn tốc độ.
-  \item Chọn và tinh chỉnh thuật toán theo dõi (ByteTrack, BoT-SORT, OC-SORT) trên tập phát triển, chấm một lần trên
-        tập test.
+  \item Chọn và tinh chỉnh thuật toán theo dõi (ByteTrack, BoT-SORT, OC-SORT) trên tập phát triển, rồi chấm cấu hình đã
+        chọn trên tập test.
   \item Xây dựng ứng dụng đếm xe qua vạch theo lớp và hướng, web demo bằng Streamlit, đo tốc độ trên CPU laptop và GPU.
 \end{itemize}
 
@@ -72,8 +72,9 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 các thuật toán theo dõi họ SORT và các chỉ số đánh giá chuẩn. Phần thực nghiệm tuân theo ba nguyên tắc:
 \begin{itemize}
   \item Mọi lựa chọn (mô hình, thuật toán theo dõi, kích thước ảnh đầu vào) được quyết định trên tập phát triển (dev)
-        theo tiêu chí đặt ra trước khi chạy. Tập test chỉ dùng để chấm một lần cấu hình đã chọn. Hai phương án chênh
-        nhau dưới 0.005 điểm mAP được coi là hoà, khi đó chọn phương án nhanh hơn.
+        theo tiêu chí đặt ra trước khi chạy. Tập test chỉ dùng để báo cáo kết quả, không dùng để chọn; những lần tập
+        test được chấm lại được ghi rõ ở mục~\ref{sec:thao-luan}. Hai phương án chênh nhau dưới 0.005 điểm mAP được coi
+        là hoà, khi đó chọn phương án nhanh hơn.
   \item Mỗi quyết định đối chiếu với quy ước của các bộ dữ liệu và benchmark lớn (COCO, KITTI, VisDrone, MOTChallenge);
         chỗ nào lệch quy ước thì nêu rõ lý do.
   \item Mọi số liệu trong báo cáo được xuất từ file kết quả của từng lần chạy, kèm cấu hình đã dùng, để có thể truy

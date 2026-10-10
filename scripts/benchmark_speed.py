@@ -30,11 +30,14 @@ from vtrack.speed import COOLDOWN_S, ROUND_FRAMES, ROUNDS, WARMUP_FRAMES, measur
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
 from vtrack.video_io import read_frame
 
+# Đúng bộ mô hình của bảng tốc độ CPU trong báo cáo (Chương 4): mô hình triển khai, bản OpenVINO, và thí nghiệm
+# so sánh kiến trúc (YOLO26s, RT-DETRv2-S, YOLO26s cùng số điểm ảnh với RT-DETRv2)
 DEFAULT_MODELS = [
     "weights/yolo26n_vn_v5_best.pt",
     "weights/yolo26n_vn_v5_best_openvino_model",
-    "weights/yolo26n_vn_v4_best.pt",
-    "weights/yolo26n_vn_v5_best.pt@640",  # cùng mô hình ở ảnh nhỏ hơn: đánh đổi tốc độ / độ chính xác
+    "weights/yolo26s_vn_v5_best.pt",
+    "weights/rtdetrv2_r18_vn_v5_best",
+    "weights/yolo26s_vn_v5_best.pt@1280",
 ]
 DEFAULT_VIDEO = "data/tracking_gt/pvd_goc_a/clip.mp4"  # 1080p, mật độ xe vừa phải
 

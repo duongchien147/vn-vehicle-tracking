@@ -6,7 +6,6 @@ phát hiện rơi vào vùng crowd không bị tính là sai, và vùng đó kh�
 
 import contextlib
 import io
-import random
 from collections.abc import Sequence
 from dataclasses import dataclass, field
 from typing import Any, cast
@@ -71,11 +70,9 @@ def to_coco(images: Sequence[EvalImage]) -> tuple[dict, list[dict]]:
     return {"images": coco_images, "annotations": annotations, "categories": categories}, detections
 
 
-def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
+def _matched_evaluator(images: Sequence[EvalImage], iou_thresholds: Sequence[float] | None = None) -> COCOeval:
+    """COCOeval đã ghép phát hiện với nhãn từng ảnh (evaluate()); `iou_thresholds=None` = 0.50:0.05:0.95 của COCO."""
     ground_truth, detections = to_coco(images)
-    if not detections:
-        zeros = {name: 0.0 for name in CLASS_NAMES}
-        return CocoMetrics(0.0, 0.0, 0.0, 0.0, 0.0, zeros, dict(zeros))
     with contextlib.redirect_stdout(io.StringIO()):  # pycocotools in rất nhiều dòng; chỉ lấy số
         coco_truth = COCO()
         coco_truth.dataset = cast(Any, ground_truth)  # stub kiểu của pycocotools quá hẹp; định dạng là dataset COCO
@@ -83,7 +80,18 @@ def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
         # loadRes nhận cả danh sách kết quả (không chỉ đường dẫn file như stub kiểu khai báo)
         evaluator = COCOeval(coco_truth, coco_truth.loadRes(cast(Any, detections)), "bbox")
         evaluator.params.maxDets = [1, 10, MAX_DETECTIONS]
+        if iou_thresholds is not None:
+            evaluator.params.iouThrs = np.array(iou_thresholds)
         evaluator.evaluate()
+    return evaluator
+
+
+def evaluate(images: Sequence[EvalImage]) -> CocoMetrics:
+    if not any(image.predictions for image in images):
+        zeros = {name: 0.0 for name in CLASS_NAMES}
+        return CocoMetrics(0.0, 0.0, 0.0, 0.0, 0.0, zeros, dict(zeros))
+    evaluator = _matched_evaluator(images)
+    with contextlib.redirect_stdout(io.StringIO()):
         evaluator.accumulate()
 
     # Không dùng evaluator.summarize()/stats: hàm đó viết cứng maxDets=100 cho mAP50-95 và trả -1 khi maxDets bị
@@ -135,17 +143,82 @@ def mean_ap50(metrics: CocoMetrics, classes: Sequence[str]) -> float:
     return float(np.mean([metrics.ap50_per_class[name] for name in classes]))
 
 
+# Số lần lấy mẫu lại: khoảng tin cậy theo phân vị 2.5%/97.5% cần >= 1000 lần mới ổn định (Efron & Tibshirani);
+# với 20 lần, hai phân vị đó gần như là giá trị nhỏ nhất/lớn nhất của 20 số và thay đổi theo seed.
+BOOTSTRAP_ROUNDS = 1000
+# 101 mức recall 0, 0.01, ..., 1 mà COCO dùng để nội suy precision (COCOeval.params.recThrs)
+RECALL_THRESHOLDS = np.linspace(0.0, 1.0, 101)
+
+
+@dataclass
+class ClassMatches:
+    """Kết quả ghép ở IoU 0.5 của một lớp trong một ảnh: đúng các mảng pycocotools dùng khi tính AP."""
+
+    scores: np.ndarray  # độ tin cậy của các phát hiện
+    true_positive: np.ndarray  # bool: ghép được với một nhãn chuẩn
+    false_positive: np.ndarray  # bool: không ghép được và không rơi vào vùng ignore
+    truth_count: int  # số nhãn chuẩn (không tính vùng ignore)
+
+
+def iou50_matches(images: Sequence[EvalImage]) -> list[list[ClassMatches]]:
+    """Ghép phát hiện với nhãn ở IoU 0.5 một lần cho mọi ảnh -> [lớp][ảnh]. Việc ghép làm riêng từng ảnh, nên lấy mẫu
+    lại tập ảnh chỉ cần gộp lại kết quả đã ghép, không phải chạy lại COCOeval."""
+    evaluator = _matched_evaluator(images, iou_thresholds=[0.5])
+    image_count, area_count = len(images), len(evaluator.params.areaRng)
+    empty = ClassMatches(np.empty(0), np.empty(0, bool), np.empty(0, bool), 0)
+    per_class = []
+    for class_index in range(len(CLASS_NAMES)):
+        rows = []
+        for image_index in range(image_count):
+            # evalImgs xếp theo [lớp][vùng diện tích][ảnh]; vùng diện tích 0 = tất cả
+            record = evaluator.evalImgs[class_index * area_count * image_count + image_index]
+            if record is None:  # ảnh không có nhãn lẫn phát hiện của lớp này
+                rows.append(empty)
+                continue
+            matched = record["dtMatches"][0] > 0
+            ignored = record["dtIgnore"][0].astype(bool)
+            rows.append(ClassMatches(
+                scores=np.asarray(record["dtScores"], dtype=float),
+                true_positive=matched & ~ignored,
+                false_positive=~matched & ~ignored,
+                truth_count=int(np.count_nonzero(np.asarray(record["gtIgnore"]) == 0)),
+            ))
+        per_class.append(rows)
+    return per_class
+
+
+def average_precision(parts: Sequence[ClassMatches]) -> float:
+    """AP nội suy 101 điểm, cùng cách COCOeval.accumulate(); nan nếu không có nhãn chuẩn nào."""
+    truth = sum(part.truth_count for part in parts)
+    if truth == 0:
+        return float("nan")
+    order = np.argsort(-np.concatenate([part.scores for part in parts]), kind="mergesort")
+    tp_sum = np.cumsum(np.concatenate([part.true_positive for part in parts])[order], dtype=float)
+    fp_sum = np.cumsum(np.concatenate([part.false_positive for part in parts])[order], dtype=float)
+    recall = tp_sum / truth
+    precision = tp_sum / (tp_sum + fp_sum + np.spacing(1))
+    precision = np.maximum.accumulate(precision[::-1])[::-1]  # precision nội suy: max của các điểm recall lớn hơn
+    positions = np.searchsorted(recall, RECALL_THRESHOLDS, side="left")
+    interpolated = np.zeros(len(RECALL_THRESHOLDS))
+    reached = positions < len(precision)
+    interpolated[reached] = precision[positions[reached]]
+    return float(interpolated.mean())
+
+
 def bootstrap_map50(
     images: Sequence[EvalImage], rounds: int, classes: Sequence[str], seed: int = 0
 ) -> tuple[float, float]:
     """Khoảng tin cậy 95% của mAP50 (trung bình trên `classes`) bằng bootstrap theo ảnh (lấy mẫu lại có hoàn lại).
 
     Tập test nhỏ (30 ảnh) nên một con số mAP đơn lẻ dao động nhiều; khoảng tin cậy cho biết hai mô hình
-    có khác nhau thật hay chỉ do may rủi chọn ảnh.
+    có khác nhau thật hay chỉ do may rủi chọn ảnh. Lưu ý: các frame trong cùng một clip giống nhau, mà bootstrap coi
+    chúng độc lập, nên khoảng thật có thể rộng hơn.
     """
-    generator = random.Random(seed)
+    matches = iou50_matches(images)
+    class_rows = [matches[CLASS_NAMES.index(name)] for name in classes]
+    generator = np.random.default_rng(seed)
     scores = []
     for _ in range(rounds):
-        sample = [images[generator.randrange(len(images))] for _ in images]
-        scores.append(mean_ap50(evaluate(sample), classes))
-    return float(np.percentile(scores, 2.5)), float(np.percentile(scores, 97.5))
+        sample = generator.integers(0, len(images), size=len(images))
+        scores.append(np.mean([average_precision([rows[i] for i in sample]) for rows in class_rows]))
+    return float(np.nanpercentile(scores, 2.5)), float(np.nanpercentile(scores, 97.5))

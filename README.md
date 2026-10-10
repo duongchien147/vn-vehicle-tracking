@@ -12,14 +12,17 @@ cả ban ngày lẫn ban đêm. Máy chạy demo là laptop chỉ có CPU; việ
 Mọi tập test dưới đây đều **không** được dùng khi train hoặc khi chọn tham số. Các lựa chọn (mô hình, tracker,
 kích thước ảnh) được chốt trên tập dev theo tiêu chí đặt trước.
 
-**Phát hiện** (mAP50 trung bình xe máy + ô tô; [khoảng tin cậy bootstrap]):
+**Phát hiện** (mAP50 trung bình xe máy + ô tô):
 
 | Tập test | COCO gốc (chưa fine-tune) | **v5 (mô hình triển khai)** |
 |---|---|---|
-| Test Hà Nội (30 frame gán tay) | 0.686 | **0.923** [0.915–0.932] |
-| Cảnh mới, ban ngày, nhiều xe nhỏ ở xa (`vn_extra` ngày) | 0.458 | **0.745** |
-| Cảnh đêm Việt Nam (`vn_extra` đêm) | 0.437 | **0.628** |
-| Clip TP.HCM (20 frame clip PVD) | 0.664 | **0.892** |
+| Clip TP.HCM (20 frame clip PVD) — camera mới | 0.664 | **0.892** |
+| Cảnh mới, ban ngày, nhiều xe nhỏ ở xa (`vn_extra` ngày) — camera mới | 0.458 | **0.745** |
+| Cảnh đêm Việt Nam (`vn_extra` đêm) — camera mới | 0.437 | **0.628** |
+| Test Hà Nội (30 frame gán tay) — **cùng camera** với frame huấn luyện, khác thời điểm | 0.686 | **0.923** |
+
+Test Hà Nội đo độ chính xác khi mô hình được tinh chỉnh bằng video của chính camera đó; khả năng tổng quát sang camera
+mới đọc ở ba dòng đầu.
 
 **Theo dõi** (clip test PVD 20 s, nhãn tracking gán tay, chấm theo chuẩn MOTChallenge bằng TrackEval):
 HOTA **0.718**, MOTA **0.813**, IDF1 **0.880**, 26 lần đổi ID trên 183 xe.
@@ -31,12 +34,12 @@ bị đếm thành ô tô.
 
 | Phần cứng | v5 (YOLO26n) |
 |---|---|
-| Laptop CPU i5-8250U, OpenVINO | ~10.8 frame/s |
+| Laptop CPU i5-8250U, OpenVINO | ~10.9 frame/s |
 | GPU Tesla T4 (Kaggle), PyTorch | ~42 frame/s |
 
 **So sánh kiến trúc** (cùng dữ liệu, cùng giao thức): YOLO26n, YOLO26s (CNN) và RT-DETRv2-S (Transformer). Khi được
 nhìn cùng số điểm ảnh, YOLO26s và RT-DETRv2-S hoà nhau trên dữ liệu Việt Nam. RT-DETRv2-S cho box khít hơn
-(mAP50-95 cao hơn ~0.03 trên các tập nhãn độc lập) nhưng chậm hơn YOLO26s 5.5 lần trên CPU. Vì vậy mô hình triển khai
+(mAP50-95 cao hơn ~0.03 trên các tập nhãn độc lập) nhưng chậm hơn YOLO26s 5.8 lần trên CPU. Vì vậy mô hình triển khai
 là v5 trên CPU, và nên dùng YOLO26s nếu có GPU. Giao thức và kết quả đầy đủ:
 [docs/giao_thuc_so_sanh_kien_truc.md](docs/giao_thuc_so_sanh_kien_truc.md).
 
@@ -132,4 +135,4 @@ YouTube chỉ dùng cho học tập và không được đăng lại.
 - Xe rất nhỏ ở xa (cao < 20 px) và xe bị che ban đêm vẫn hay bị sót. Ban đêm, mô hình đôi khi chỉ khoanh phần đèn hậu
   của xe máy.
 - Lớp "van" không có trong 4 lớp: xe cỡ Ford Transit được quy ước là buýt, và mô hình đôi khi gọi là ô tô.
-- Trên CPU, demo chưa đạt thời gian thực (~10.8 frame/s); cần GPU để đạt ~42 frame/s.
+- Trên CPU, demo chưa đạt thời gian thực (~10.9 frame/s với video 1080p); cần GPU để đạt ~42 frame/s.

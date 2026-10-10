@@ -63,7 +63,7 @@ def find_score(path: Path, model: str, imgsz: str, column: str = "main_mAP50") -
 
 
 def cpu_ms(model_key: str) -> float:
-    for row in read_rows(Path("outputs/benchmark_speed/e2_arch/results.csv")):
+    for row in read_rows(Path("outputs/benchmark_speed/e2_arch_nogmc/results.csv")):
         if row["model"] == model_key:
             return float(row["detector_ms_per_frame"])
     raise KeyError(model_key)

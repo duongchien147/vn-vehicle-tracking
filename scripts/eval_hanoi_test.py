@@ -17,7 +17,7 @@ import cv2
 import numpy as np
 
 from vtrack import IGNORE_CLASS_ID
-from vtrack.coco_eval import EvalImage, instance_counts, well_represented_classes
+from vtrack.coco_eval import BOOTSTRAP_ROUNDS, EvalImage, instance_counts, well_represented_classes
 from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, score_model
 from vtrack.label_review import read_yolo_file
 
@@ -53,8 +53,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--split-dir", default="data/labeling/hanoi/test")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
-    # Mỗi lần chấm 30 ảnh mất ~15–25s trên CPU (pycocotools viết bằng Python) -> 50 lần ~15–20 phút mỗi mô hình
-    parser.add_argument("--bootstrap", type=int, default=50, help="Số lần lấy mẫu lại cho khoảng tin cậy (0 = bỏ qua)")
+    # Bootstrap chỉ gộp lại kết quả đã ghép của từng ảnh (vtrack.coco_eval.iou50_matches) nên 1.000 lần vẫn nhanh
+    parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP_ROUNDS,
+                        help="Số lần lấy mẫu lại cho khoảng tin cậy (0 = bỏ qua)")
     parser.add_argument("--name", help="Tên thí nghiệm -> outputs/eval_hanoi/<tên>/<tập> (không ghi đè bảng cũ)")
     parser.add_argument("--min-instances", type=int, default=MIN_INSTANCES_FOR_MAIN_MAP,
                         help="mAP chính chỉ tính trên lớp có ít nhất bấy nhiêu box nhãn chuẩn")

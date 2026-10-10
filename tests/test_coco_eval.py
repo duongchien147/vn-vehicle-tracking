@@ -1,6 +1,17 @@
 import pytest
 
-from vtrack.coco_eval import EvalImage, evaluate, instance_counts, mean_ap50, to_coco, well_represented_classes
+from vtrack import CLASS_NAMES
+from vtrack.coco_eval import (
+    EvalImage,
+    average_precision,
+    bootstrap_map50,
+    evaluate,
+    instance_counts,
+    iou50_matches,
+    mean_ap50,
+    to_coco,
+    well_represented_classes,
+)
 from vtrack.label_review import YoloBox
 
 CAR, MOTORBIKE = 1, 0
@@ -67,3 +78,34 @@ def test_map75_counts_only_tight_boxes():
     metrics = evaluate([image(truth, shifted)])
     assert metrics.map50 == pytest.approx(1.0)
     assert metrics.map75 == pytest.approx(0.0)
+
+
+def mixed_images() -> list[EvalImage]:
+    """Vài ảnh có đủ trường hợp: đúng, sai lớp, bỏ sót, thừa, phát hiện trong vùng ignore, điểm tin cậy bằng nhau."""
+    return [
+        image([YoloBox(CAR, 0.3, 0.3, 0.1, 0.1), YoloBox(MOTORBIKE, 0.6, 0.6, 0.05, 0.1)],
+              [YoloBox(CAR, 0.3, 0.3, 0.1, 0.1, 0.9), YoloBox(CAR, 0.6, 0.6, 0.05, 0.1, 0.8),
+               YoloBox(MOTORBIKE, 0.9, 0.9, 0.05, 0.05, 0.4)]),
+        image([YoloBox(MOTORBIKE, 0.2, 0.2, 0.05, 0.1), YoloBox(MOTORBIKE, 0.4, 0.2, 0.05, 0.1)],
+              [YoloBox(MOTORBIKE, 0.2, 0.2, 0.05, 0.1, 0.7), YoloBox(MOTORBIKE, 0.8, 0.8, 0.05, 0.05, 0.7),
+               YoloBox(CAR, 0.5, 0.8, 0.1, 0.1, 0.95)],
+              ignore=[YoloBox(4, 0.8, 0.8, 0.2, 0.2)]),
+        image([YoloBox(CAR, 0.5, 0.5, 0.2, 0.2)], [YoloBox(CAR, 0.52, 0.5, 0.2, 0.2, 0.6)]),
+    ]
+
+
+def test_average_precision_from_matches_equals_cocoeval():
+    """AP tính lại từ kết quả ghép (dùng cho bootstrap nhanh) phải trùng AP50 của COCOeval trên cùng tập ảnh."""
+    images = mixed_images()
+    metrics = evaluate(images)
+    matches = iou50_matches(images)
+    for index, name in enumerate(CLASS_NAMES[:2]):
+        assert average_precision(matches[index]) == pytest.approx(metrics.ap50_per_class[name])
+
+
+def test_bootstrap_interval_is_reproducible_and_contains_estimate():
+    images = mixed_images() * 4
+    classes = ["motorbike", "car"]
+    low, high = bootstrap_map50(images, rounds=200, classes=classes, seed=1)
+    assert (low, high) == bootstrap_map50(images, rounds=200, classes=classes, seed=1)
+    assert low <= mean_ap50(evaluate(images), classes) <= high

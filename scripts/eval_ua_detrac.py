@@ -18,7 +18,7 @@ import cv2
 import numpy as np
 import yaml
 
-from vtrack.coco_eval import instance_counts, well_represented_classes
+from vtrack.coco_eval import BOOTSTRAP_ROUNDS, instance_counts, well_represented_classes
 from vtrack.coco_source import CocoImage, load_coco, to_eval_image
 from vtrack.detection_benchmark import EVAL_CONF, ModelSpec, describe, score_model
 
@@ -61,7 +61,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--config", default="configs/ua_detrac.yaml")
     parser.add_argument("--models", nargs="+", default=DEFAULT_MODELS, help="trọng số[@imgsz]")
-    parser.add_argument("--bootstrap", type=int, default=20)
+    parser.add_argument("--bootstrap", type=int, default=BOOTSTRAP_ROUNDS)
     parser.add_argument("--name", default="", help="Tên thí nghiệm (thư mục con), để không ghi đè bảng cũ")
     args = parser.parse_args()
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))

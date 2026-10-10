@@ -7,7 +7,10 @@ Quy ước số liệu:
 - **mAP50 chính** = trung bình AP50 của **xe máy + ô tô**. Buýt và tải quá ít mẫu trên các tập Việt Nam (test Hà Nội
   chỉ có 5 buýt, 2 tải), AP của chúng nhảy giữa 0 và 1. Tập UVH-26, test Roboflow dùng cả 4 lớp; UA-DETRAC dùng
   xe máy + ô tô + buýt.
-- Số trong ngoặc vuông là khoảng tin cậy bootstrap (20 lần lấy mẫu lại ảnh test).
+- Số trong ngoặc vuông là khoảng tin cậy bootstrap 95% (1.000 lần lấy mẫu lại ảnh test; chấm lại 9–10/10/2026 trong
+  các thư mục `ci1000`, thay bản 20 lần trước đó). Frame cùng clip giống nhau nên khoảng thật có thể rộng hơn.
+  Với 1.000 lần, hai kết luận cũ yếu đi: v4 so với v5 ban ngày ở `vn_extra` và YOLO26s so với YOLO26n ở `vn_extra` ngày,
+  UVH-26, UA-DETRAC giờ có khoảng tin cậy chồng nhau; RT-DETRv2-S so với YOLO26s@1280 ở UVH-26 cũng chồng nhẹ.
 - Tên mô hình: **v1–v5** là YOLO26n fine-tune qua 5 phiên bản dữ liệu; **v5** là mô hình triển khai; "COCO" là
   YOLO26n gốc chưa fine-tune; "@1280" là suy luận ở ảnh 1280.
 
@@ -254,19 +257,24 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 
 ### 4.1 Phát hiện — test Hà Nội (30 frame gán tay; 2.982 xe máy / 539 ô tô / 5 buýt / 2 tải)
 
+**Lưu ý (rà soát 9/10/2026):** frame test, val và train Hà Nội lấy từ **cùng một camera, cùng ngã tư**, chỉ khác thời
+điểm và mức zoom. Với v3–v5 (đã học frame Hà Nội), tập này đo độ chính xác **trên camera đã tinh chỉnh**, không đo khả
+năng tổng quát. Bằng chứng: v2 → v3 tăng 0.890 → 0.921 ở Hà Nội nhưng chỉ 0.736 → 0.757 ở `vn_extra` ngày và giảm
+0.496 → 0.437 ở `vn_extra` đêm. Khả năng tổng quát đọc ở `vn_extra`, PVD, UVH-26, UA-DETRAC (camera mới).
+
 Nguồn: `outputs/eval_hanoi/all_models/test/results.csv`, `outputs/eval_hanoi/v3_vs_v5/test/results.csv`.
 
 | Mô hình | imgsz | mAP50 chính [CI] | AP50 xe máy | AP50 ô tô |
 |---|---|---|---|---|
-| COCO (YOLO26n gốc) | 1280 | 0.686 [0.674–0.701] | 0.530 | 0.842 |
-| v1 | 640 | 0.395 [0.368–0.414] | 0.045 | 0.744 |
-| v2 | 960 | 0.890 [0.882–0.901] | 0.819 | 0.961 |
-| v3 | 960 | 0.921 [0.915–0.934] | 0.865 | 0.978 |
-| v4 | 1280 | 0.919 [0.910–0.927] | 0.862 | 0.975 |
-| **v5** | 960 | **0.923** [0.915–0.932] | 0.864 | 0.982 |
+| COCO (YOLO26n gốc) | 1280 | 0.686 [0.668–0.705] | 0.530 | 0.842 |
+| v1 | 640 | 0.395 [0.369–0.417] | 0.045 | 0.744 |
+| v2 | 960 | 0.890 [0.877–0.901] | 0.819 | 0.961 |
+| v3 | 960 | 0.921 [0.911–0.933] | 0.865 | 0.978 |
+| v4 | 1280 | 0.919 [0.907–0.929] | 0.862 | 0.975 |
+| **v5** | 960 | **0.923** [0.913–0.932] | 0.864 | 0.982 |
 
-Val Hà Nội (10 frame, dùng để chọn): v3 0.917 [0.904–0.927], v4 0.916 [0.902–0.926], v5 0.919 [0.909–0.928];
-v5@1280 0.922 [0.914–0.931] (`outputs/eval_hanoi/v3_vs_v4/val`, `v3_vs_v5/val`, `v5_imgsz_dev/val`).
+Val Hà Nội (10 frame, dùng để chọn): v3 0.917 [0.901–0.932], v4 0.916 [0.899–0.929], v5 0.919 [0.907–0.931];
+v5@1280 0.922 [0.912–0.932] (`outputs/eval_hanoi/v3_vs_v4/val`, `v3_vs_v5/val`, `v5_imgsz_dev/val`).
 v5 OpenVINO trên val: 0.916 so với PyTorch 0.919 (`outputs/eval_hanoi/openvino_check/val`).
 
 ### 4.2 Phát hiện — `vn_extra` (cảnh mới, nhãn người, nhãn sơ bộ từ YOLO26x nên mAP50-95 dùng được)
@@ -277,13 +285,13 @@ Ngày = `pvd_goc_b/c` 30 frame (552 xe máy / 156 ô tô / 0 buýt / 2 tải); �
 
 | Mô hình | Ngày mAP50 [CI] | Ngày mAP50-95 | Đêm mAP50 [CI] | Đêm mAP50-95 |
 |---|---|---|---|---|
-| COCO @1280 | 0.458 [0.432–0.489] | 0.286 | 0.437 [0.396–0.499] | 0.308 |
+| COCO @1280 | 0.458 [0.416–0.502] | 0.286 | 0.437 [0.363–0.498] | 0.308 |
 | v1 @640 | 0.081 | 0.035 | 0.183 | 0.106 |
 | v2 | 0.736 | 0.424 | 0.496 | 0.306 |
 | v3 | 0.757 | 0.460 | 0.437 | 0.263 |
-| v4 @1280 | 0.808 [0.779–0.824] | 0.517 | 0.481 | 0.321 |
-| **v5** | 0.745 [0.715–0.769] | 0.438 | **0.628** [0.598–0.659] | 0.404 |
-| v5 @1280 (chỉ phân tích) | 0.834 [0.808–0.842] | 0.519 | 0.657 [0.619–0.691] | 0.449 |
+| v4 @1280 | 0.808 [0.770–0.843] | 0.517 | 0.481 | 0.321 |
+| **v5** | 0.745 [0.699–0.787] | 0.438 | **0.628** [0.575–0.681] | 0.404 |
+| v5 @1280 (chỉ phân tích) | 0.834 [0.799–0.866] | 0.519 | 0.657 [0.607–0.705] | 0.449 |
 
 Số v5@1280 đêm lấy từ `outputs/eval_hanoi/arch_pixel_control/night` (đã sửa nhãn); thư mục
 `vn_extra_v5_1280_analysis/night` là bản trước khi sửa nhãn (0.656) — không dùng.
@@ -299,11 +307,11 @@ Nguồn: `outputs/eval_clip_detection/pvd_goc_a/results.csv`. Nhãn sơ bộ t�
 
 | Mô hình | mAP50 chính [CI] |
 |---|---|
-| COCO @1280 | 0.664 [0.651–0.693] |
-| v2 | 0.860 [0.838–0.886] |
-| v3 | 0.891 [0.869–0.911] |
-| v4 @1280 | 0.907 [0.889–0.920] |
-| v5 | 0.892 [0.876–0.915] |
+| COCO @1280 | 0.664 [0.638–0.693] |
+| v2 | 0.860 [0.833–0.890] |
+| v3 | 0.891 [0.865–0.915] |
+| v4 @1280 | 0.907 [0.883–0.929] |
+| v5 | 0.892 [0.866–0.923] |
 
 AP50 buýt = 0 với v5 do quy ước lớp van (12 box buýt là Ford Transit), không phải mô hình không nhận được buýt.
 
@@ -313,9 +321,9 @@ Nguồn: `outputs/eval_uvh26/v3_vs_v5/`, `outputs/eval_ua_detrac/results.csv`, `
 
 | Tập | COCO @1280 | v3 | v5 |
 |---|---|---|---|
-| Val UVH-26 (509 ảnh, 4 lớp; bỏ ảnh cùng camera với train) | 0.594 [0.577–0.621] | 0.335 [0.328–0.377] | 0.850 [0.832–0.864] |
-| UA-DETRAC đêm (xe máy + ô tô + buýt) | 0.689 [0.659–0.736] | 0.722 [0.664–0.755] | 0.845 [0.790–0.865] |
-| UA-DETRAC ngày | 0.690 [0.665–0.723] | 0.709 [0.655–0.756] | 0.812 [0.765–0.854] |
+| Val UVH-26 (509 ảnh, 4 lớp; bỏ ảnh cùng camera với train) | 0.594 [0.573–0.619] | 0.335 [0.314–0.361] | 0.850 [0.832–0.868] |
+| UA-DETRAC đêm (xe máy + ô tô + buýt) | 0.689 [0.654–0.739] | 0.722 [0.668–0.774] | 0.845 [0.797–0.890] |
+| UA-DETRAC ngày | 0.690 [0.661–0.753] | 0.709 [0.649–0.764] | 0.812 [0.755–0.870] |
 | Test Roboflow `vnvehicle` (308 ảnh, 4 lớp) | 0.255 | — | 0.834 |
 
 UA-DETRAC đêm: 51 xe máy / 1.578 ô tô / 143 buýt / 21 tải; ngày: 35 / 4.003 / 246 / 19.
@@ -330,14 +338,14 @@ mAP50 chính:
 
 | Tập | v5 (n) @960 | YOLO26s @960 | RT-DETRv2-S @960×960 | YOLO26s @1280 (cùng số điểm ảnh) |
 |---|---|---|---|---|
-| Test Hà Nội | 0.923 | 0.914 | 0.929 [0.925–0.939] | 0.915 |
-| `vn_extra` ngày | 0.745 | 0.798 | **0.886** [0.853–0.894] | 0.875 [0.849–0.893] |
-| `vn_extra` đêm | 0.628 | 0.713 | **0.816** [0.782–0.840] | 0.800 [0.764–0.826] |
+| Test Hà Nội | 0.923 | 0.914 | 0.929 [0.921–0.940] | 0.915 |
+| `vn_extra` ngày | 0.745 | 0.798 | **0.886** [0.855–0.914] | 0.875 [0.844–0.902] |
+| `vn_extra` đêm | 0.628 | 0.713 | **0.816** [0.777–0.854] | 0.800 [0.765–0.832] |
 | 20 frame PVD | 0.892 | 0.903 | 0.895 | 0.907 |
 | Test Roboflow (4 lớp) | 0.834 | 0.862 | 0.874 | — |
-| Val UVH-26 (4 lớp) | 0.850 | 0.859 | **0.894** [0.880–0.902] | 0.865 [0.846–0.876] |
+| Val UVH-26 (4 lớp) | 0.850 | 0.859 | **0.894** [0.878–0.907] | 0.865 [0.847–0.881] |
 | UA-DETRAC đêm | 0.845 | 0.876 | 0.887 | 0.862 |
-| UA-DETRAC ngày | 0.812 | 0.885 | 0.924 [0.875–0.949] | 0.885 |
+| UA-DETRAC ngày | 0.812 | 0.885 | 0.924 [0.874–0.960] | 0.885 |
 
 mAP50-95 trên tập nhãn **độc lập** (không qua mô hình YOLO nào — chỉ ở đây mới so được IoU chặt):
 
@@ -394,15 +402,19 @@ Hà Nội nhãn tự động → v4 thử imgsz 1280 (không hơn, chậm hơn �
 ### 4.8 Tốc độ (E2)
 
 **CPU** i5-8250U, video 1080p clip PVD, 5 đợt × 30 frame xen kẽ, trung vị [IQR]
-(`outputs/benchmark_speed/e2_arch/results.csv`; tracker lúc đo là `botsort_tuned` có GMC):
+(`outputs/benchmark_speed/e2_arch_nogmc/results.csv`, đo lại 9/10/2026 với tracker mặc định hiện tại
+`botsort_tuned_nogmc`; thay bảng cũ `e2_arch` đo khi còn bật GMC):
 
 | Mô hình | Đầu vào | Tham số (M) | GFLOPs | Detector ms/frame [IQR] | Detector frame/s | Pipeline ms/frame | Pipeline frame/s |
 |---|---|---|---|---|---|---|---|
-| v5 PyTorch | 544×960 | 2.51 | 7.4 | 107.6 [92.0–129.3] | 9.3 | 206.4 | 4.8 |
-| v5 OpenVINO | 544×960 | — | — | 67.6 [64.7–74.1] | 14.8 | 155.7 | 6.4 |
-| YOLO26s | 544×960 | 9.95 | 28.7 | 284.8 [263.1–322.2] | 3.5 | 404.4 | 2.5 |
-| RT-DETRv2-S | 960×960 | 20.08 | 133.9 | 1561.0 [1441.7–1719.5] | 0.64 | — | — |
-| YOLO26s @1280 | 736×1280 | 9.95 | 52.4 | 497.3 [461.6–614.8] | 2.0 | 705.1 | 1.4 |
+| v5 PyTorch | 544×960 | 2.51 | 7.4 | 100.5 [88.4–109.4] | 9.9 | 133.7 | 7.5 |
+| v5 OpenVINO | 544×960 | — | — | 62.8 [62.3–64.3] | 15.9 | 91.8 | 10.9 |
+| YOLO26s | 544×960 | 9.95 | 28.7 | 261.9 [254.8–267.5] | 3.8 | 285.3 | 3.5 |
+| RT-DETRv2-S | 960×960 | 20.08 | 133.9 | 1526.2 [1498.6–1602.4] | 0.66 | — | — |
+| YOLO26s @1280 | 736×1280 | 9.95 | 52.4 | 455.2 [445.4–472.2] | 2.2 | 493.0 | 2.0 |
+
+Ngoài khâu phát hiện, pipeline tốn thêm ~30 ms/frame (lần đo cũ còn bật GMC: 90–100 ms). Tỉ lệ RT-DETRv2-S chậm hơn:
+YOLO26s @960 5.8×, YOLO26s @1280 3.4×, v5 15×, v5 OpenVINO 24×.
 
 **GPU** Tesla T4 Kaggle, PyTorch FP32, video VnTraffic 1080p, tracker `botsort_tuned_nogmc`
 (`outputs/kaggle/vtrack-gpu-benchmark-run/outputs/benchmark_speed/e2_gpu_t4/results.csv`):
@@ -415,9 +427,7 @@ Hà Nội nhãn tự động → v4 thử imgsz 1280 (không hơn, chậm hơn �
 | YOLO26s @1280 | 24.3 (41.2) | 33.2 (30.2) |
 
 Ghi chú:
-- Tắt GMC: pipeline OpenVINO 128 → 92 ms/frame (7.8 → 10.8 frame/s) — số này đo nhanh, **không có file kết quả lưu**.
-  README đang ghi "~10.8 frame/s". Nếu đưa vào bảng báo cáo, nên đo lại bằng `scripts/benchmark_speed.py` với tracker
-  `botsort_tuned_nogmc` để có file truy ngược.
+- Số "10.8 frame/s" cũ (đo nhanh, không lưu file) đã được thay bằng 10.9 frame/s ở bảng trên, có file kết quả.
 - Video demo trên GPU (gồm vẽ + mã hoá video): 15.4–20.9 frame/s (`outputs/kaggle/vtrack-demo-gpu/vtrack-demo-gpu.log`).
 - Không chạy pipeline với RT-DETRv2 vì tracking dùng `model.track` của ultralytics.
 

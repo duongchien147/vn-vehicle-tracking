@@ -7,6 +7,14 @@ Ví dụ:
         --tracker configs/botsort.yaml --line 0 0.55 1 0.55 --vid-stride 2
 """
 
+import os
+
+# Luồng OpenMP của torch mặc định chờ quay vòng sau mỗi lần dùng và tranh lõi CPU với OpenVINO (v5 INT8 trên CPU
+# 34 -> 90 ms/frame, đo 10/10/2026); phải đặt trước khi torch được import lần đầu. Đổi lại PyTorch trên CPU chậm ~15%.
+os.environ.setdefault("KMP_BLOCKTIME", "0")
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")
+
+# Các import dưới đây phải chạy sau khi đặt biến môi trường ở trên
 import argparse
 import json
 from pathlib import Path
@@ -19,7 +27,8 @@ from vtrack.tracking import DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     parser.add_argument("--source", required=True, help="Đường dẫn video đầu vào")
-    parser.add_argument("--weights", default=DEFAULT_WEIGHTS, help=".pt hoặc thư mục *_openvino_model")
+    parser.add_argument("--weights", default=DEFAULT_WEIGHTS,
+                        help=".pt hoặc thư mục *_openvino_model (thêm #cpu / #gpu để chọn thiết bị)")
     parser.add_argument("--tracker", default=DEFAULT_TRACKER)
     parser.add_argument("--line", type=float, nargs=4, default=[0.0, 0.6, 1.0, 0.6],
                         metavar=("X1", "Y1", "X2", "Y2"), help="Vạch đếm, toạ độ tương đối [0, 1]")

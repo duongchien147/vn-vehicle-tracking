@@ -6,6 +6,14 @@ video + CSV mà notebooks/kaggle_demo_gpu đã tạo bằng cùng pipeline trên
 Chạy:  .venv\\Scripts\\streamlit.exe run app\\streamlit_app.py
 """
 
+import os
+
+# Luồng OpenMP của torch (ultralytics dùng cho tiền xử lý) mặc định chờ quay vòng sau mỗi lần dùng và tranh lõi CPU với
+# OpenVINO: v5 INT8 trên CPU 34 -> 90 ms/frame (đo 10/10/2026). Phải đặt trước khi torch được import lần đầu.
+os.environ.setdefault("KMP_BLOCKTIME", "0")
+os.environ.setdefault("OMP_WAIT_POLICY", "PASSIVE")
+
+# Các import dưới đây phải chạy sau khi đặt biến môi trường ở trên
 import json
 from dataclasses import asdict
 from pathlib import Path
@@ -17,7 +25,7 @@ import supervision as sv
 from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
-from vtrack.models import DEFAULT_WEIGHTS, load_model
+from vtrack.models import DEFAULT_WEIGHTS, load_model, split_device
 from vtrack.pipeline import VideoResult, process_video
 from vtrack.saved_runs import find_saved_runs, load_saved_run
 from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
@@ -28,17 +36,21 @@ OUTPUT_DIR = Path("outputs/streamlit")
 GPU_DEMO_DIR = Path("outputs/kaggle/vtrack-demo-gpu/demo")  # tải về bằng: scripts/kaggle_train.py download
 # Clip mở sẵn: clip test PVD có nhãn tracking — video khớp bảng HOTA và sai số đếm trong báo cáo
 GPU_DEFAULT_CLIP = "pvd_goc_a"
-# Chế độ đầu tiên là mặc định: trình chiếu video GPU xử lý sẵn (mượt, có ngay); hai chế độ chạy trực tiếp trên CPU
-# giữ lại để chạy video mới khi được hỏi (chậm ~10 frame/s)
-MODES = ("Kết quả GPU xử lý sẵn", "Clip có sẵn (chạy CPU)", "Tải video lên (chạy CPU)")
+# Chế độ đầu tiên là mặc định: trình chiếu video GPU xử lý sẵn (mượt, có ngay); hai chế độ chạy trực tiếp trên laptop
+# giữ lại để chạy video mới khi được hỏi (phát hiện + theo dõi ~20 frame/s, nhưng vẽ và ghi video 1080p kéo cả quy
+# trình xuống ~7 frame/s)
+MODES = ("Kết quả GPU xử lý sẵn", "Clip có sẵn (chạy trên máy)", "Tải video lên (chạy trên máy)")
 UPLOAD_SUFFIXES = ("mp4", "avi", "mov")
-# Mô hình chọn sẵn trong demo: cùng trọng số v5 nhưng chạy bằng OpenVINO — cả pipeline 6.9 so với 5.3 frame/s trên
-# CPU (outputs/benchmark_speed/), mAP50 val Hà Nội 0.916 so với 0.919 của bản PyTorch (chênh trong mức dao động)
-DEMO_WEIGHTS = "weights/yolo26n_vn_v5_best_openvino_model"
+# Mô hình chọn sẵn trong demo: trọng số v5, OpenVINO đầu vào 544x960 (khung video 16:9) trên GPU Intel tích hợp —
+# cả pipeline 19.8 frame/s so với 7.5 của PyTorch trên CPU (outputs/benchmark_speed/e2_igpu_openvino, e2_cpu_openvino);
+# mAP50 val Hà Nội 0.918 / IDR dev VnTraffic 0.825, so với 0.919 / 0.827 của bản PyTorch (hoà theo tiêu chí chốt trước)
+DEMO_WEIGHTS = "weights/yolo26n_vn_v5_best_544x960_openvino_model#gpu"
 # Tên hiển thị theo thứ tự trong danh sách; mô hình chưa có trong weights/ thì không hiện
 MODEL_LABELS = {
-    DEMO_WEIGHTS: "v5 — OpenVINO (mặc định, nhanh nhất trên CPU)",
-    DEFAULT_WEIGHTS: "v5 — PyTorch",
+    DEMO_WEIGHTS: "v5 — OpenVINO trên GPU Intel tích hợp (mặc định, nhanh nhất)",
+    "weights/yolo26n_vn_v5_best_int8_544x960_openvino_model#cpu": "v5 — OpenVINO INT8 trên CPU (máy không có GPU Intel)",
+    "weights/yolo26s_vn_v5_best_544x960_openvino_model#gpu": "YOLO26s — OpenVINO trên GPU Intel tích hợp (chính xác hơn, chậm hơn)",
+    DEFAULT_WEIGHTS: "v5 — PyTorch trên CPU",
     "weights/yolo26n_vn_v3_best.pt": "v3 — trước khi thêm dữ liệu camera giao thông UVH-26",
     "weights/yolo26n_vn_v4_best.pt": "v4 — v3 ở imgsz 1280",
     "weights/yolo26n_vn_v2_best.pt": "v2",
@@ -64,7 +76,12 @@ def cached_model(weights: str) -> YOLO:
 
 
 def available_models() -> list[str]:
-    return [weights for weights in MODEL_LABELS if Path(weights).exists()]
+    return [weights for weights in MODEL_LABELS if Path(split_device(weights)[0]).exists()]
+
+
+def hardware_label(weights: str) -> str:
+    """Thiết bị chạy mô hình, để ghi cạnh số frame/s."""
+    return "GPU Intel tích hợp" if split_device(weights)[1] == "intel:gpu" else "CPU"
 
 
 def choose_source(mode: str) -> Path | None:
@@ -185,7 +202,7 @@ def main() -> None:
     info = sv.VideoInfo.from_video_path(str(source))
     video_seconds = (info.total_frames or 0) / info.fps
     max_seconds = st.sidebar.slider("Chỉ xử lý N giây đầu", 5, max(5, int(video_seconds)), min(20, max(5, int(video_seconds))),
-                                     help="Trên CPU ~3–5 frame/s: 20 giây video 30 fps mất khoảng 2–3 phút.")
+                                     help="Tính cả vẽ và ghi video 1080p: v5 OpenVINO khoảng 7 frame/s, PyTorch khoảng 6 frame/s.")
     max_frames = int(max_seconds * info.fps / vid_stride)
 
     col_preview, col_info = st.columns([3, 1])
@@ -211,7 +228,7 @@ def main() -> None:
         )
         progress.empty()
         events_csv = result.write_events_csv(result.output_path.with_name(result.output_path.stem + "_events.csv"))
-        st.session_state["last_run"] = (result, max_seconds, settings, events_csv, "CPU")
+        st.session_state["last_run"] = (result, max_seconds, settings, events_csv, hardware_label(weights))
 
     if "last_run" in st.session_state:
         show_results(*st.session_state["last_run"])

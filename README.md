@@ -34,13 +34,17 @@ bị đếm thành ô tô.
 
 | Phần cứng | v5 (YOLO26n) |
 |---|---|
-| Laptop CPU i5-8250U, OpenVINO | ~10.9 frame/s |
+| Laptop i5-8250U, OpenVINO đầu vào 544×960 trên GPU Intel UHD 620 tích hợp | ~19.8 frame/s |
+| Laptop i5-8250U, chỉ CPU, OpenVINO INT8 544×960 | ~18.8 frame/s |
+| Laptop i5-8250U, chỉ CPU, PyTorch | ~7.5 frame/s |
 | GPU Tesla T4 (Kaggle), PyTorch | ~42 frame/s |
+
+Tính cả vẽ kết quả và ghi video 1080p, web demo trên laptop chạy khoảng 7 frame/s.
 
 **So sánh kiến trúc** (cùng dữ liệu, cùng giao thức): YOLO26n, YOLO26s (CNN) và RT-DETRv2-S (Transformer). Khi được
 nhìn cùng số điểm ảnh, YOLO26s và RT-DETRv2-S hoà nhau trên dữ liệu Việt Nam. RT-DETRv2-S cho box khít hơn
 (mAP50-95 cao hơn ~0.03 trên các tập nhãn độc lập) nhưng chậm hơn YOLO26s 5.8 lần trên CPU. Vì vậy mô hình triển khai
-là v5 trên CPU, và nên dùng YOLO26s nếu có GPU. Giao thức và kết quả đầy đủ:
+là v5 (OpenVINO trên GPU Intel tích hợp của laptop), và nên dùng YOLO26s nếu có GPU rời. Giao thức và kết quả đầy đủ:
 [docs/giao_thuc_so_sanh_kien_truc.md](docs/giao_thuc_so_sanh_kien_truc.md).
 
 ## Pipeline
@@ -70,15 +74,17 @@ python -m venv .venv
 
 **Trọng số mô hình và dữ liệu không nằm trong repo** (quá lớn, và một số video có giấy phép không cho đăng lại).
 Trọng số được tạo bằng các notebook huấn luyện trong `notebooks/` và đặt vào `weights/` (mặc định
-`weights/yolo26n_vn_v5_best.pt` và bản OpenVINO `weights/yolo26n_vn_v5_best_openvino_model/`).
+`weights/yolo26n_vn_v5_best.pt`; bản OpenVINO cho web demo tạo bằng
+`scripts\export_openvino.py --weights weights\yolo26n_vn_v5_best.pt --input-hw 544 960`).
 
 ## Chạy thử
 
 ```powershell
 # Xử lý một video -> outputs/<tên>_tracked.mp4 + _events.csv + _run_config.json
 .venv\Scripts\python.exe scripts\infer_video.py --source data\videos\nga_tu_hanoi_a.mp4
-# Bản OpenVINO (nhanh hơn trên CPU) và vạch đếm tuỳ chọn (toạ độ tương đối 0–1)
-.venv\Scripts\python.exe scripts\infer_video.py --source <video> --weights weights\yolo26n_vn_v5_best_openvino_model --line 0 0.6 1 0.6
+# Bản OpenVINO trên GPU Intel tích hợp (#gpu; máy không có GPU Intel thì dùng bản INT8 với #cpu)
+# và vạch đếm tuỳ chọn (toạ độ tương đối 0–1)
+.venv\Scripts\python.exe scripts\infer_video.py --source <video> --weights "weights\yolo26n_vn_v5_best_544x960_openvino_model#gpu" --line 0 0.6 1 0.6
 
 # Web demo: chọn clip hoặc tải video lên, chọn mô hình / tracker / vạch đếm -> video kết quả, bảng đếm, biểu đồ, CSV.
 # Chế độ "Kết quả GPU xử lý sẵn" xem lại video đã xử lý trên GPU T4 (notebooks/kaggle_demo_gpu) mà không chạy lại.

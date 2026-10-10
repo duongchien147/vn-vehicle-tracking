@@ -429,11 +429,13 @@ tại thời điểm xe cắt vạch.
 Web demo viết bằng Streamlit có hai chế độ. Chế độ chạy trực tiếp cho chọn clip có sẵn hoặc tải video lên, chọn mô hình,
 tracker, ngưỡng tin cậy và vị trí vạch đếm, rồi hiển thị video kết quả, bảng đếm theo lớp và hướng, biểu đồ số xe cộng
 dồn theo thời gian và cho tải file CSV. Chế độ thứ hai nạp lại video đã xử lý sẵn trên GPU, dùng khi trình chiếu vì
-laptop chỉ có CPU chạy không kịp thời gian thực.
+trên laptop, tính cả vẽ kết quả và ghi video 1080p, cả quy trình chỉ đạt khoảng 7 frame/s.
 
-Để chạy nhanh hơn trên CPU Intel, mô hình v5 được xuất sang OpenVINO~\cite{openvino} ở đúng kích thước ảnh 960. Kết quả
-của bản OpenVINO không trùng tuyệt đối với PyTorch (khoảng 96\% box khớp với IoU $\ge$ 0.9) nhưng mAP50 trên val Hà Nội
-gần như không đổi (0.916 so với 0.919), nên web demo dùng sẵn bản OpenVINO.
+Để chạy nhanh trên laptop, mô hình v5 được xuất sang OpenVINO~\cite{openvino}. Bản dùng cho web demo nhận ảnh 544×960,
+đúng khung video 16:9 với cạnh dài bằng kích thước ảnh lúc huấn luyện, và chạy trên GPU Intel tích hợp của laptop; cách
+chọn cấu hình này và các phương án khác (INT8, chạy trên CPU) trình bày ở mục~\ref{sec:openvino}. Kết quả của bản
+OpenVINO không trùng tuyệt đối với PyTorch, nhưng trên hai tập dev hai bản hoà nhau: mAP50 val Hà Nội 0.918 so với 0.919,
+IDR trên VnTraffic 0.825 so với 0.827.
 
 \section{Kết luận chương}
 

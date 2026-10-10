@@ -11,6 +11,9 @@ Quy ước số liệu:
   các thư mục `ci1000`, thay bản 20 lần trước đó). Frame cùng clip giống nhau nên khoảng thật có thể rộng hơn.
   Với 1.000 lần, hai kết luận cũ yếu đi: v4 so với v5 ban ngày ở `vn_extra` và YOLO26s so với YOLO26n ở `vn_extra` ngày,
   UVH-26, UA-DETRAC giờ có khoảng tin cậy chồng nhau; RT-DETRv2-S so với YOLO26s@1280 ở UVH-26 cũng chồng nhẹ.
+- Bootstrap theo khối (10/10/2026, mục 4.14): lấy mẫu lại cả khối 10 giây liên tiếp trong mỗi clip (UA-DETRAC: cả
+  video) vì frame gần nhau chung xe. Kết luận chính giữ nguyên; yếu đi thêm hai chỗ: YOLO26s chỉ tách v5 sát nút ở
+  `vn_extra` đêm; UA-DETRAC ngày v5 chạm mô hình gốc.
 - Tên mô hình: **v1–v5** là YOLO26n fine-tune qua 5 phiên bản dữ liệu; **v5** là mô hình triển khai; "COCO" là
   YOLO26n gốc chưa fine-tune; "@1280" là suy luận ở ảnh 1280.
 
@@ -219,7 +222,7 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 - Vì sao conf 0.1: ByteTrack/BoT-SORT cần box điểm thấp cho bước ghép thứ hai; tạo track mới do `new_track_thresh`.
 - Vì sao bỏ phiếu lớp: một xe có thể bị gọi lúc car lúc truck; supervision đếm theo lớp tại lúc cắt vạch.
 - ID hiển thị đánh lại #1, #2… theo thứ tự xuất hiện (ID gốc của tracker lên tới hàng nghìn).
-- Web demo Streamlit; xuất OpenVINO để tăng tốc CPU.
+- Web demo Streamlit; xuất OpenVINO đầu vào 544×960 chạy trên GPU Intel tích hợp (hoặc INT8 trên CPU), mục 4.8.
 
 **3.7. Kết luận chương**
 
@@ -275,7 +278,7 @@ Nguồn: `outputs/eval_hanoi/all_models/test/results.csv`, `outputs/eval_hanoi/v
 
 Val Hà Nội (10 frame, dùng để chọn): v3 0.917 [0.901–0.932], v4 0.916 [0.899–0.929], v5 0.919 [0.907–0.931];
 v5@1280 0.922 [0.912–0.932] (`outputs/eval_hanoi/v3_vs_v4/val`, `v3_vs_v5/val`, `v5_imgsz_dev/val`).
-v5 OpenVINO trên val: 0.916 so với PyTorch 0.919 (`outputs/eval_hanoi/openvino_check/val`).
+v5 OpenVINO trên val: xem bảng OpenVINO ở mục 4.8 (bản demo 544×960 trên GPU tích hợp 0.918 so với PyTorch 0.919).
 
 ### 4.2 Phát hiện — `vn_extra` (cảnh mới, nhãn người, nhãn sơ bộ từ YOLO26x nên mAP50-95 dùng được)
 
@@ -296,10 +299,21 @@ Ngày = `pvd_goc_b/c` 30 frame (552 xe máy / 156 ô tô / 0 buýt / 2 tải); �
 Số v5@1280 đêm lấy từ `outputs/eval_hanoi/arch_pixel_control/night` (đã sửa nhãn); thư mục
 `vn_extra_v5_1280_analysis/night` là bản trước khi sửa nhãn (0.656) — không dùng.
 
-Phân tích (script tạm, conf 0.25, IoU 0.5, làm trước khi sửa nhãn đêm): ngày — recall xe < 20 px: v3 0.29, v5 0.31,
-v4 0.45; xe ≥ 32 px mọi mô hình Việt Nam ~0.85–0.89. Đêm — xe ≥ 64 px: v5 recall 0.79, v3 0.50, v4 0.48; v3 nhầm xe
-máy thành ô tô 36 lần. **Không có file kết quả lưu lại** cho phân tích này (chỉ ghi trong ghi chú dự án) — nếu đưa vào
-báo cáo dưới dạng bảng thì nên chạy lại và lưu.
+Recall theo chiều cao xe (`scripts/analyze_size_recall.py`, `outputs/size_recall/default/results.csv`; conf 0.25,
+IoU 0.5; nhãn đêm đã sửa; đêm bỏ khoảng < 20 px vì chỉ có 1 xe):
+
+| Mô hình | Ngày <20 (192) | 20–32 (175) | 32–64 (203) | ≥64 (140) | Đêm 20–32 (37) | 32–64 (316) | ≥64 (286) |
+|---|---|---|---|---|---|---|---|
+| v3 | 0.29 | 0.52 | 0.84 | 0.86 | 0.11 | 0.34 | 0.43 |
+| v4 @1280 | 0.45 | 0.59 | 0.82 | 0.84 | 0.19 | 0.37 | 0.45 |
+| v5 | 0.31 | 0.49 | 0.88 | 0.84 | 0.05 | 0.53 | 0.74 |
+| v5 @1280 | 0.50 | 0.66 | 0.87 | 0.90 | 0.16 | 0.56 | 0.72 |
+| YOLO26s | 0.46 | 0.66 | 0.87 | 0.89 | 0.49 | 0.62 | 0.75 |
+| YOLO26s @1280 | 0.72 | 0.78 | 0.92 | 0.88 | 0.57 | 0.70 | 0.79 |
+| RT-DETRv2-S | 0.80 | 0.85 | 0.96 | 0.94 | 0.51 | 0.77 | 0.91 |
+
+v3 nhầm xe máy thành ô tô ban đêm 36 lần (16 + 20); nới IoU 0.3 chỉ tăng recall 2–8 điểm. Số ngày trùng bản phân tích
+tạm trước đây; số đêm khác (bản cũ: v5 0.79, v3 0.50, v4 0.48) vì làm trước khi sửa nhãn đêm.
 
 ### 4.3 Phát hiện — 20 frame clip PVD (TP.HCM; 375 xe máy / 238 ô tô / 12 buýt)
 
@@ -408,13 +422,13 @@ Hà Nội nhãn tự động → v4 thử imgsz 1280 (không hơn, chậm hơn �
 | Mô hình | Đầu vào | Tham số (M) | GFLOPs | Detector ms/frame [IQR] | Detector frame/s | Pipeline ms/frame | Pipeline frame/s |
 |---|---|---|---|---|---|---|---|
 | v5 PyTorch | 544×960 | 2.51 | 7.4 | 100.5 [88.4–109.4] | 9.9 | 133.7 | 7.5 |
-| v5 OpenVINO | 544×960 | — | — | 62.8 [62.3–64.3] | 15.9 | 91.8 | 10.9 |
 | YOLO26s | 544×960 | 9.95 | 28.7 | 261.9 [254.8–267.5] | 3.8 | 285.3 | 3.5 |
 | RT-DETRv2-S | 960×960 | 20.08 | 133.9 | 1526.2 [1498.6–1602.4] | 0.66 | — | — |
 | YOLO26s @1280 | 736×1280 | 9.95 | 52.4 | 455.2 [445.4–472.2] | 2.2 | 493.0 | 2.0 |
 
 Ngoài khâu phát hiện, pipeline tốn thêm ~30 ms/frame (lần đo cũ còn bật GMC: 90–100 ms). Tỉ lệ RT-DETRv2-S chậm hơn:
-YOLO26s @960 5.8×, YOLO26s @1280 3.4×, v5 15×, v5 OpenVINO 24×.
+YOLO26s @960 5.8×, YOLO26s @1280 3.4×, v5 15×. Bảng cũ có dòng "v5 OpenVINO 62.8 ms / 10.9 frame/s": số đó thực ra
+đo trên GPU Intel tích hợp (ultralytics để OpenVINO tự chọn thiết bị) — đã bỏ, thay bằng bảng OpenVINO dưới đây.
 
 **GPU** Tesla T4 Kaggle, PyTorch FP32, video VnTraffic 1080p, tracker `botsort_tuned_nogmc`
 (`outputs/kaggle/vtrack-gpu-benchmark-run/outputs/benchmark_speed/e2_gpu_t4/results.csv`):
@@ -427,7 +441,36 @@ YOLO26s @960 5.8×, YOLO26s @1280 3.4×, v5 15×, v5 OpenVINO 24×.
 | YOLO26s @1280 | 24.3 (41.2) | 33.2 (30.2) |
 
 Ghi chú:
-- Số "10.8 frame/s" cũ (đo nhanh, không lưu file) đã được thay bằng 10.9 frame/s ở bảng trên, có file kết quả.
+- Số "10.8 / 10.9 frame/s" cũ của v5 OpenVINO là đo trên GPU tích hợp, không phải CPU (xem bảng OpenVINO).
+
+**OpenVINO trên laptop** (10/10/2026; `outputs/benchmark_speed/e2_cpu_openvino/` và `e2_igpu_openvino/` — hai lần chạy
+riêng, đặt `KMP_BLOCKTIME=0 OMP_WAIT_POLICY=PASSIVE`; độ chính xác: `outputs/eval_hanoi/openvino_device|openvino_rect/val`,
+`outputs/eval_tracking/openvino_device_dev|openvino_rect_dev`). Tiêu chí chốt trước: mAP50 val và IDR dev chênh ≤ 0.005
+là hoà, hoà thì chọn nhanh hơn.
+
+| Mô hình, cấu hình | Thiết bị | Đầu vào | Phát hiện ms | Pipeline frame/s | mAP50 val | IDR dev | Đổi ID dev |
+|---|---|---|---|---|---|---|---|
+| v5 PyTorch FP32 | CPU | 544×960 | 117.9 | 7.5 | 0.919 | 0.827 | 61 |
+| v5 OpenVINO FP32 | CPU | 960×960 | 112.4 | 7.9 | 0.916 | 0.813 | 75 |
+| v5 OpenVINO INT8 | CPU | 960×960 | 72.1 | 11.4 | 0.917 | 0.813 | 78 |
+| v5 OpenVINO INT8 | CPU | 544×960 | 33.7 | 18.8 | 0.920 | 0.816 | 71 |
+| v5 OpenVINO FP32 | GPU tích hợp | 960×960 | 54.1 | 12.5 | 0.915 | 0.819 | 68 |
+| v5 OpenVINO INT8 | GPU tích hợp | 960×960 | 60.6 | 12.0 | 0.916 | 0.814 | 82 |
+| **v5 OpenVINO FP32 (demo)** | GPU tích hợp | 544×960 | **32.8** | **19.8** | 0.918 | 0.825 | 71 |
+| YOLO26s PyTorch FP32 | CPU | 544×960 | 284.3 | 3.3 | 0.915 | 0.845 | 65 |
+| YOLO26s OpenVINO INT8 | CPU | 544×960 | 103.8 | 8.2 | 0.914 | 0.851 | 61 |
+| YOLO26s OpenVINO FP32 | GPU tích hợp | 544×960 | 84.5 | 9.4 | 0.915 | 0.848 | 63 |
+
+- Không chỉ định thiết bị thì OpenVINO (qua ultralytics) đưa bản FP32 lên GPU tích hợp → phải ghi `#cpu`/`#gpu`.
+- Luồng OpenMP của torch chờ quay vòng, tranh lõi với OpenVINO: v5 INT8 544×960 trên CPU ~90 → 34 ms khi tắt; PyTorch
+  trên CPU chậm đi ~15–20% (117.9 so với 100.5 ms ở bảng trên). App và `infer_video.py` tắt sẵn.
+- INT8 nhanh hơn FP32 ~1.6 lần trên CPU, không nhanh hơn trên GPU UHD 620; không giảm độ chính xác.
+- Đầu vào 544×960 (khung 16:9) nhanh hơn bản vuông 1.6–2.1 lần và gần PyTorch hơn; chỉ dùng cho video 16:9.
+- Chọn cho demo: v5 FP32 544×960 trên GPU tích hợp (hoà PyTorch trên cả hai tiêu chí). Máy chỉ có CPU: INT8 544×960
+  (IDR 0.816 so với 0.827, đổi ID 71 so với 61 → đánh đổi, không phải hoà). YOLO26s INT8 544×960 trên CPU không đạt
+  tiêu chí so với bản vuông (IDR 0.851 so với 0.861).
+- Cả quy trình của web demo (tính cả vẽ và ghi video 1080p): ~7.3 frame/s với bản demo, 5.8 với PyTorch → khâu vẽ/ghi
+  video là chậm nhất.
 - Video demo trên GPU (gồm vẽ + mã hoá video): 15.4–20.9 frame/s (`outputs/kaggle/vtrack-demo-gpu/vtrack-demo-gpu.log`).
 - Không chạy pipeline với RT-DETRv2 vì tracking dùng `model.track` của ultralytics.
 
@@ -503,6 +546,30 @@ vạch); lượt buýt là Ford Transit bị đếm thành ô tô → lỗi th�
 YOLO26s @960 + `botsort_tuned_nogmc`, 6 clip × 60 s 1080p; lượt qua vạch: pvd_goc_a 194 (chỉ chiều ra), pvd_goc_b
 169, pvd_goc_c 254, hầm chui 1/2/3: 69 / 76 / 98 (chưa có nhãn — không phải số đánh giá).
 
+Hai lỗi thấy khi xem lại (đưa vào mục video demo của chương 4, hình `figures/demo_tow_truck.jpg`):
+- Xe cứu hộ chở ô tô (`ham_chui_dem_1`, giây 47.5): cabin bị gọi buýt, box chỉ ôm cabin; ô tô trên sàn nhận riêng là
+  car. Được đếm 1 lần nhưng sai lớp (buýt thay vì tải); ô tô trên sàn không bị đếm thêm.
+- Xe buýt #103 (`ham_chui_dem_3`): đếm đúng là buýt ở frame 236; khi đi xa chỉ thấy đuôi, mô hình gọi chắc "truck"
+  (141 lần, conf TB 0.74 so với 55 lần buýt, 0.52) → nhãn hiển thị đổi từ frame ~326. Đã khoá lớp hiển thị sau khi đếm.
+
+### 4.14 Khoảng tin cậy theo khối (`outputs/eval_hanoi/ci_block/`, `outputs/eval_ua_detrac/ci_block/`)
+
+Khối 10 s liên tiếp trong mỗi clip (90% xe ở trong khung hình < 8.2 s trên nhãn PVD); UA-DETRAC mỗi video một cụm.
+Test Hà Nội 6 khối, `vn_extra` mỗi tập 10 khối, UA-DETRAC 21 (đêm) / 39 (ngày) video. Clip PVD (2 khối) và UVH-26
+(không biết camera) không tính.
+
+| Tập | Mô hình | mAP50 | CI theo ảnh | CI theo khối |
+|---|---|---|---|---|
+| Test Hà Nội | v2 / v3 / v5 | 0.890 / 0.921 / 0.923 | [0.877–0.901] / [0.911–0.933] / [0.913–0.932] | [0.871–0.905] / [0.905–0.938] / [0.906–0.938] |
+| `vn_extra` ngày | v5 | 0.745 | [0.699–0.787] | [0.697–0.790] |
+| | YOLO26s / @1280 | 0.798 / 0.875 | [0.765–0.828] / [0.844–0.902] | [0.757–0.832] / [0.828–0.914] |
+| | RT-DETRv2-S | 0.886 | [0.855–0.914] | [0.849–0.914] |
+| `vn_extra` đêm | v3 / v5 | 0.437 / 0.628 | [0.384–0.489] / [0.575–0.681] | [0.369–0.496] / [0.555–0.684] |
+| | YOLO26s / @1280 | 0.713 / 0.800 | [0.685–0.744] / [0.765–0.832] | [0.685–0.744] / [0.762–0.838] |
+| | RT-DETRv2-S | 0.816 | [0.777–0.854] | [0.766–0.858] |
+| UA-DETRAC đêm | COCO / v3 / v5 | 0.689 / 0.722 / 0.845 | [0.654–0.739] / [0.668–0.774] / [0.797–0.890] | [0.647–0.726] / [0.646–0.776] / [0.785–0.886] |
+| UA-DETRAC ngày | COCO / v3 / v5 | 0.690 / 0.709 / 0.812 | [0.661–0.753] / [0.649–0.764] / [0.755–0.870] | [0.653–0.744] / [0.601–0.836] / [0.738–0.893] |
+
 ## 5. Danh mục hình
 
 | Mã đề xuất | Nội dung | File | Trạng thái |
@@ -550,7 +617,9 @@ ID khi xe bị cây che. Màu: xanh = đúng, đỏ = sót, cam = sai lớp, tí
 | Đối chứng YOLO @1280 khi so kiến trúc | — | RT-DETRv2 kéo giãn 960×960 nhìn nhiều điểm ảnh hơn ~1.8× |
 | Đo tốc độ theo đợt xen kẽ, khởi động ≥ 15 s | — | Laptop hạ xung khi nóng; OpenVINO cần khởi động lâu |
 | Box xe che một phần ôm phần nhìn thấy | Lệch MOTChallenge (ước lượng cả xe) | Ghi rõ là hạn chế |
-| Mô hình triển khai: v5 OpenVINO trên CPU; YOLO26s nếu có GPU | — | RT-DETRv2 chậm 23× trên CPU; trên GPU n và s nhanh như nhau |
+| Mô hình triển khai: v5 OpenVINO 544×960 trên GPU Intel tích hợp (INT8 trên CPU nếu không có GPU Intel); YOLO26s nếu có GPU rời | Tiêu chí chốt trước (hoà → nhanh hơn) | RT-DETRv2 chậm 15× so với v5 trên CPU; trên GPU T4 n và s nhanh như nhau |
+| Bootstrap thêm theo khối 10 s / theo video | Block bootstrap (Künsch 1989), cluster bootstrap (Field & Welsh 2007) | Frame cùng clip tương quan; 90% xe ở trong khung hình < 8.2 s |
+| Ảnh hiệu chỉnh INT8 lấy từ train, không từ val | Khuyến nghị NNCF ~300 ảnh đại diện | Val Hà Nội là tập dev dùng để quyết định |
 
 ## 7. Danh mục từ viết tắt
 
@@ -641,10 +710,16 @@ ID khi xe bị cây che. Màu: xanh = đúng, đỏ = sót, cam = sai lớp, tí
     **[cần kiểm tra cách trích dẫn bản fork]**
 28. Roboflow, "Supervision," GitHub repository (phiên bản 0.30.x). https://github.com/roboflow/supervision
 29. Intel, "OpenVINO toolkit." https://github.com/openvinotoolkit/openvino
+29a. Intel, "Neural Network Compression Framework (NNCF), phiên bản 3.4.0." https://github.com/openvinotoolkit/nncf
 30. Roboflow Universe datasets (CC BY 4.0): "vietnamese-vehicle" (car-classification, v3); "vehicle-vietnam-cantho"
     (vehicle, v19); "vehicle-detection" (skripsi-1qzlz, v2). URL ở mục 9.
 31. P. Skalos, "UA-DETRAC fix masks two-wheelers," Kaggle dataset, CC BY-NC-SA 3.0. **[cần kiểm tra tên đầy đủ tác
     giả và năm]**
+32. B. Efron and R. J. Tibshirani, *An Introduction to the Bootstrap*. New York: Chapman & Hall, 1993.
+33. H. R. Künsch, "The jackknife and the bootstrap for general stationary observations," *Ann. Statist.*, vol. 17,
+    no. 3, pp. 1217–1241, 1989, doi: 10.1214/aos/1176347265.
+34. C. A. Field and A. H. Welsh, "Bootstrapping clustered data," *J. R. Stat. Soc. B*, vol. 69, no. 3, pp. 369–390,
+    2007, doi: 10.1111/j.1467-9868.2007.00593.x.
 
 Nguồn đã dùng để tra: [UVH-26 arXiv](https://arxiv.org/abs/2511.02563v1),
 [Zenodo VnTraffic](https://zenodo.org/records/18195750), [Ultralytics YOLO26 docs](https://docs.ultralytics.com/models/yolo26/),
@@ -673,7 +748,8 @@ số liệu.
 
 ## 10. Hạn chế cần nêu trung thực
 
-- Mỗi cấu hình train **1 lần (1 seed)**; bootstrap chỉ đo dao động do mẫu ảnh test.
+- Mỗi cấu hình train **1 lần (1 seed)**; bootstrap chỉ đo dao động do mẫu ảnh test; bootstrap theo khối giả định khối
+  10 s độc lập; test Hà Nội chỉ 6 khối; PVD và UVH-26 không tính được khoảng theo khối.
 - Tập test nhỏ: 30 frame Hà Nội, 30 + 30 frame `vn_extra`, 20 frame PVD; tracking test chỉ 1 clip 20 s; sai số đếm chỉ
   73 lượt trên 1 clip.
 - Nhãn VnTraffic thiếu xe → HOTA/MOTA trên dev thấp hơn thực tế; chỉ dùng AssA/IDR/IDSW.
@@ -684,13 +760,15 @@ số liệu.
   1280 ở cảnh như `pvd_goc_b/c`.
 - Lớp xe van không có trong 4 lớp → Ford Transit hay bị gọi là ô tô.
 - Box xe che một phần ôm phần nhìn thấy (lệch quy ước MOTChallenge).
-- Tốc độ CPU chưa đạt thời gian thực; RT-DETRv2 chưa export OpenVINO; GPU mới đo FP32, chưa TensorRT.
+- Trên laptop phát hiện + theo dõi ~20 frame/s (chưa bằng 30 frame/s của video), cả quy trình tính vẽ và ghi video
+  ~7 frame/s; RT-DETRv2 chưa export OpenVINO; GPU T4 mới đo FP32, chưa TensorRT.
 - Tracker chỉnh với v3 rồi dùng cho v5.
 
 ## 11. Lệch giữa tài liệu nội bộ và file kết quả (đã kiểm khi tổng hợp)
 
 - ghi chú dự án ghi số box `vn_extra` đêm là 465 / 159 / 7 / 8 — đó là **trước** khi sửa nhãn 8/10/2026; file kết quả hiện
   tại là **468 / 157 / 6 / 9**. Báo cáo dùng số sau.
-- Số "pipeline OpenVINO không GMC 10.8 frame/s" (README, ghi chú dự án) không có file kết quả lưu lại (mục 4.8).
-- Bảng phân tích recall theo kích thước xe (mục 4.2) không có file kết quả lưu lại.
+- Số "pipeline OpenVINO 10.8 / 10.9 frame/s" (README, ghi chú dự án, bản báo cáo trước) là đo trên GPU tích hợp, không
+  phải CPU; đã thay bằng bảng OpenVINO theo thiết bị (mục 4.8).
+- Bảng phân tích recall theo kích thước xe (mục 4.2) giờ có script và file kết quả (`outputs/size_recall/`).
 - ghi chú dự án ghi tốc độ RT-DETRv2-S trên CPU là "1.561 [1.442–1.719] ms" — đúng ra là **giây** (1561 ms/frame).

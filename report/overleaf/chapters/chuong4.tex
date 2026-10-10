@@ -259,15 +259,14 @@ theo dõi.
 
 \begin{table}[H]
   \centering
-  \caption{Tốc độ trên CPU Intel Core i5-8250U (ms/frame, trung vị [khoảng tứ phân vị])}
+  \caption{Tốc độ PyTorch trên CPU Intel Core i5-8250U (ms/frame, trung vị [khoảng tứ phân vị])}
   \label{tab:toc-do-cpu}
   \footnotesize
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.55cm}|C|C|>{\centering\arraybackslash}p{1.15cm}|C|}
     \hline
     \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector} & \thead{frame/s} &
       \thead{Pipeline (frame/s)} \\ \hline
-    YOLO26n v5, PyTorch & 544×960 & 2.51 M / 7.4 & 100.5 [88.4--109.4] & 9.9 & 133.7 (7.5) \\ \hline
-    YOLO26n v5, OpenVINO & 544×960 & -- & 62.8 [62.3--64.3] & 15.9 & 91.8 (10.9) \\ \hline
+    YOLO26n v5 & 544×960 & 2.51 M / 7.4 & 100.5 [88.4--109.4] & 9.9 & 133.7 (7.5) \\ \hline
     YOLO26s & 544×960 & 9.95 M / 28.7 & 261.9 [254.8--267.5] & 3.8 & 285.3 (3.5) \\ \hline
     YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & 455.2 [445.4--472.2] & 2.2 & 493.0 (2.0) \\ \hline
     RT-DETRv2-S & 960×960 & 20.08 M / 133.9 & 1526.2 [1498.6--1602.4] & 0.66 & -- \\ \hline
@@ -289,21 +288,77 @@ theo dõi.
   \end{tabular}
 \end{table}
 
-Trên CPU (Bảng~\ref{tab:toc-do-cpu}):
-\begin{itemize}
-  \item OpenVINO tăng tốc riêng phần phát hiện 1.6 lần (100.5 xuống 62.8 ms) và cả pipeline 1.5 lần (133.7 xuống 91.8
-        ms); với v5 OpenVINO, hệ thống xử lý được 10.9 frame/s video 1080p trên laptop. Ngoài khâu phát hiện, pipeline
-        tốn thêm khoảng 30 ms mỗi frame cho giải mã video và tracker. Ở lần đo trước khi tắt bù chuyển động camera (GMC),
-        phần này là 90--100 ms: GMC chiếm phần lớn thời gian của tracker mà không có ích với camera đứng yên.
-  \item RT-DETRv2-S mất 1.53 giây mỗi frame: chậm hơn YOLO26s ở ảnh 960 khoảng 5.8 lần, hơn YOLO26s ở ảnh 1280 (độ chính
-        xác ngang nhau trên dữ liệu Việt Nam) 3.4 lần, hơn v5 15 lần và hơn v5 OpenVINO 24 lần. Mô hình này không dùng
-        được cho video trên CPU.
-\end{itemize}
+Trên CPU (Bảng~\ref{tab:toc-do-cpu}), RT-DETRv2-S mất 1.53 giây mỗi frame: chậm hơn YOLO26s ở ảnh 960 khoảng 5.8 lần,
+hơn YOLO26s ở ảnh 1280 (độ chính xác ngang nhau trên dữ liệu Việt Nam) 3.4 lần và hơn v5 15 lần. Mô hình này không dùng
+được cho video trên CPU. Ngoài khâu phát hiện, pipeline tốn thêm khoảng 30 ms mỗi frame cho giải mã video và tracker; ở
+lần đo trước khi tắt bù chuyển động camera (GMC), phần này là 90--100 ms: GMC chiếm phần lớn thời gian của tracker mà
+không có ích với camera đứng yên.
 
 Trên GPU (Bảng~\ref{tab:toc-do-gpu}), YOLO26n và YOLO26s gần như nhanh bằng nhau (cả pipeline khoảng 42 frame/s): mô
 hình nhỏ không tận dụng hết GPU, phần thời gian còn lại là tiền xử lý, hậu xử lý và tracker chạy trên CPU. Vì vậy nếu có
 GPU nên dùng YOLO26s, chính xác hơn ở cảnh khó mà không chậm hơn. RT-DETRv2-S trên GPU vẫn chậm hơn YOLO26s khoảng 4
 lần nhưng đạt 16 frame/s cho riêng phần phát hiện.
+
+\subsection{Tăng tốc bằng OpenVINO trên laptop}
+\label{sec:openvino}
+
+Laptop của đề tài không có GPU rời nhưng có GPU Intel UHD 620 tích hợp trong chip. Mô hình xuất sang OpenVINO có thể
+chạy trên CPU hoặc trên GPU tích hợp này, ở độ chính xác số FP32 hoặc INT8 (lượng tử hoá sau huấn luyện bằng
+NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Bảng~\ref{tab:openvino} so các cấu hình của v5 và YOLO26s, kèm độ chính xác trên hai tập
+dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đề tài (mAP50 val Hà Nội và IDR VnTraffic chênh không quá
+0.005 thì coi là hoà, hoà thì chọn bản nhanh hơn).
+
+\begin{table}[H]
+  \centering
+  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev}
+  \label{tab:openvino}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|p{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
+    \hline
+    \thead{Cấu hình} & \thead{Thiết bị} & \thead{Đầu vào} & \thead{Phát hiện (ms)} & \thead{Pipeline (frame/s)} &
+      \thead{mAP50 val} & \thead{IDR dev} \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26n v5}} \\ \hline
+    PyTorch FP32 & CPU & 544×960 & 117.9 & 7.5 & 0.919 & 0.827 \\ \hline
+    OpenVINO FP32 & CPU & 960×960 & 112.4 & 7.9 & 0.916 & 0.813 \\ \hline
+    OpenVINO INT8 & CPU & 960×960 & 72.1 & 11.4 & 0.917 & 0.813 \\ \hline
+    OpenVINO INT8 & CPU & 544×960 & 33.7 & 18.8 & 0.920 & 0.816 \\ \hline
+    OpenVINO FP32 & GPU tích hợp & 960×960 & 54.1 & 12.5 & 0.915 & 0.819 \\ \hline
+    OpenVINO INT8 & GPU tích hợp & 960×960 & 60.6 & 12.0 & 0.916 & 0.814 \\ \hline
+    \textbf{OpenVINO FP32} & GPU tích hợp & \textbf{544×960} & \textbf{32.8} & \textbf{19.8} & 0.918 & 0.825 \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26s}} \\ \hline
+    PyTorch FP32 & CPU & 544×960 & 284.3 & 3.3 & 0.915 & 0.845 \\ \hline
+    OpenVINO INT8 & CPU & 544×960 & 103.8 & 8.2 & 0.914 & 0.851 \\ \hline
+    OpenVINO FP32 & GPU tích hợp & 544×960 & 84.5 & 9.4 & 0.915 & 0.848 \\ \hline
+  \end{tabularx}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Phải chỉ rõ thiết bị.} Khi máy có GPU Intel, OpenVINO mặc định tự chọn thiết bị và đưa mô hình FP32 lên
+        GPU tích hợp. Bản thảo trước của báo cáo ghi ``v5 OpenVINO trên CPU 10.9 frame/s''; kiểm tra lại cho thấy số đó
+        thực ra đo trên GPU tích hợp. Mọi số trong Bảng~\ref{tab:openvino} đều ghi rõ thiết bị.
+  \item \textbf{Tranh chấp luồng CPU.} Ultralytics dùng PyTorch cho vài bước tiền xử lý; theo mặc định các luồng OpenMP
+        của PyTorch chờ quay vòng một lúc sau mỗi lần dùng và chiếm lõi CPU mà OpenVINO cần. Khi tắt cơ chế này
+        (biến môi trường \texttt{KMP\_BLOCKTIME=0}, \texttt{OMP\_WAIT\_POLICY=PASSIVE}), v5 INT8 544×960 trên CPU
+        giảm từ khoảng 90 xuống 34 ms mỗi frame; đổi lại PyTorch trên CPU chậm đi khoảng 15--20\% (117.9 ms trong
+        Bảng~\ref{tab:openvino} so với 100.5 ms trong Bảng~\ref{tab:toc-do-cpu}). Bảng~\ref{tab:openvino} đo với cơ chế
+        này đã tắt, CPU và GPU tích hợp ở hai lần chạy riêng; web demo và chương trình dòng lệnh cũng tắt nó.
+  \item \textbf{INT8} không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần; trên GPU tích hợp
+        UHD 620 thì không nhanh hơn (60.6 so với 54.1 ms).
+  \item \textbf{Đầu vào 544×960.} Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
+        544×960, ít hơn 43\% điểm ảnh. Xuất OpenVINO đúng khung 544×960 nhanh hơn bản vuông 1.6--2.1 lần tuỳ cấu hình,
+        và độ chính xác gần PyTorch hơn (mAP50 val 0.918 so với 0.919). Bản này chỉ dùng cho video 16:9, đúng phạm vi đề
+        tài.
+\end{itemize}
+
+Theo tiêu chí chốt trước, web demo dùng \textbf{v5 OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp}: phát hiện và
+theo dõi đạt 19.8 frame/s video 1080p, nhanh gấp 2.6 lần PyTorch trên CPU, với mAP50 val và IDR dev hoà với PyTorch.
+Một điểm cần ghi lại: trên dev, mọi bản OpenVINO đều đổi ID nhiều hơn PyTorch (68--82 lần so với 61, bản được chọn 71);
+tiêu chí chốt trước dùng IDR nên không đổi lựa chọn. Máy không có GPU Intel thì dùng bản INT8 544×960 trên CPU (18.8
+frame/s); bản này có IDR kém PyTorch quá ngưỡng hoà (0.816 so với 0.827), nên đây là đánh đổi tốc độ lấy một chút độ
+chính xác theo dõi. YOLO26s, mô hình chính xác hơn ở
+cảnh khó, lên được 9.4 frame/s trên GPU tích hợp. Tính cả khâu vẽ kết quả và ghi video 1080p, cả quy trình của web demo
+chỉ còn khoảng 7 frame/s: khi phần phát hiện đã nhanh, việc vẽ và mã hoá video trên CPU trở thành phần chậm nhất, giống
+điều đã thấy với video demo trên GPU T4.
 
 \section{Kết quả theo dõi}
 \label{sec:theo-doi}
@@ -653,10 +708,10 @@ dõi (đổi ID giảm một nửa trên dev) và vì tốt hơn rõ ở cảnh 
 camera giao thông quan trọng hơn kích thước ảnh: v4 (ảnh 1280) chỉ sửa được 1/4 số frame xe máy từng bị sót, còn v5 ở
 ảnh 960 nhận ra được phần lớn các trường hợp đó. Ngoại lệ là cảnh có nhiều xe rất nhỏ ở xa, nơi ảnh 1280 có lợi rõ.
 
-\textbf{Đánh đổi độ chính xác và tốc độ.} RT-DETRv2-S chính xác nhất và cho box khít nhất, nhưng chậm 24 lần so với v5
-OpenVINO trên CPU. Khi cho YOLO cùng số điểm ảnh, khoảng cách độ chính xác trên dữ liệu Việt Nam gần như biến mất. Vì vậy
-mô hình triển khai là v5 (OpenVINO) trên CPU; nếu có GPU thì dùng YOLO26s; RT-DETRv2-S là mức trần độ chính xác để tham
-chiếu.
+\textbf{Đánh đổi độ chính xác và tốc độ.} RT-DETRv2-S chính xác nhất và cho box khít nhất, nhưng chậm hơn v5 15 lần khi
+cùng chạy PyTorch trên CPU. Khi cho YOLO cùng số điểm ảnh, khoảng cách độ chính xác trên dữ liệu Việt Nam gần như biến
+mất. Vì vậy mô hình triển khai trên laptop là v5 OpenVINO trên GPU tích hợp (19.8 frame/s); YOLO26s dùng khi cần chính xác
+hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT-DETRv2-S là mức trần độ chính xác để tham chiếu.
 
 \section{Kết luận chương}
 
@@ -671,8 +726,8 @@ chiếu.
   \item Đếm xe qua vạch: 72 lượt so với 73 lượt thật, lỗi thật duy nhất là một lượt sai lớp.
   \item So sánh kiến trúc: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960, nhưng hoà khi YOLO nhìn cùng số điểm ảnh; box
         của RT-DETRv2 khít hơn khoảng 0.03 mAP50-95; đổi lại chậm hơn 5.8 lần trên CPU.
-  \item Tốc độ cả pipeline (phát hiện + theo dõi, video 1080p): v5 OpenVINO 10.9 frame/s trên CPU laptop; trên GPU T4
-        khoảng 42 frame/s.
+  \item Tốc độ phát hiện + theo dõi video 1080p trên laptop: v5 OpenVINO 19.8 frame/s trên GPU tích hợp và 18.8 frame/s
+        khi chỉ dùng CPU (bản INT8), so với 7.5 frame/s của PyTorch trên CPU; trên GPU T4 khoảng 42 frame/s.
 \end{itemize}
 
 \subsection{Hạn chế}
@@ -690,7 +745,8 @@ chiếu.
   \item Hai tập dev không có cảnh xe rất nhỏ ở xa, nên lựa chọn ảnh 960 chưa phản ánh lợi ích của ảnh 1280 ở cảnh đó.
   \item Bốn lớp không có lớp xe van, nên xe cỡ Ford Transit hay bị gọi là ô tô; xe bị che một phần được khoanh phần nhìn
         thấy, lệch quy ước MOTChallenge.
-  \item Trên CPU hệ thống chưa đạt thời gian thực; RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU mới đo ở FP32.
+  \item Trên laptop, phát hiện và theo dõi đạt khoảng 20 frame/s, chưa bằng 30 frame/s của video; tính cả vẽ và ghi video
+        1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32.
   \item Tracker được chỉnh tham số với v3 rồi dùng cho v5.
 \end{itemize}
 
@@ -702,5 +758,7 @@ chiếu.
   \item Huấn luyện nhiều seed để đo dao động giữa các lần huấn luyện.
   \item Thử mô hình ReID chuyên cho xe thay cho đặc trưng của mô hình phát hiện.
   \item Tăng tốc bằng TensorRT hoặc FP16 trên GPU; xuất RT-DETRv2 sang OpenVINO; chọn kích thước ảnh theo cảnh.
+  \item Tách khâu vẽ kết quả và ghi video sang luồng riêng hoặc dùng bộ mã hoá video phần cứng: khi phần phát hiện đã
+        nhanh, đây là khâu chậm nhất của web demo.
   \item Thêm lớp xe van hoặc thống nhất định nghĩa lớp giữa các nguồn dữ liệu.
 \end{itemize}

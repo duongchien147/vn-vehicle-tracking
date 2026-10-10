@@ -30,6 +30,12 @@ SPEEDS = [0.1, 0.25, 0.5, 0.75, 1.0]  # tốc độ phát so với thời gian t
 SEEK_S = 2.0
 UNDO_WINDOW_S = 2.0
 IN_COLOR, OUT_COLOR, LINE_COLOR = (80, 200, 80), (0, 140, 255), (0, 255, 255)
+POLL_MS = 30  # khi dừng vẫn hỏi phím/cửa sổ mỗi 30 ms, để nút X đóng được cửa sổ
+WINDOW_SIZE = (1280, 720)  # cửa sổ ban đầu vừa màn hình laptop (kéo giãn được)
+HELP_LINES = [
+    "Space: chay/dung | m c b t: xe may/o to/buyt/tai chieu RA | Shift + M C B T: chieu VAO",
+    ", . : lui/toi 1 frame | a d: lui/toi 2 s | - = : cham/nhanh | u: xoa luot gan nhat | q, Esc hoac X: luu va thoat",
+]
 
 
 def read_frame(capture: cv2.VideoCapture, frame_index: int) -> np.ndarray:
@@ -65,8 +71,11 @@ def draw_overlay(frame: np.ndarray, line: tuple[float, float, float, float], cro
         "gan day: " + ", ".join(f"{c.time_s:.1f}s {c.class_name} {c.direction}"
                                 for c in crossings if abs(c.time_s - now) <= 3.0),
     ]
-    for row, text in enumerate(lines):
-        position = (10, 30 + 30 * row)
+    rows = [(text, (10, 30 + 30 * row)) for row, text in enumerate(lines)]
+    rows += [(text, (10, height - 50 + 30 * row)) for row, text in enumerate(HELP_LINES)]
+    if paused:
+        rows.append(("DANG DUNG - bam Space de chay", (width // 2 - 260, height // 2)))
+    for text, position in rows:
         cv2.putText(canvas, text, position, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 0, 0), 5)
         cv2.putText(canvas, text, position, cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255, 255, 255), 2)
     return canvas
@@ -97,13 +106,17 @@ def main() -> None:
 
     window = f"Dem tay - {source.name}"
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)  # kéo giãn / phóng to cửa sổ được
+    cv2.resizeWindow(window, *WINDOW_SIZE)
+    print("Bấm chuột vào cửa sổ video (để cửa sổ nhận phím) rồi nhấn Space để chạy; q, Esc hoặc nút X để lưu và thoát.")
     frame_index, speed_index, paused = 0, SPEEDS.index(0.25), True
     frame = read_frame(capture, frame_index)
     while True:
         started = time.perf_counter()
         cv2.imshow(window, draw_overlay(frame, line, crossings, frame_index, fps, SPEEDS[speed_index], paused))
         frame_ms = 1000 / (fps * SPEEDS[speed_index])
-        key = cv2.waitKey(0 if paused else max(1, int(frame_ms - (time.perf_counter() - started) * 1000)))
+        key = cv2.waitKey(POLL_MS if paused else max(1, int(frame_ms - (time.perf_counter() - started) * 1000)))
+        if cv2.getWindowProperty(window, cv2.WND_PROP_VISIBLE) < 1:  # người dùng bấm nút X
+            break
         char = chr(key & 0xFF) if key != -1 else ""
 
         if char.lower() in CLASS_KEYS:

@@ -33,6 +33,9 @@ TEXT = "#0b0b0b"
 MUTED = "#52514e"
 GRID = "#e4e3df"
 FRAME_TIME_S = 30  # lấy frame giữa clip demo 60 s
+# Lỗi gặp trong video demo: xe cứu hộ chở ô tô ở ham_chui_dem_1 giây 47.5 (frame 1425); vùng cắt x1, y1, x2, y2 (px)
+# chọn bằng mắt cho đủ xe cứu hộ và nhãn của nó
+TOW_TRUCK_FRAME = ("ham_chui_dem_1", 1425, (0, 380, 880, 960))
 JPEG_QUALITY = 85
 MAX_SIDE = 1600  # thu nhỏ ảnh để gói Overleaf gọn, vẫn đủ nét khi in
 SPEED_TICKS_MS = [100, 200, 500, 1000, 2000]
@@ -154,6 +157,17 @@ def demo_frames() -> None:
         save_jpeg(frame, OUT / f"demo_{clip}.jpg")
 
 
+def demo_error_case() -> None:
+    clip, frame_index, (x1, y1, x2, y2) = TOW_TRUCK_FRAME
+    capture = cv2.VideoCapture(str(DEMO_DIR / f"{clip}_tracked.mp4"))
+    capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
+    ok, frame = capture.read()
+    capture.release()
+    if not ok:
+        raise RuntimeError(f"Không đọc được frame {frame_index} của {clip}")
+    save_jpeg(frame[y1:y2, x1:x2], OUT / "demo_tow_truck.jpg")
+
+
 def data_source_examples() -> None:
     """Một ảnh mỗi nguồn train: ảnh thứ `index` theo thứ tự tên (chọn bằng mắt cho rõ cảnh)."""
     picks = {"vnvehicle": 5, "cantho": 0, "indo": 0, "visdrone": 250, "uvh26": 0, "hanoi": 0}
@@ -183,6 +197,7 @@ def main() -> None:
     accuracy_vs_speed()
     learning_curves()
     demo_frames()
+    demo_error_case()
     data_source_examples()
     copy_existing()
     print("\n".join(sorted(p.name for p in OUT.iterdir())))

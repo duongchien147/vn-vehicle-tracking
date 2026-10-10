@@ -372,17 +372,25 @@ Nhờ tách hai thành phần, HOTA cho biết điểm thấp là do phát hiệ
 và HOTA bằng TrackEval~\cite{trackeval}, bộ chấm được dùng cho benchmark MOTChallenge~\cite{milan2016mot16}.
 
 \subsection{Khoảng tin cậy bootstrap}
+\label{sec:bootstrap}
 
 Các tập test của đề tài nhỏ, nên một chênh lệch mAP nhỏ có thể chỉ do mẫu ảnh. Để biết chênh lệch có đáng tin không,
 đề tài lấy mẫu lại có hoàn lại các ảnh của tập test 1.000 lần, tính lại mAP trên mỗi mẫu, rồi lấy phân vị 2.5\% và
-97.5\% làm khoảng tin cậy 95\%. Cần khoảng 1.000 lần trở lên thì hai phân vị này mới ổn định; với vài chục lần, chúng gần
-như chỉ là giá trị nhỏ nhất và lớn nhất của các mẫu. Việc ghép dự đoán với nhãn được làm một lần cho từng ảnh, mỗi lần
-lấy mẫu chỉ gộp lại kết quả đã ghép của các ảnh được chọn rồi tính AP theo đúng công thức (\ref{eq:ap}), nên 1.000 lần
-vẫn nhanh. Hai mô hình có khoảng tin cậy chồng nhau được coi là chưa phân biệt được.
+97.5\% làm khoảng tin cậy 95\%~\cite{efron1993bootstrap}. Cần khoảng 1.000 lần trở lên thì hai phân vị này mới ổn định;
+với vài chục lần, chúng gần như chỉ là giá trị nhỏ nhất và lớn nhất của các mẫu. Việc ghép dự đoán với nhãn được làm
+một lần cho từng ảnh, mỗi lần lấy mẫu chỉ gộp lại kết quả đã ghép của các ảnh được chọn rồi tính AP theo đúng công thức
+(\ref{eq:ap}), nên 1.000 lần vẫn nhanh. Hai mô hình có khoảng tin cậy chồng nhau được coi là chưa phân biệt được.
 
-Bootstrap có hai giới hạn. Nó chỉ đo dao động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện. Và nó coi các
-ảnh là độc lập, trong khi các frame cắt từ cùng một clip cách nhau vài giây rất giống nhau; vì vậy khoảng tin cậy
-thật có thể rộng hơn khoảng tính được.
+Lấy mẫu lại từng ảnh là coi các ảnh độc lập với nhau. Với frame cắt từ cùng một clip thì không đúng: hai frame cách nhau
+vài giây chứa phần lớn là cùng những chiếc xe, nên tập 30 frame chứa ít thông tin hơn 30 ảnh độc lập và khoảng tin cậy
+tính theo ảnh hẹp hơn thực tế. Cách chuẩn cho dữ liệu có tương quan là lấy mẫu lại theo khối~\cite{kunsch1989block}
+hoặc theo cụm~\cite{field2007cluster}: chia ảnh thành các nhóm gần như độc lập với nhau rồi lấy mẫu lại cả nhóm. Đề tài
+dùng thêm cách này cho mọi tập frame cắt từ video, với nhóm là các khối 10 giây liên tiếp trong cùng một clip. Độ dài khối
+được chọn từ nhãn tracking của clip Phạm Văn Đồng: 90\% số xe ở trong khung hình dưới 8.2 giây (trung vị 1.3 giây),
+nên hai khối cách nhau hơn 10 giây hầu như không chung chiếc xe nào. Với UA-DETRAC, mỗi video là một nhóm. Tập có dưới 5
+nhóm thì không tính khoảng tin cậy theo khối, vì khi đó số cách lấy mẫu lại khác nhau quá ít.
+
+Cả hai cách đều chỉ đo dao động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện.
 
 \section{Kết luận chương}
 

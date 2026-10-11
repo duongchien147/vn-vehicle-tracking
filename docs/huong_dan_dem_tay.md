@@ -1,8 +1,12 @@
 # Hướng dẫn đếm tay số xe qua vạch
 
-Dùng làm nhãn chuẩn cho **sai số đếm** trên các clip chưa có nhãn tracking (ưu tiên 3 clip đêm `ham_chui_dem_1/2/3`,
-mỗi clip 60 giây, khoảng 70–100 lượt). Đếm tay theo lớp và hướng là cách cuộc thi AI City Challenge (bài đếm xe) tạo
-nhãn chuẩn.
+Dùng làm nhãn chuẩn cho **sai số đếm** trên các clip chưa có nhãn tracking: hai clip đêm `ham_chui_dem_2` và
+`ham_chui_dem_3` (mỗi clip 60 giây, khoảng 80–100 lượt). Không đếm `ham_chui_dem_1`: clip này trùng 46 giây với clip 2
+và có chỗ cắt cảnh ở giây 48.3 (xem `data/videos/SOURCES.md`). Đếm tay theo lớp và hướng là cách cuộc thi AI City
+Challenge (bài đếm xe) tạo nhãn chuẩn.
+
+Đếm **độc lập**: đừng mở bộ đếm do AI làm trong `data/count_gt/ai_review_2026-10-11/` trước khi đếm xong. Bộ đó được
+giữ để so sau (mức đồng thuận người–AI).
 
 **Đừng xem video kết quả của mô hình (`*_tracked.mp4`, app Streamlit) trước khi đếm clip đó**: biết mô hình đếm bao
 nhiêu dễ làm mình đếm theo.
@@ -10,10 +14,11 @@ nhiêu dễ làm mình đếm theo.
 ## 1. Chạy công cụ
 
 ```powershell
-.venv\Scripts\python.exe scripts\count_by_hand.py --source data\videos\ham_chui_dem_1.mp4
+.venv\Scripts\python.exe scripts\count_by_hand.py --source data\videos\ham_chui_dem_2.mp4
+.venv\Scripts\python.exe scripts\count_by_hand.py --source data\videos\ham_chui_dem_3.mp4
 ```
 
-Ba clip đêm dùng vạch mặc định (ngang, y = 0.6), trùng vạch của video demo GPU nên không cần thêm `--line`. Mỗi lần
+Hai clip đêm dùng vạch mặc định (ngang, y = 0.6), trùng vạch của video demo GPU nên không cần thêm `--line`. Mỗi lần
 bấm được lưu ngay vào `data\count_gt\<clip>\manual_counts.csv`: tắt giữa chừng thì chạy lại lệnh là làm tiếp.
 
 | Phím | Việc |

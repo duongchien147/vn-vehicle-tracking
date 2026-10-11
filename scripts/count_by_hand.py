@@ -12,6 +12,7 @@ Phím:  m / c / b / t      xe máy / ô tô / buýt / tải đi theo chiều RA 
 
 Ví dụ:
     python scripts/count_by_hand.py --source data/videos/ham_chui_dem_1.mp4
+    python scripts/count_by_hand.py --source data/videos/ham_chui_dem_3.mp4 --start 24   # xem lại quanh giây 24
 Kết quả: data/count_gt/<tên clip>/manual_counts.csv + count_config.json (vạch, video, đoạn đã xem).
 """
 
@@ -87,6 +88,7 @@ def main() -> None:
     parser.add_argument("--line", type=float, nargs=4, default=[0.0, 0.6, 1.0, 0.6], metavar=("X1", "Y1", "X2", "Y2"),
                         help="Vạch đếm, toạ độ tương đối [0, 1] — phải trùng vạch của lần chạy pipeline cần chấm")
     parser.add_argument("--out-dir", default="data/count_gt")
+    parser.add_argument("--start", type=float, default=0.0, help="Mở video tại giây này (để xem lại một lượt)")
     args = parser.parse_args()
     source = Path(args.source)
     line = tuple(args.line)
@@ -99,16 +101,19 @@ def main() -> None:
     total = int(capture.get(cv2.CAP_PROP_FRAME_COUNT))
     config_path = out_dir / "count_config.json"
     out_dir.mkdir(parents=True, exist_ok=True)
-    config = {"source": str(source), "line": list(line), "fps": fps, "frames": total, "anchor": "bottom_center"}
-    if config_path.exists() and json.loads(config_path.read_text(encoding="utf-8"))["line"] != list(line):
+    # Giữ các trường đã có (vd. cách tạo nhãn, human_verified), chỉ cập nhật thông tin video
+    config = json.loads(config_path.read_text(encoding="utf-8")) if config_path.exists() else {}
+    if config.get("line", list(line)) != list(line):
         raise SystemExit(f"{config_path} đã đếm với vạch khác — dùng đúng vạch cũ hoặc thư mục khác (--out-dir)")
+    config.update({"source": str(source), "line": list(line), "fps": fps, "frames": total, "anchor": "bottom_center"})
     config_path.write_text(json.dumps(config, indent=2, ensure_ascii=False), encoding="utf-8")
 
     window = f"Dem tay - {source.name}"
     cv2.namedWindow(window, cv2.WINDOW_NORMAL)  # kéo giãn / phóng to cửa sổ được
     cv2.resizeWindow(window, *WINDOW_SIZE)
     print("Bấm chuột vào cửa sổ video (để cửa sổ nhận phím) rồi nhấn Space để chạy; q, Esc hoặc nút X để lưu và thoát.")
-    frame_index, speed_index, paused = 0, SPEEDS.index(0.25), True
+    frame_index = int(np.clip(round(args.start * fps), 0, total - 1))
+    speed_index, paused = SPEEDS.index(0.25), True
     frame = read_frame(capture, frame_index)
     while True:
         started = time.perf_counter()

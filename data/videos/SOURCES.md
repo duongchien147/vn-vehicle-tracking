@@ -42,8 +42,15 @@ Ghi chú về video gốc:
 - Phạm Văn Đồng (2:32:57): 3 góc máy xen kẽ, đổi góc ở khoảng 0:19:55, 0:24:37, 0:35:48, 0:56:10, 1:07:28–1:08:08,
   1:39:39, 1:47:17, 1:54:40–1:55:00, 1:56:25, 2:21:02. Góc A: 0:00–0:24, 0:56–1:07, 1:56–2:21; góc B: 0:24–0:56,
   1:08–1:47, 2:21–2:33; góc C: 1:47–1:56.
-- Hầm chui (3:10:00): ổn định 100%. Đã kiểm tra KHÔNG phải video lặp (frame cách nhau 78/60/45 phút khác nhau
-  ~2.7–3.8% điểm ảnh, bằng mức của hai thời điểm bất kỳ).
+- Hầm chui (3:10:00): camera ổn định 100%. Lần kiểm tra đầu chỉ so vài frame cách nhau hàng chục phút nên kết luận
+  "không phải video lặp" là **sai** (đính chính 11/10/2026, khi đếm xe từng frame):
+  - **`ham_chui_dem_1` và `ham_chui_dem_2` trùng nội dung**: frame 0–1387 của clip 1 = frame 412–1799 của clip 2
+    (lệch 13.73 s; chênh điểm ảnh 0.4–1.2 so với ~2 khi lệch 12 frame) -> video gốc có đoạn lặp lại.
+  - **`ham_chui_dem_1` có một chỗ cắt cảnh** ở frame 1448 (48.27 s): xe biến mất/xuất hiện đột ngột -> clip 1 không
+    phải 60 s liên tục.
+  - `ham_chui_dem_2` và `ham_chui_dem_3` liền mạch, clip 3 không trùng hai clip kia.
+  - Hệ quả: tập test `vn_extra` đêm (frame từ clip 2 và 3) không bị trùng. Đánh giá đếm xe chỉ dùng clip 2 + clip 3
+    (clip 1 chỉ minh hoạ). Ba clip trong video demo thực ra chỉ có hai đoạn giao thông khác nhau.
 - Video phố cổ Hà Nội https://www.youtube.com/watch?v=-g79sgafH1o (Harry Mateman) **không dùng**: lia/zoom liên tục,
   hơn 10 lần cắt cảnh.
 

@@ -510,7 +510,8 @@ Ba nguồn bằng chứng về cảnh đêm cho cùng một hướng:
   \item \textbf{Ba clip hầm chui không có nhãn}, dùng chỉ số thay thế trên 20 giây mỗi clip với mốc ban ngày là clip
         Phạm Văn Đồng: độ tin cậy trung vị của v5 là 0.59--0.63 ban đêm so với 0.63 ban ngày, tỉ lệ track ngắn dưới 1
         giây 47--52\% so với 54\%, tức v5 gần như không suy giảm; v3 tụt rõ (độ tin cậy 0.36--0.45, 67--73\% track
-        ngắn). Đây là chỉ số thay thế, chỉ dùng để so tương đối.
+        ngắn). Đây là chỉ số thay thế, chỉ dùng để so tương đối. Về sau phát hiện video gốc có đoạn lặp: clip thứ
+        nhất trùng một phần clip thứ hai (lệch 13.7 giây), nên trong 20 giây đầu hai clip có khoảng 6 giây chung.
 \end{itemize}
 
 \section{Phân tích lỗi}
@@ -610,7 +611,9 @@ YOLO26s ở ảnh 960 và BoT-SORT đã chỉnh, đúng chương trình dùng tr
 tốc độ xử lý là 15.4--20.9 frame/s; con số này thấp hơn khoảng 42 frame/s của riêng phát hiện và theo dõi, vì khi có
 GPU thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất. Số lượt qua vạch trong 60 giây: góc A 194 (chỉ chiều ra,
 vì làn ngược chiều ra khỏi khung hình trước vạch), góc B 169, góc C 254; ba đoạn hầm chui 69, 76 và 98. Các clip này
-chưa có nhãn nên những con số này không phải số đánh giá. Hình~\ref{fig:demo-dem} là một frame của clip ban đêm.
+chưa có nhãn nên những con số này không phải số đánh giá. Video gốc của cảnh hầm chui có đoạn lặp lại: 46 giây của clip
+hầm chui thứ nhất trùng với clip thứ hai, và clip thứ nhất có một chỗ cắt cảnh ở giây 48.3, nên ba clip này thực ra chỉ
+gồm hai đoạn giao thông khác nhau. Hình~\ref{fig:demo-dem} là một frame của clip ban đêm.
 
 \begin{figure}[H]
   \centering
@@ -622,9 +625,10 @@ chưa có nhãn nên những con số này không phải số đánh giá. Hình
 Xem lại video demo còn thấy hai lỗi mà các tập test có nhãn không có:
 \begin{itemize}
   \item \textbf{Xe cứu hộ chở ô tô} (Hình~\ref{fig:demo-tow}, giây 47.5 của clip hầm chui thứ nhất). Box của mô hình
-        chỉ ôm cabin và gọi cabin là buýt; chiếc ô tô trên sàn được nhận thành một xe riêng. Lúc cắt vạch, xe được đếm
-        một lần nhưng sai lớp (buýt thay vì tải); chiếc ô tô trên sàn không bị đếm thêm. Xe cứu hộ hiếm gặp trong dữ
-        liệu huấn luyện, nên đây là lỗi phát hiện, không sửa được bằng cấu hình tracker hay bộ đếm.
+        chỉ ôm cabin và gọi cabin là buýt; chiếc ô tô trên sàn được nhận thành một xe riêng. Vì box chỉ ôm cabin, đáy
+        box qua vạch ở giây 47.5 trong khi bánh xe thật vẫn còn dưới vạch tới chỗ cắt cảnh ở giây 48.3, nên pipeline đếm
+        thừa một lượt, lại sai lớp (buýt thay vì tải); chiếc ô tô trên sàn không bị đếm thêm. Xe cứu hộ hiếm gặp trong
+        dữ liệu huấn luyện, nên đây là lỗi phát hiện, không sửa được bằng cấu hình tracker hay bộ đếm.
   \item \textbf{Đổi nhãn sau khi đã đếm} (xe buýt \#103, clip hầm chui thứ ba). Lúc ở gần, xe được gọi đúng là buýt
         (55 lần, độ tin cậy trung bình 0.52) và được đếm là buýt khi cắt vạch ở frame 236. Khi đi xa chỉ còn thấy đuôi
         xe, mô hình gọi chắc chắn là tải (141 lần, độ tin cậy trung bình 0.74), nên từ khoảng frame 326 phiếu bầu cộng

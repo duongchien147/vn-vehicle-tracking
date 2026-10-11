@@ -548,7 +548,11 @@ YOLO26s @960 + `botsort_tuned_nogmc`, 6 clip × 60 s 1080p; lượt qua vạch: 
 
 Hai lỗi thấy khi xem lại (đưa vào mục video demo của chương 4, hình `figures/demo_tow_truck.jpg`):
 - Xe cứu hộ chở ô tô (`ham_chui_dem_1`, giây 47.5): cabin bị gọi buýt, box chỉ ôm cabin; ô tô trên sàn nhận riêng là
-  car. Được đếm 1 lần nhưng sai lớp (buýt thay vì tải); ô tô trên sàn không bị đếm thêm.
+  car. Đáy box (chỉ ôm cabin) qua vạch ở giây 47.5 nhưng bánh xe thật còn dưới vạch tới chỗ cắt cảnh 48.3 s → đếm
+  thừa 1 lượt, lại sai lớp (buýt thay vì tải); ô tô trên sàn không bị đếm thêm.
+- Video gốc hầm chui có đoạn lặp (phát hiện 11/10/2026): `ham_chui_dem_1` frame 0–1387 = `ham_chui_dem_2` frame
+  412–1799; clip 1 cắt cảnh ở frame 1448. Ba clip demo đêm thực ra chỉ gồm hai đoạn giao thông khác nhau; tập test
+  `vn_extra` đêm (clip 2 và 3) không bị trùng.
 - Xe buýt #103 (`ham_chui_dem_3`): đếm đúng là buýt ở frame 236; khi đi xa chỉ thấy đuôi, mô hình gọi chắc "truck"
   (141 lần, conf TB 0.74 so với 55 lần buýt, 0.52) → nhãn hiển thị đổi từ frame ~326. Đã khoá lớp hiển thị sau khi đếm.
 

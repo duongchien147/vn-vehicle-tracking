@@ -99,6 +99,7 @@ Ultralytics không bật trọng số lớp, và trên tập test Roboflow (có 
 xe máy (mục~\ref{sec:ket-qua-phat-hien}).
 
 \subsection{Các tập đánh giá}
+\label{sec:tap-danh-gia}
 
 Tập test Roboflow không đại diện cho video mục tiêu (mục~\ref{sec:kho-khan}), nên đề tài tự xây thêm các tập đánh giá
 Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-danh-gia}).
@@ -119,7 +120,10 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
     \texttt{vn\_extra} đêm & 30 frame hầm chui TP.HCM ban đêm, nhãn người (sơ bộ từ YOLO26x) & 468 / 157 / 6 / 9 & Test
       phát hiện \\ \hline
     20 frame PVD & 1 frame mỗi giây của clip theo dõi & 375 / 238 / 12 / 0 & Test phát hiện \\ \hline
-    Clip theo dõi PVD & 20 giây (600 frame, 30 fps), nhãn quỹ đạo bằng CVAT & 183 quỹ đạo & Test theo dõi, đếm xe \\ \hline
+    Clip theo dõi PVD & 20 giây (600 frame, 30 fps), nhãn quỹ đạo bằng CVAT & 183 quỹ đạo & Test theo dõi, đếm xe
+      ban ngày \\ \hline
+    Đếm xe hầm chui & Hai clip đêm 60 giây, người đếm tay từng lượt qua vạch & 176 lượt: 149 / 25 / 1 / 1 & Test đếm xe
+      ban đêm \\ \hline
     VnTraffic~\cite{le2026vntraffic} & Video giao thông Việt Nam (nguồn kênh HTV), nhìn chéo từ trên cao, 17 giây & 501
       frame, 85 quỹ đạo
       & Dev: chọn tracker \\ \hline
@@ -142,6 +146,11 @@ Hai tập dev được dùng để ra quyết định; mọi tập còn lại ch
         dùng AssA, IDR và số lần đổi ID để so tracker, vì ba chỉ số này không bị phạt khi phát hiện thêm xe.
   \item \textbf{UA-DETRAC} dùng bản nhãn gán lại có xe máy; điều kiện đêm hay ngày lấy theo thuộc tính thời tiết trong
         nhãn gốc (bỏ 11 video mưa). Đây là đường phố có đèn ở Trung Quốc, chủ yếu ô tô.
+  \item \textbf{Video hầm chui.} Ba clip đêm được cắt ở ba thời điểm khác nhau của một video dài khoảng ba giờ, nhưng
+        khi đếm xe từng frame mới thấy video gốc có đoạn lặp: frame 0--1387 của clip thứ nhất trùng frame 412--1799 của
+        clip thứ hai (so chênh lệch điểm ảnh giữa các cặp frame), và clip thứ nhất có một chỗ cắt cảnh ở giây 48.3. Clip
+        thứ hai và thứ ba liền mạch, không trùng nhau. Vì vậy tập \texttt{vn\_extra} đêm và phép đánh giá đếm xe ban đêm
+        chỉ dùng clip thứ hai và thứ ba; clip thứ nhất chỉ để minh hoạ.
 \end{itemize}
 
 \section{Gán nhãn dữ liệu}
@@ -170,6 +179,10 @@ này lên kết quả được bàn ở mục~\ref{sec:thao-luan}.
         xe buýt. Quy tắc này khớp cách dữ liệu train v5 ánh xạ lớp (UVH-26 \texttt{Van} thành ô tô,
         \texttt{Tempo-traveller} và \texttt{Mini-bus} thành buýt). Nó lệch luật Việt Nam (van chở hàng là xe tải) và lệch
         KITTI, UA-DETRAC (có lớp van riêng), vì đề tài chỉ có bốn lớp.
+  \item \textbf{Xe bán tải} năm chỗ (kiểu Ford Ranger) là ô tô. COCO xếp xe bán tải vào lớp xe tải, nhưng mọi mô hình
+        của đề tài đều gọi loại xe này là ô tô, tức dữ liệu huấn luyện đã ngầm xếp nó vào ô tô, và ở Việt Nam xe bán tải
+        chủ yếu dùng chở người. Theo quy ước COCO, hai lượt xe bán tải trong dữ liệu đếm ban đêm sẽ thành lỗi sai lớp
+        của cả hai mô hình.
 \end{itemize}
 
 \subsection{Nhãn tự động cho frame huấn luyện Hà Nội}
@@ -198,6 +211,22 @@ tracker sinh ra, xuất sang CVAT với keyframe mỗi 10 frame; người gán k
 oan được nối lại; 121 box ``mảnh vụn'' của xe khuất sau cây được chuyển sang trạng thái không hiện diện sau khi xem
 bằng mắt.
 YOLO26x chỉ dùng để soát chéo. Mọi chỉnh sửa và lý do được ghi lại để truy ngược. Kết quả là 183 quỹ đạo.
+
+\subsection{Nhãn đếm xe ban đêm}
+\label{sec:nhan-dem}
+
+Hai clip hầm chui chưa có nhãn quỹ đạo, nên số lượt xe thật được đếm tay trên video gốc, không hiện kết quả của mô hình.
+Đây cũng là cách cuộc thi AI City Challenge tạo nhãn cho bài đếm xe. Đề tài viết một công cụ nhỏ: video phát chậm
+0.25 lần, có vẽ vạch đếm (nằm ngang ở 60\% chiều cao ảnh, trùng vạch của hệ thống); mỗi khi điểm giữa đáy xe chạm vạch,
+người đếm bấm một phím theo lớp và hướng, công cụ ghi lại frame đang hiện. Xe đã ở phía trên vạch khi clip bắt đầu, hoặc
+chưa tới vạch khi clip kết thúc, không được tính. Bộ đếm của hệ thống cũng lấy điểm giữa đáy box làm điểm neo, nên
+người đếm và hệ thống đo cùng một sự kiện.
+
+Để kiểm tra độ tin cậy của nhãn, một trợ lý AI đếm độc lập trên cùng hai clip bằng cách xem ảnh gốc, không dùng mô hình
+của đề tài. Hai bộ đếm ghép được 174 trên 176 lượt (lệch thời điểm trung vị 0.2 giây); trong đó chỉ hai lượt khác lớp,
+đều là xe bán tải mà bộ đếm AI xếp vào xe tải theo COCO. Hai lượt còn lại là hai xe máy ở giây cuối của clip thứ ba mà
+bộ đếm AI chưa chốt; xem phóng to các frame cuối cho thấy cả hai đều qua vạch trước khi clip kết thúc, nên được giữ theo
+người đếm. Kết quả là 176 lượt, cùng một chiều: 149 xe máy, 25 ô tô, 1 xe buýt, 1 xe tải.
 
 \section{Huấn luyện mô hình phát hiện}
 
@@ -440,7 +469,8 @@ IDR trên VnTraffic 0.825 so với 0.827.
 \section{Kết luận chương}
 
 Chương này đã trình bày cách xây dựng hệ thống. Dữ liệu huấn luyện gộp từ sáu nguồn, chia theo cảnh để tránh rò rỉ giữa
-train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm và một clip có nhãn quỹ đạo. Mô hình
+train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm, một clip có nhãn quỹ đạo và hai clip
+đêm có số lượt qua vạch do người đếm tay. Mô hình
 phát hiện được cải tiến qua năm phiên bản dữ liệu, chọn bằng tiêu chí đặt trước trên tập dev, và mô hình triển khai là
 YOLO26n v5. Thí nghiệm so sánh với RT-DETRv2-S theo một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được.
 Thuật toán theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera. Chương~\ref{chap:ketqua} trình bày kết

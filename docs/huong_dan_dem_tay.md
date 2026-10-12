@@ -41,7 +41,8 @@ Tắt **Caps Lock** (nếu không, chữ thường thành chữ hoa và chiều 
   là frame được ghi.
 - **Mỗi lần xe đi hẳn qua vạch là một lượt.** Xe qua rồi quay lại (hiếm) thì tính hai lượt, ngược chiều nhau.
 - **Lớp xe**, giống quy tắc nhãn của đề tài: xe máy tính cả người ngồi trên; van nhỏ và xe 7 chỗ là **ô tô**; van cỡ
-  Ford Transit mui cao (16 chỗ hoặc chở hàng) là **buýt**; xe có thùng hàng riêng là **tải**.
+  Ford Transit mui cao (16 chỗ hoặc chở hàng) là **buýt**; xe bán tải 5 chỗ (Ford Ranger...) là **ô tô** (quy ước
+  của đề tài, lệch COCO); xe tải có cabin và thùng hàng riêng là **tải**.
 - **Xe bị che lúc qua vạch:** vẫn đếm nếu chắc chắn có một xe đi qua (thấy trước và sau chỗ che). Lớp lấy theo lúc nhìn
   rõ nhất, lùi/tới vài giây để xem.
 - **Cụm xe đông:** dừng lại, bước từng frame (`.`) và bấm cho từng xe. Dòng "gan day" trên màn hình liệt kê các lượt

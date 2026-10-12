@@ -534,7 +534,27 @@ pipeline.
 | **Tổng** | 2 | 71 | 0 | 72 | 73 | 72 | 3 (4.1%) |
 
 Soi từng lượt: 2 lượt "vào" của nhãn là hiện tượng nhãn ở tán cây (box ôm phần nhìn thấy làm đáy box đi ngược qua
-vạch); lượt buýt là Ford Transit bị đếm thành ô tô → lỗi thật duy nhất: 1 lượt sai lớp.
+vạch); lượt buýt là Ford Transit bị đếm thành ô tô → lỗi thật duy nhất: 1 lượt sai lớp. YOLO26s: 71 ra = 71 thật,
+sai số theo hướng 2 (2.7%).
+
+**Ban đêm — hai clip hầm chui 60 s (`ham_chui_dem_2`, `_3`), người đếm tay** (`data/count_gt/ham_chui_dem_{2,3}/`,
+`scripts/count_by_hand.py`; chấm: `outputs/eval_manual_counts/night_human/`; v5 chạy CPU ra `outputs/manual_count_runs/v5/`,
+YOLO26s = video demo GPU). Clip 1 bỏ vì trùng clip 2 và có cắt cảnh. 176 lượt, tất cả chiều "vào": 149 xe máy / 25 ô
+tô (gồm 2 xe bán tải — quy ước bán tải 5 chỗ = ô tô, người làm đồ án chốt 12/10/2026, lệch COCO) / 1 buýt / 1 tải.
+Kiểm độ tin cậy: một trợ lý AI đếm độc lập trên ảnh gốc (`data/count_gt/ai_review_2026-10-11/`) ghép được 174/176 lượt
+(lệch thời điểm trung vị 0.2 s), khác lớp đúng 2 xe bán tải; 2 xe máy cuối clip 3 AI chưa chốt — phóng to frame
+1782–1799 xác nhận đã qua vạch.
+
+| Clip | Thật | v5 đếm / sót / thừa | YOLO26s đếm / sót / thừa |
+|---|---|---|---|
+| Hầm chui 2 | 79 | 72 / 7 / 0 | 76 / 3 / 0 |
+| Hầm chui 3 | 97 | 89 / 8 / 0 | 98 (95 vào + 3 ra) / 4 / 5 |
+| Tổng | 176 | 161 / 15 / 0 → sai số theo hướng 15 (8.5%) | 174 / 7 / 5 → 8 (4.5%) |
+
+Mọi lỗi là xe máy; ô tô/buýt/tải đúng cả số lẫn lớp. Lượt sót tập trung ở cụm xe: 14/15 lượt sót của v5 và 7/7 của
+YOLO26s có xe máy khác qua vạch trong ±0.3 s (tỉ lệ nền ở mọi lượt: 55%). 5 lượt thừa của YOLO26s: 2 xe có box dao
+động quanh vạch (vào–ra–vào) + 1 xe ở frame cuối bị đếm "ra". Hướng sửa (chưa làm): chỉ tính lượt khi xe ở hẳn bên kia
+vạch vài frame (chọn trên dev).
 
 ### 4.12 Cảnh đêm không nhãn (`outputs/unlabeled_analysis/night/`)
 

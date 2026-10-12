@@ -21,9 +21,13 @@ Khi hai nhóm cho kết luận khác nhau, nhóm thứ hai quyết định.
 \textbf{Theo dõi.} Trên tập test (clip Phạm Văn Đồng) báo đủ HOTA, DetA, AssA, MOTA, IDF1, IDR, IDP và số lần đổi ID.
 Trên tập dev VnTraffic chỉ dùng AssA, IDR và số lần đổi ID vì nhãn thiếu xe.
 
-\textbf{Đếm xe.} So số lượt qua vạch theo lớp và hướng giữa hệ thống và nhãn tay.
+\textbf{Đếm xe.} So số lượt qua vạch theo lớp và hướng giữa hệ thống và số lượt thật. Ban ngày, số lượt thật có được
+bằng cách cho nhãn quỹ đạo của clip test đi qua đúng bộ đếm của hệ thống; ban đêm, người đếm tay trên video gốc
+(mục~\ref{sec:nhan-dem}). Sai số tính riêng từng hướng rồi cộng lại, để đếm thừa ở chiều này không bù cho đếm thiếu ở
+chiều kia.
 
-\textbf{Tốc độ.} Thời gian xử lý mỗi frame (trung vị và khoảng tứ phân vị) trên CPU Intel Core i5-8250U và GPU Tesla T4.
+\textbf{Tốc độ.} Thời gian xử lý mỗi frame (trung vị và khoảng tứ phân vị) trên laptop Intel Core i5-8250U (CPU và GPU
+tích hợp UHD 620) và trên GPU Tesla T4.
 
 \section{Kết quả phát hiện}
 \label{sec:ket-qua-phat-hien}
@@ -235,10 +239,10 @@ nhau hơn. RT-DETRv2 nhận ảnh 960×960 nên chiều dọc của frame 1080p 
 với 0.79 của YOLO26s ở ảnh 1280) dù mAP50 của hai mô hình hoà; recall ở một ngưỡng cố định và mAP50 (tính trên mọi
 ngưỡng) đo hai điều khác nhau, nên hai số này không mâu thuẫn.
 
-YOLO26s hơn YOLO26n ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]); với bootstrap theo khối
-10 giây, hai khoảng chỉ còn tách nhau sát nút ([0.685--0.744] so với [0.555--0.684]). Ở \texttt{vn\_extra} ngày YOLO26s
-cũng cao hơn (0.798 so với 0.745) nhưng khoảng tin cậy chồng nhẹ; ở val UVH-26 và UA-DETRAC cũng cao hơn nhưng khoảng
-tin cậy chồng nhau; ngang nhau ở Hà Nội và PVD.
+Trong họ YOLO, bản s hơn bản n rõ nhất ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]),
+dù với bootstrap theo khối hai khoảng chỉ còn tách nhau sát nút (Bảng~\ref{tab:block-ci}). Ở \texttt{vn\_extra} ngày,
+val UVH-26 và UA-DETRAC bản s cũng cao hơn nhưng khoảng tin cậy chồng nhau; ở Hà Nội và PVD hai bản ngang nhau.
+
 Hình~\ref{fig:acc-speed} đặt độ chính xác cạnh tốc độ CPU: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
 lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
 
@@ -290,9 +294,9 @@ theo dõi.
 
 Trên CPU (Bảng~\ref{tab:toc-do-cpu}), RT-DETRv2-S mất 1.53 giây mỗi frame: chậm hơn YOLO26s ở ảnh 960 khoảng 5.8 lần,
 hơn YOLO26s ở ảnh 1280 (độ chính xác ngang nhau trên dữ liệu Việt Nam) 3.4 lần và hơn v5 15 lần. Mô hình này không dùng
-được cho video trên CPU. Ngoài khâu phát hiện, pipeline tốn thêm khoảng 30 ms mỗi frame cho giải mã video và tracker; ở
-lần đo trước khi tắt bù chuyển động camera (GMC), phần này là 90--100 ms: GMC chiếm phần lớn thời gian của tracker mà
-không có ích với camera đứng yên.
+được cho video trên CPU. Ngoài khâu phát hiện, pipeline tốn thêm khoảng 30 ms mỗi frame cho giải mã video và tracker.
+Nếu bật bù chuyển động camera (GMC) của BoT-SORT, phần này tăng lên 90--100 ms; với camera đứng yên, GMC tốn thời gian
+mà không cải thiện theo dõi (mục~\ref{sec:theo-doi}), nên cấu hình mặc định tắt nó.
 
 Trên GPU (Bảng~\ref{tab:toc-do-gpu}), YOLO26n và YOLO26s gần như nhanh bằng nhau (cả pipeline khoảng 42 frame/s): mô
 hình nhỏ không tận dụng hết GPU, phần thời gian còn lại là tiền xử lý, hậu xử lý và tracker chạy trên CPU. Vì vậy nếu có
@@ -332,16 +336,17 @@ dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đ
   \end{tabularx}
 \end{table}
 
+Bốn yếu tố quyết định tốc độ trong Bảng~\ref{tab:openvino}:
 \begin{itemize}
-  \item \textbf{Phải chỉ rõ thiết bị.} Khi máy có GPU Intel, OpenVINO mặc định tự chọn thiết bị và đưa mô hình FP32 lên
-        GPU tích hợp. Bản thảo trước của báo cáo ghi ``v5 OpenVINO trên CPU 10.9 frame/s''; kiểm tra lại cho thấy số đó
-        thực ra đo trên GPU tích hợp. Mọi số trong Bảng~\ref{tab:openvino} đều ghi rõ thiết bị.
+  \item \textbf{Thiết bị.} Nếu không chỉ định, OpenVINO tự chọn thiết bị và đưa mô hình FP32 lên GPU tích hợp, còn mô
+        hình INT8 có thể chạy trên CPU. Hai bản chạy trên hai thiết bị khác nhau thì so sánh tốc độ không còn ý nghĩa,
+        nên mọi phép đo ở đây đều chỉ định thiết bị.
   \item \textbf{Tranh chấp luồng CPU.} Ultralytics dùng PyTorch cho vài bước tiền xử lý; theo mặc định các luồng OpenMP
-        của PyTorch chờ quay vòng một lúc sau mỗi lần dùng và chiếm lõi CPU mà OpenVINO cần. Khi tắt cơ chế này
-        (biến môi trường \texttt{KMP\_BLOCKTIME=0}, \texttt{OMP\_WAIT\_POLICY=PASSIVE}), v5 INT8 544×960 trên CPU
-        giảm từ khoảng 90 xuống 34 ms mỗi frame; đổi lại PyTorch trên CPU chậm đi khoảng 15--20\% (117.9 ms trong
+        của PyTorch chờ quay vòng một lúc sau mỗi lần dùng và chiếm lõi CPU mà OpenVINO cần. Tắt cơ chế này (biến môi
+        trường \texttt{KMP\_BLOCKTIME=0}, \texttt{OMP\_WAIT\_POLICY=PASSIVE}) làm v5 INT8 544×960 trên CPU giảm từ
+        khoảng 90 xuống 34 ms mỗi frame; đổi lại PyTorch trên CPU chậm đi 15--20\% (117.9 ms trong
         Bảng~\ref{tab:openvino} so với 100.5 ms trong Bảng~\ref{tab:toc-do-cpu}). Bảng~\ref{tab:openvino} đo với cơ chế
-        này đã tắt, CPU và GPU tích hợp ở hai lần chạy riêng; web demo và chương trình dòng lệnh cũng tắt nó.
+        này đã tắt, nhóm CPU và nhóm GPU tích hợp ở hai lần chạy riêng; web demo và chương trình dòng lệnh cũng tắt nó.
   \item \textbf{INT8} không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần; trên GPU tích hợp
         UHD 620 thì không nhanh hơn (60.6 so với 54.1 ms).
   \item \textbf{Đầu vào 544×960.} Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
@@ -350,15 +355,17 @@ dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đ
         tài.
 \end{itemize}
 
-Theo tiêu chí chốt trước, web demo dùng \textbf{v5 OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp}: phát hiện và
-theo dõi đạt 19.8 frame/s video 1080p, nhanh gấp 2.6 lần PyTorch trên CPU, với mAP50 val và IDR dev hoà với PyTorch.
-Một điểm cần ghi lại: trên dev, mọi bản OpenVINO đều đổi ID nhiều hơn PyTorch (68--82 lần so với 61, bản được chọn 71);
-tiêu chí chốt trước dùng IDR nên không đổi lựa chọn. Máy không có GPU Intel thì dùng bản INT8 544×960 trên CPU (18.8
-frame/s); bản này có IDR kém PyTorch quá ngưỡng hoà (0.816 so với 0.827), nên đây là đánh đổi tốc độ lấy một chút độ
-chính xác theo dõi. YOLO26s, mô hình chính xác hơn ở
-cảnh khó, lên được 9.4 frame/s trên GPU tích hợp. Tính cả khâu vẽ kết quả và ghi video 1080p, cả quy trình của web demo
-chỉ còn khoảng 7 frame/s: khi phần phát hiện đã nhanh, việc vẽ và mã hoá video trên CPU trở thành phần chậm nhất, giống
-điều đã thấy với video demo trên GPU T4.
+Theo tiêu chí chốt trước, web demo dùng \textbf{v5 OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp}. Phát hiện và
+theo dõi đạt 19.8 frame/s với video 1080p, nhanh gấp 2.6 lần PyTorch trên CPU, trong khi mAP50 val và IDR dev hoà với
+PyTorch. Số lần đổi ID trên dev thì cao hơn: mọi bản OpenVINO đổi ID 68--82 lần so với 61 của PyTorch (bản được chọn:
+71). Tiêu chí đã chốt dùng IDR nên lựa chọn giữ nguyên, nhưng đây là cái giá cần biết. Máy không có GPU Intel thì dùng
+bản INT8 544×960 trên CPU (18.8 frame/s); IDR của bản này kém PyTorch quá ngưỡng hoà (0.816 so với 0.827), tức đổi một
+chút độ chính xác theo dõi lấy tốc độ gấp 2.5 lần. YOLO26s, mô hình chính xác hơn ở cảnh khó, đạt 9.4 frame/s trên GPU
+tích hợp.
+
+Khi tính cả khâu vẽ kết quả và ghi video 1080p, cả quy trình của web demo chỉ còn khoảng 7 frame/s. Phần phát hiện đã
+nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm nhất, giống điều đã thấy với video demo trên GPU T4
+(mục~\ref{sec:ung-dung}).
 
 \section{Kết quả theo dõi}
 \label{sec:theo-doi}
@@ -462,13 +469,17 @@ giảm đổi ID của v5 từ 28 xuống 23, HOTA giảm nhẹ từ 0.718 xuố
 \section{Sai số đếm xe qua vạch}
 \label{sec:dem-xe}
 
+Đếm xe được đánh giá ở hai điều kiện: ban ngày trên clip test Phạm Văn Đồng và ban đêm trên hai clip hầm chui. Ở cả
+hai nơi, vạch đếm là vạch mặc định của hệ thống (nằm ngang ở 60\% chiều cao ảnh), không chọn theo kết quả.
+
+\subsection{Ban ngày: clip Phạm Văn Đồng}
+
 Số lượt xe thật được tính bằng cách cho các quỹ đạo nhãn tay của clip test đi qua đúng bộ đếm của hệ thống, nên chênh
-lệch chỉ do phát hiện và theo dõi. Vạch đếm là vạch mặc định của hệ thống (nằm ngang ở 60\% chiều cao ảnh), không chọn
-theo kết quả.
+lệch chỉ do phát hiện và theo dõi.
 
 \begin{table}[H]
   \centering
-  \caption{Số lượt xe qua vạch trên clip test 20 giây: nhãn tay và hệ thống}
+  \caption{Số lượt xe qua vạch trên clip test 20 giây ban ngày: nhãn tay và hệ thống (v5)}
   \label{tab:dem-xe}
   \small
   \begin{tabular}{|l|c|c|c|c|c|c|c|}
@@ -484,34 +495,73 @@ theo kết quả.
 \end{table}
 
 Hệ thống đếm 72 lượt so với 73 lượt thật (Bảng~\ref{tab:dem-xe}); tổng theo lớp khớp hoàn toàn ở xe máy (53) và ô tô
-(19). Sai số tính theo từng hướng là 3 lượt. Xem lại từng lượt:
+(19). Sai số tính theo từng hướng là 3 lượt, và khi xem lại từng lượt thì chỉ một lượt là lỗi của hệ thống:
 \begin{itemize}
   \item Hai lượt ``vào'' của nhãn (một ô tô, một xe máy) là hiện tượng của nhãn ở tán cây: xe khuất dần sau cây, box nhãn
         chỉ ôm phần nhìn thấy nên cạnh đáy box đi ngược lên qua vạch, dù xe không đi ngược chiều. Vạch y = 0.6 đi qua mép
         tán cây bên phải.
   \item Lượt xe buýt là một chiếc Ford Transit bị đếm thành ô tô, đúng vấn đề định nghĩa lớp van đã nêu.
 \end{itemize}
-
 Với YOLO26s (mô hình của video demo, cùng tracker và bộ lọc), hệ thống đếm 71 lượt ``ra'', đúng bằng số lượt ``ra''
-thật: xe máy 52 so với 52, ô tô 19 so với 18, xe buýt 0 so với 1. Lượt ô tô thừa chính là chiếc Ford Transit, tức lỗi
-duy nhất giống hệt v5; sai số theo hướng là 2 lượt, đều ở hai lượt ``vào'' của nhãn đã giải thích ở trên.
+thật; lỗi duy nhất cũng là chiếc Ford Transit, và sai số theo hướng là 2 lượt, đều ở hai lượt ``vào'' của nhãn nói trên.
+Trên clip ban ngày này, không có xe nào bị sót hay bị đếm trùng.
 
-Như vậy lỗi thật của hệ thống trên clip này là 1 lượt sai lớp; không có xe bị sót hay bị đếm trùng. Khi triển khai, nên
-đặt vạch đếm ở vùng không bị che.
+\subsection{Ban đêm: hai clip hầm chui}
+
+Ban đêm, số lượt thật là số người đếm tay trên video gốc (mục~\ref{sec:nhan-dem}): 176 lượt trong hai phút video, tất
+cả đi cùng một chiều. Mỗi lượt của hệ thống được ghép với một lượt của người đếm nếu cùng hướng và lệch nhau không quá
+một giây (ghép tối ưu bằng thuật toán Hungarian, ưu tiên số cặp ghép được, rồi đến cặp cùng lớp), để biết lượt nào bị
+sót, lượt nào thừa.
+
+\begin{table}[H]
+  \centering
+  \caption{Đếm xe ban đêm trên hai clip hầm chui 60 giây (người đếm tay làm số thật)}
+  \label{tab:dem-xe-dem}
+  \small
+  \begin{tabular}{|l|c|c|c|c|c|c|c|}
+    \hline
+    \multirow{2}{*}{\thead{Clip}} & \multirow{2}{*}{\thead{Lượt thật}} & \multicolumn{3}{c|}{\thead{v5}} &
+      \multicolumn{3}{c|}{\thead{YOLO26s}} \\ \cline{3-8}
+    & & \thead{Đếm} & \thead{Sót} & \thead{Thừa} & \thead{Đếm} & \thead{Sót} & \thead{Thừa} \\ \hline
+    Hầm chui 2 & 79 & 72 & 7 & 0 & 76 & 3 & 0 \\ \hline
+    Hầm chui 3 & 97 & 89 & 8 & 0 & 98 & 4 & 5 \\ \hline
+    \textbf{Tổng} & 176 & 161 & 15 & 0 & 174 & 7 & 5 \\ \hline
+    \multicolumn{2}{|l|}{\textbf{Sai số theo hướng}} & \multicolumn{3}{c|}{15 (8.5\%)} & \multicolumn{3}{c|}{8 (4.5\%)}
+      \\ \hline
+  \end{tabular}
+\end{table}
+
+Mọi lỗi ban đêm đều ở xe máy; ô tô, xe buýt và xe tải được đếm đúng cả số lượng lẫn lớp với cả hai mô hình
+(Bảng~\ref{tab:dem-xe-dem}). v5 không đếm thừa lượt nào nhưng bỏ sót 15 trên 149 lượt xe máy. Các lượt sót tập trung
+ở cụm xe máy đi sát nhau: 14 trong 15 lượt sót của v5 và cả 7 lượt sót của YOLO26s xảy ra khi có một xe máy khác qua
+vạch cách đó không quá 0.3 giây, trong khi tỉ lệ này ở toàn bộ 176 lượt chỉ là 55\%; ví dụ ba xe qua vạch trong 0.4
+giây ở đầu clip thứ hai đều bị v5 bỏ sót. YOLO26s chỉ sót 7 lượt, đúng với việc nó
+phát hiện tốt hơn v5 ở \texttt{vn\_extra} đêm (Bảng~\ref{tab:kien-truc}). Năm lượt thừa của YOLO26s là một kiểu lỗi
+khác: box của hai xe dao động quanh vạch nên mỗi xe bị đếm ``vào'', rồi ``ra'', rồi ``vào'' lần nữa; thêm một
+xe ở frame cuối clip bị đếm ``ra''.
+
+So với ban ngày, sai số đếm ban đêm của v5 tăng từ 4.1\% lên 8.5\%, khớp với việc mAP50 của v5 giảm từ 0.745 ban ngày
+xuống 0.628 ban đêm trên \texttt{vn\_extra}: cảnh tối làm mô hình bỏ sót nhiều xe máy hơn, và bộ đếm không thể đếm xe
+mà bộ phát hiện không thấy. Sai số của YOLO26s là 2.7\% ban ngày và 4.5\% ban đêm. Hai cách giảm sai số đã thấy rõ từ các
+lỗi trên: dùng mô hình phát hiện mạnh hơn khi có GPU, và chỉ tính một lượt khi xe đã ở hẳn bên kia vạch trong vài frame
+liên tiếp để chặn kiểu đếm lặp do box dao động. Khi triển khai, nên đặt vạch ở vùng không bị cây hay lan can che.
 
 \section{Kết quả ở cảnh ban đêm}
 
-Ba nguồn bằng chứng về cảnh đêm cho cùng một hướng:
+Bốn nguồn bằng chứng về cảnh đêm cho cùng một kết luận: mô hình tinh chỉnh vẫn dùng được ban đêm, nhưng ở đường tối
+của Việt Nam độ chính xác thấp hơn ban ngày, và phần mất chủ yếu là xe máy bị sót.
 \begin{itemize}
-  \item \textbf{\texttt{vn\_extra} đêm} (cảnh đêm Việt Nam có nhãn): v5 đạt 0.628, cao hơn v3 (0.437) và mô hình gốc
-        COCO (0.437); YOLO26s đạt 0.713, RT-DETRv2-S 0.816.
+  \item \textbf{\texttt{vn\_extra} đêm} (cảnh đêm Việt Nam có nhãn): v5 đạt 0.628, so với 0.745 ban ngày, nhưng cao hơn
+        rõ v3 (0.437) và mô hình gốc COCO (0.437); YOLO26s đạt 0.713, RT-DETRv2-S 0.816.
+  \item \textbf{Đếm xe ở hầm chui} (mục~\ref{sec:dem-xe}): sai số của v5 tăng từ 4.1\% ban ngày lên 8.5\% ban đêm, toàn
+        bộ là xe máy bị sót; YOLO26s giữ ở 4.5\%.
   \item \textbf{UA-DETRAC}: cả ba mô hình COCO, v3, v5 không giảm độ chính xác khi trời tối (v5: đêm 0.845, ngày
-        0.812). Tuy vậy đêm của UA-DETRAC là đường phố có đèn, chủ yếu ô tô, khác đường tối ở hầm chui.
-  \item \textbf{Ba clip hầm chui không có nhãn}, dùng chỉ số thay thế trên 20 giây mỗi clip với mốc ban ngày là clip
-        Phạm Văn Đồng: độ tin cậy trung vị của v5 là 0.59--0.63 ban đêm so với 0.63 ban ngày, tỉ lệ track ngắn dưới 1
-        giây 47--52\% so với 54\%, tức v5 gần như không suy giảm; v3 tụt rõ (độ tin cậy 0.36--0.45, 67--73\% track
-        ngắn). Đây là chỉ số thay thế, chỉ dùng để so tương đối. Về sau phát hiện video gốc có đoạn lặp: clip thứ
-        nhất trùng một phần clip thứ hai (lệch 13.7 giây), nên trong 20 giây đầu hai clip có khoảng 6 giây chung.
+        0.812). Đêm của UA-DETRAC là đường phố có đèn, chủ yếu ô tô, nên dễ hơn đường tối ở hầm chui.
+  \item \textbf{Chỉ số thay thế trên video không nhãn} (20 giây đầu của ba clip hầm chui, mốc ban ngày là clip Phạm Văn
+        Đồng): độ tin cậy trung vị của v5 là 0.59--0.63 ban đêm so với 0.63 ban ngày, tỉ lệ track ngắn dưới 1 giây
+        47--52\% so với 54\%; v3 tụt rõ (độ tin cậy 0.36--0.45, 67--73\% track ngắn). Các chỉ số này chỉ dùng để so
+        tương đối giữa các mô hình; hai clip đầu có khoảng 6 giây trùng nhau do đoạn lặp của video gốc
+        (mục~\ref{sec:tap-danh-gia}).
 \end{itemize}
 
 \section{Phân tích lỗi}
@@ -587,10 +637,12 @@ còn 25 lần, gần với 26 lần đổi ID của TrackEval. Phần chênh l�
 trên cùng một xe.
 
 \section{Ứng dụng web và video demo}
+\label{sec:ung-dung}
 
 Web demo (Hình~\ref{fig:app}) cho chọn clip, xem video kết quả có box, ID, vết di chuyển và vạch đếm, cùng bảng đếm
 theo lớp và hướng, biểu đồ số xe cộng dồn theo thời gian, danh sách sự kiện và nút tải CSV. Chế độ mặc định nạp video
-đã xử lý sẵn trên GPU để trình chiếu mượt; chế độ chạy trực tiếp trên CPU dùng khi cần xử lý video mới.
+đã xử lý sẵn trên GPU để trình chiếu mượt; chế độ chạy trực tiếp trên laptop (mặc định v5 OpenVINO trên GPU tích hợp,
+mục~\ref{sec:openvino}) dùng khi cần xử lý video mới.
 
 \begin{figure}[H]
   \centering
@@ -606,14 +658,14 @@ theo lớp và hướng, biểu đồ số xe cộng dồn theo thời gian, dan
   \label{fig:app}
 \end{figure}
 
-Sáu clip demo dài 60 giây (ba góc máy đại lộ Phạm Văn Đồng và ba đoạn hầm chui ban đêm) được xử lý sẵn trên GPU T4 bằng
+Sáu clip demo dài 60 giây (ba góc máy đại lộ Phạm Văn Đồng và ba clip hầm chui ban đêm) được xử lý sẵn trên GPU T4 bằng
 YOLO26s ở ảnh 960 và BoT-SORT đã chỉnh, đúng chương trình dùng trên máy local. Tính cả vẽ kết quả và mã hoá video 1080p,
 tốc độ xử lý là 15.4--20.9 frame/s; con số này thấp hơn khoảng 42 frame/s của riêng phát hiện và theo dõi, vì khi có
-GPU thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất. Số lượt qua vạch trong 60 giây: góc A 194 (chỉ chiều ra,
-vì làn ngược chiều ra khỏi khung hình trước vạch), góc B 169, góc C 254; ba đoạn hầm chui 69, 76 và 98. Các clip này
-chưa có nhãn nên những con số này không phải số đánh giá. Video gốc của cảnh hầm chui có đoạn lặp lại: 46 giây của clip
-hầm chui thứ nhất trùng với clip thứ hai, và clip thứ nhất có một chỗ cắt cảnh ở giây 48.3, nên ba clip này thực ra chỉ
-gồm hai đoạn giao thông khác nhau. Hình~\ref{fig:demo-dem} là một frame của clip ban đêm.
+GPU thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất. Số lượt qua vạch trong 60 giây là 194 ở góc A (chỉ
+chiều ra, vì làn ngược chiều ra khỏi khung hình trước vạch), 169 ở góc B, 254 ở góc C, và 69, 76, 98 ở ba clip hầm chui.
+Với hai clip hầm chui thứ hai và thứ ba, các con số này đã được so với số người đếm tay ở mục~\ref{sec:dem-xe}; các clip
+còn lại chưa có số thật. Clip hầm chui thứ nhất trùng phần lớn nội dung với clip thứ hai và có một chỗ cắt cảnh
+(mục~\ref{sec:tap-danh-gia}), nên chỉ dùng để minh hoạ. Hình~\ref{fig:demo-dem} là một frame của clip này.
 
 \begin{figure}[H]
   \centering
@@ -727,7 +779,9 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
         Trên camera đã dùng để tinh chỉnh (test Hà Nội), v5 đạt 0.923 so với 0.686 của mô hình gốc.
   \item Theo dõi trên clip test: HOTA 0.718, MOTA 0.813, IDF1 0.880, 26 lần đổi ID trên 183 xe với v5; YOLO26s (mô hình
         của video demo) đạt HOTA 0.758, MOTA 0.841, IDF1 0.904.
-  \item Đếm xe qua vạch: 72 lượt so với 73 lượt thật, lỗi thật duy nhất là một lượt sai lớp.
+  \item Đếm xe qua vạch: ban ngày v5 đếm 72 lượt so với 73 lượt thật, lỗi thật duy nhất là một lượt sai lớp; ban đêm,
+        trên 176 lượt người đếm tay, sai số là 8.5\% với v5 và 4.5\% với YOLO26s, toàn bộ ở xe máy, chủ yếu là xe đi
+        trong cụm bị sót.
   \item So sánh kiến trúc: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960, nhưng hoà khi YOLO nhìn cùng số điểm ảnh; box
         của RT-DETRv2 khít hơn khoảng 0.03 mAP50-95; đổi lại chậm hơn 5.8 lần trên CPU.
   \item Tốc độ phát hiện + theo dõi video 1080p trên laptop: v5 OpenVINO 19.8 frame/s trên GPU tích hợp và 18.8 frame/s
@@ -742,13 +796,15 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
         không tính được khoảng theo khối.
   \item Tập test Hà Nội dùng cùng camera với frame huấn luyện, nên không đo khả năng tổng quát; toàn bộ dữ liệu test
         Việt Nam chỉ gồm ba địa điểm (một ngã tư Hà Nội, đại lộ Phạm Văn Đồng với ba góc máy, một lối vào hầm chui).
-  \item Các tập test nhỏ (20--30 frame mỗi tập); theo dõi chỉ có một clip test 20 giây; sai số đếm chỉ trên 73 lượt.
+  \item Các tập test nhỏ (20--30 frame mỗi tập); theo dõi chỉ có một clip test 20 giây. Sai số đếm đo trên 249 lượt
+        (73 ban ngày, 176 ban đêm) ở hai địa điểm, gần như toàn xe máy và ô tô đi một chiều, nên chưa nói được về độ
+        chính xác đếm xe buýt, xe tải hay ở ngã tư nhiều hướng.
   \item Nhãn VnTraffic thiếu xe nên trên dev chỉ dùng được AssA, IDR, số lần đổi ID.
   \item Thiên lệch do nhãn sơ bộ ở test Hà Nội và clip Phạm Văn Đồng, nên trên hai tập này chỉ dùng mAP50.
   \item Cảnh đêm Việt Nam có nhãn phát hiện nhưng chưa có nhãn theo dõi.
   \item Hai tập dev không có cảnh xe rất nhỏ ở xa, nên lựa chọn ảnh 960 chưa phản ánh lợi ích của ảnh 1280 ở cảnh đó.
-  \item Bốn lớp không có lớp xe van, nên xe cỡ Ford Transit hay bị gọi là ô tô; xe bị che một phần được khoanh phần nhìn
-        thấy, lệch quy ước MOTChallenge.
+  \item Bốn lớp không có lớp xe van, nên xe cỡ Ford Transit hay bị gọi là ô tô; xe bán tải được xếp vào ô tô, lệch quy
+        ước COCO; xe bị che một phần được khoanh phần nhìn thấy, lệch quy ước MOTChallenge.
   \item Trên laptop, phát hiện và theo dõi đạt khoảng 20 frame/s, chưa bằng 30 frame/s của video; tính cả vẽ và ghi video
         1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32.
   \item Tracker được chỉnh tham số với v3 rồi dùng cho v5.
@@ -758,7 +814,10 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
 
 \begin{itemize}
   \item Bổ sung dữ liệu đúng góc camera giao thông Việt Nam, chia theo camera để có thêm tập test đúng phạm vi.
-  \item Gán nhãn theo dõi cho cảnh đêm và thêm clip test, để có khoảng tin cậy cho chỉ số theo dõi và sai số đếm.
+  \item Gán nhãn theo dõi cho cảnh đêm và thêm clip test ở địa điểm khác, để có khoảng tin cậy cho chỉ số theo dõi và
+        sai số đếm.
+  \item Chỉ tính một lượt qua vạch khi xe đã ở hẳn bên kia vạch trong vài frame liên tiếp, chọn số frame trên tập dev,
+        để chặn kiểu đếm lặp khi box dao động quanh vạch.
   \item Huấn luyện nhiều seed để đo dao động giữa các lần huấn luyện.
   \item Thử mô hình ReID chuyên cho xe thay cho đặc trưng của mô hình phát hiện.
   \item Tăng tốc bằng TensorRT hoặc FP16 trên GPU; xuất RT-DETRv2 sang OpenVINO; chọn kích thước ảnh theo cảnh.

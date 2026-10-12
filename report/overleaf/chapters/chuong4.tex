@@ -241,7 +241,9 @@ ngưỡng) đo hai điều khác nhau, nên hai số này không mâu thuẫn.
 
 Trong họ YOLO, bản s hơn bản n rõ nhất ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]),
 dù với bootstrap theo khối hai khoảng chỉ còn tách nhau sát nút (Bảng~\ref{tab:block-ci}). Ở \texttt{vn\_extra} ngày,
-val UVH-26 và UA-DETRAC bản s cũng cao hơn nhưng khoảng tin cậy chồng nhau; ở Hà Nội và PVD hai bản ngang nhau.
+val UVH-26 và UA-DETRAC bản s cũng cao hơn nhưng khoảng tin cậy chồng nhau; ở Hà Nội và PVD hai bản ngang nhau. Riêng
+cảnh đêm, các chênh lệch giữa kiến trúc cần đọc cùng độ dao động giữa các lần huấn luyện: ba lần huấn luyện YOLO26n cho
+mAP50 đêm từ 0.510 đến 0.638 (mục~\ref{sec:thao-luan}).
 
 Hình~\ref{fig:acc-speed} đặt độ chính xác cạnh tốc độ CPU: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
 lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
@@ -412,8 +414,9 @@ Chỉnh lưới 18 cấu hình BoT-SORT và ByteTrack: giữ track mất 90 fram
 Đổi từ v3 sang v5 là cải tiến lớn nhất cho theo dõi (Bảng~\ref{tab:detector-tracking}): số box bỏ sót giảm hơn một nửa
 (2.550 xuống 1.058), IDR tăng từ 0.744 lên 0.827, số lần đổi ID giảm từ 128 xuống 62. Soi từng xe, các xe v3 bỏ sót
 như một xe buýt (điểm tin cậy 0 lên 0.84--0.87 với v5), một xe tải (dưới 0.14 lên 0.93--0.94) và một xe máy đang dừng
-(0.01--0.12 lên 0.52--0.82) đều được v5 nhận ra. Phát hiện ổn định thì quỹ đạo ít bị đứt. Tắt GMC cho kết quả gần như
-y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62).
+(0.01--0.12 lên 0.52--0.82) đều được v5 nhận ra. Phát hiện ổn định thì quỹ đạo ít bị đứt. Hai lần huấn luyện lại v5
+với seed khác cho cùng hướng, dù mức giảm đổi ID nhỏ hơn: 95 và 97 lần (mục~\ref{sec:thao-luan}). Tắt GMC cho kết quả
+gần như y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62).
 
 \subsection{Tập test clip Phạm Văn Đồng}
 
@@ -759,8 +762,46 @@ camera) không tính được khoảng theo khối.
   \end{tabularx}
 \end{table}
 
+\textbf{Độ dao động giữa các lần huấn luyện.} Mỗi mô hình ở các mục trước chỉ được huấn luyện một lần. Để biết một
+chênh lệch có lớn hơn mức dao động do khởi tạo ngẫu nhiên hay không, v5 được huấn luyện thêm hai lần với seed 1 và 2,
+giữ nguyên dữ liệu và cấu hình (Bảng~\ref{tab:seeds}). Trên phần lớn các tập, ba lần cho kết quả sát nhau: mAP50 trên
+test Hà Nội 0.918--0.923, clip Phạm Văn Đồng 0.892--0.905, val UVH-26 0.838--0.850, UA-DETRAC đêm 0.833--0.846. Ngoại
+lệ là \texttt{vn\_extra} đêm, nơi mAP50 trải từ 0.510 đến 0.638. Số lần đổi ID trên dev cũng dao động, từ 61 đến 97:
+con số 61 của lần huấn luyện đầu là kết quả thuận lợi.
+
+\begin{table}[H]
+  \centering
+  \caption{Ba lần huấn luyện v5 với ba seed, so với v3 (mAP50 chính; theo dõi dùng tracker mặc định, không GMC)}
+  \label{tab:seeds}
+  \small
+  \begin{tabular}{|l|c|c|c|c|}
+    \hline
+    \thead{Tập, chỉ số} & \thead{v5, seed 42} & \thead{v5, seed 1} & \thead{v5, seed 2} & \thead{v3} \\ \hline
+    Test Hà Nội & 0.923 & 0.918 & 0.918 & 0.921 \\ \hline
+    \texttt{vn\_extra} ngày & 0.745 & 0.757 & 0.732 & 0.757 \\ \hline
+    \texttt{vn\_extra} đêm & 0.628 & 0.638 & 0.510 & 0.437 \\ \hline
+    20 frame PVD & 0.892 & 0.905 & 0.898 & 0.891 \\ \hline
+    Val UVH-26 & 0.850 & 0.847 & 0.838 & 0.335 \\ \hline
+    UA-DETRAC đêm & 0.845 & 0.846 & 0.833 & 0.722 \\ \hline
+    UA-DETRAC ngày & 0.812 & 0.831 & 0.792 & 0.709 \\ \hline
+    VnTraffic (dev): IDR & 0.827 & 0.836 & 0.861 & 0.731 \\ \hline
+    VnTraffic (dev): đổi ID & 61 & 97 & 95 & 130 \\ \hline
+    Clip PVD (test): HOTA & 0.718 & 0.728 & 0.714 & -- \\ \hline
+    Clip PVD (test): IDF1 & 0.880 & 0.870 & 0.885 & -- \\ \hline
+  \end{tabular}
+\end{table}
+
+Bảng~\ref{tab:seeds} cho hai kết luận. Thứ nhất, các ưu thế lớn của v5 so với v3 đứng vững ở cả ba seed: val UVH-26,
+UA-DETRAC, IDR trên VnTraffic (0.827--0.861 so với 0.731) và \texttt{vn\_extra} đêm (seed kém nhất 0.510 vẫn hơn 0.437);
+ban ngày và ở Hà Nội, v5 và v3 vẫn ngang nhau. Thứ hai, ở cảnh đêm một chênh lệch khoảng 0.1 điểm mAP50 giữa hai mô
+hình chỉ huấn luyện một lần chưa đủ để kết luận. Điều này áp dụng cho so sánh kiến trúc ban đêm: YOLO26s (0.713) hơn lần
+huấn luyện tốt nhất của YOLO26n 0.075, RT-DETRv2-S (0.816) hơn YOLO26s 0.10, cùng cỡ với dao động giữa các seed của
+YOLO26n. Thứ tự RT-DETRv2-S, YOLO26s, YOLO26n ban đêm vì vậy là xu hướng nhất quán với các tập khác, chưa phải khác biệt
+đã được chứng minh.
+
 \textbf{Vì sao chọn v5 và BoT-SORT.} Trên tập phát hiện Hà Nội, v3, v4, v5 hoà nhau; v5 được chọn vì tác động lên theo
-dõi (đổi ID giảm một nửa trên dev) và vì tốt hơn rõ ở cảnh đêm, UVH-26 và UA-DETRAC. Điều này cho thấy dữ liệu đúng góc
+dõi (IDR trên dev tăng từ khoảng 0.73--0.74 lên 0.83--0.86 và số lần đổi ID giảm từ 128--130 xuống 61--97 ở cả ba lần
+huấn luyện) và vì tốt hơn rõ ở cảnh đêm, UVH-26 và UA-DETRAC. Điều này cho thấy dữ liệu đúng góc
 camera giao thông quan trọng hơn kích thước ảnh: v4 (ảnh 1280) chỉ sửa được 1/4 số frame xe máy từng bị sót, còn v5 ở
 ảnh 960 nhận ra được phần lớn các trường hợp đó. Ngoại lệ là cảnh có nhiều xe rất nhỏ ở xa, nơi ảnh 1280 có lợi rõ.
 
@@ -784,6 +825,8 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
         trong cụm bị sót.
   \item So sánh kiến trúc: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960, nhưng hoà khi YOLO nhìn cùng số điểm ảnh; box
         của RT-DETRv2 khít hơn khoảng 0.03 mAP50-95; đổi lại chậm hơn 5.8 lần trên CPU.
+  \item Huấn luyện lại v5 với ba seed: kết quả ổn định ở hầu hết các tập và các ưu thế lớn của v5 so với v3 đứng vững ở
+        cả ba lần; riêng cảnh đêm mAP50 dao động từ 0.510 đến 0.638.
   \item Tốc độ phát hiện + theo dõi video 1080p trên laptop: v5 OpenVINO 19.8 frame/s trên GPU tích hợp và 18.8 frame/s
         khi chỉ dùng CPU (bản INT8), so với 7.5 frame/s của PyTorch trên CPU; trên GPU T4 khoảng 42 frame/s.
 \end{itemize}
@@ -791,8 +834,9 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
 \subsection{Hạn chế}
 
 \begin{itemize}
-  \item Mỗi cấu hình chỉ huấn luyện một lần; khoảng tin cậy bootstrap chỉ đo dao động do mẫu ảnh test. Bootstrap theo
-        khối giả định các khối 10 giây độc lập với nhau; test Hà Nội chỉ có 6 khối, còn clip Phạm Văn Đồng và val UVH-26
+  \item Chỉ v5 được huấn luyện ba lần; YOLO26s, RT-DETRv2-S và các phiên bản khác mỗi bản một lần, nên các so sánh có
+        chênh lệch nhỏ, nhất là ở cảnh đêm, chưa tách được khỏi dao động giữa các lần huấn luyện. Bootstrap theo khối
+        giả định các khối 10 giây độc lập với nhau; test Hà Nội chỉ có 6 khối, còn clip Phạm Văn Đồng và val UVH-26
         không tính được khoảng theo khối.
   \item Tập test Hà Nội dùng cùng camera với frame huấn luyện, nên không đo khả năng tổng quát; toàn bộ dữ liệu test
         Việt Nam chỉ gồm ba địa điểm (một ngã tư Hà Nội, đại lộ Phạm Văn Đồng với ba góc máy, một lối vào hầm chui).
@@ -818,7 +862,8 @@ hơn ở cảnh khó và chấp nhận 9.4 frame/s, hoặc khi có GPU rời; RT
         sai số đếm.
   \item Chỉ tính một lượt qua vạch khi xe đã ở hẳn bên kia vạch trong vài frame liên tiếp, chọn số frame trên tập dev,
         để chặn kiểu đếm lặp khi box dao động quanh vạch.
-  \item Huấn luyện nhiều seed để đo dao động giữa các lần huấn luyện.
+  \item Huấn luyện YOLO26s và RT-DETRv2-S với nhiều seed để so sánh kiến trúc ở cảnh đêm cho chắc chắn; tìm thêm dữ
+        liệu huấn luyện ban đêm, nơi kết quả dao động mạnh nhất giữa các lần huấn luyện.
   \item Thử mô hình ReID chuyên cho xe thay cho đặc trưng của mô hình phát hiện.
   \item Tăng tốc bằng TensorRT hoặc FP16 trên GPU; xuất RT-DETRv2 sang OpenVINO; chọn kích thước ảnh theo cảnh.
   \item Tách khâu vẽ kết quả và ghi video sang luồng riêng hoặc dùng bộ mã hoá video phần cứng: khi phần phát hiện đã

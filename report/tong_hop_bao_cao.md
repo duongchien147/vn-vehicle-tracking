@@ -576,6 +576,30 @@ Hai lỗi thấy khi xem lại (đưa vào mục video demo của chương 4, h�
 - Xe buýt #103 (`ham_chui_dem_3`): đếm đúng là buýt ở frame 236; khi đi xa chỉ thấy đuôi, mô hình gọi chắc "truck"
   (141 lần, conf TB 0.74 so với 55 lần buýt, 0.52) → nhãn hiển thị đổi từ frame ~326. Đã khoá lớp hiển thị sau khi đếm.
 
+### 4.15 Ba seed của v5 (độ dao động giữa các lần huấn luyện)
+
+Kaggle 12/10/2026 (`notebooks/kaggle_train`, `SEEDS = [1, 2]`; seed 1 dừng sớm epoch 89, tốt nhất 69, 2.68 giờ T4;
+seed 2 đủ 100 epoch, tốt nhất 93, 3.02 giờ). Chấm: `scripts/rerun_seeds.sh` -> thư mục `seeds`, `seeds_roboflow`,
+`seeds_dev`, `seeds_test` trong `outputs/eval_*`. Trọng số `weights/yolo26n_vn_v5_seed{1,2}_best.pt`.
+
+| Tập, chỉ số | v5 seed 42 | seed 1 | seed 2 | v3 |
+|---|---|---|---|---|
+| Val Hà Nội (dev) | 0.919 | 0.915 | 0.914 | 0.917 |
+| Test Hà Nội | 0.923 | 0.918 | 0.918 | 0.921 |
+| vn_extra ngày | 0.745 | 0.757 | 0.732 | 0.757 |
+| vn_extra đêm | 0.628 | 0.638 | 0.510 | 0.437 |
+| 20 frame PVD | 0.892 | 0.905 | 0.898 | 0.891 |
+| Val UVH-26 | 0.850 | 0.847 | 0.838 | 0.335 |
+| UA-DETRAC đêm / ngày | 0.845 / 0.812 | 0.846 / 0.831 | 0.833 / 0.792 | 0.722 / 0.709 |
+| Test Roboflow (4 lớp, đường chấm dự án) | 0.834 | 0.844 | 0.837 | — |
+| VnTraffic dev (không GMC): IDR / AssA / đổi ID | 0.827 / 0.709 / 61 | 0.836 / 0.711 / 97 | 0.861 / 0.722 / 95 | 0.731 / 0.653 / 130 |
+| Clip PVD test: HOTA / MOTA / IDF1 / đổi ID | 0.718 / 0.813 / 0.880 / 26 | 0.728 / 0.793 / 0.870 / 37 | 0.714 / 0.813 / 0.885 / 23 | — |
+
+Kết luận: các ưu thế lớn của v5 so với v3 (UVH, UA-DETRAC, IDR dev, vn_extra đêm) đứng vững ở cả 3 seed; ngày và Hà Nội
+hoà. Cảnh đêm dao động mạnh (0.510–0.638) -> so sánh kiến trúc ban đêm (s hơn n 0.075 so với seed tốt nhất, RT-DETRv2
+hơn s 0.10) chỉ là xu hướng. Đổi ID dev 61 của seed 42 là thuận lợi (seed khác 95–97). Báo cáo: `tab:seeds` trong phần
+thảo luận chương 4.
+
 ### 4.14 Khoảng tin cậy theo khối (`outputs/eval_hanoi/ci_block/`, `outputs/eval_ua_detrac/ci_block/`)
 
 Khối 10 s liên tiếp trong mỗi clip (90% xe ở trong khung hình < 8.2 s trên nhãn PVD); UA-DETRAC mỗi video một cụm.
@@ -772,7 +796,7 @@ số liệu.
 
 ## 10. Hạn chế cần nêu trung thực
 
-- Mỗi cấu hình train **1 lần (1 seed)**; bootstrap chỉ đo dao động do mẫu ảnh test; bootstrap theo khối giả định khối
+- Chỉ v5 train 3 seed (mục 4.15); các cấu hình khác 1 seed; bootstrap chỉ đo dao động do mẫu ảnh test; bootstrap theo khối giả định khối
   10 s độc lập; test Hà Nội chỉ 6 khối; PVD và UVH-26 không tính được khoảng theo khối.
 - Tập test nhỏ: 30 frame Hà Nội, 30 + 30 frame `vn_extra`, 20 frame PVD; tracking test chỉ 1 clip 20 s; sai số đếm chỉ
   73 lượt trên 1 clip.

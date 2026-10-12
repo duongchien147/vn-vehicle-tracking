@@ -390,7 +390,8 @@ dùng thêm cách này cho mọi tập frame cắt từ video, với nhóm là c
 nên hai khối cách nhau hơn 10 giây hầu như không chung chiếc xe nào. Với UA-DETRAC, mỗi video là một nhóm. Tập có dưới 5
 nhóm thì không tính khoảng tin cậy theo khối, vì khi đó số cách lấy mẫu lại khác nhau quá ít.
 
-Cả hai cách đều chỉ đo dao động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện.
+Cả hai cách đều chỉ đo dao động do mẫu ảnh test, không đo dao động giữa các lần huấn luyện; phần dao động này được đo
+riêng bằng cách huấn luyện lại mô hình triển khai với ba seed (mục~\ref{sec:thao-luan}).
 
 \section{Kết luận chương}
 

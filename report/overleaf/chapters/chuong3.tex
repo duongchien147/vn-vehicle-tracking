@@ -235,7 +235,8 @@ người đếm. Kết quả là 176 lượt, cùng một chiều: 149 xe máy, 
 Mọi mô hình được huấn luyện trên GPU Tesla T4 của Kaggle, khởi tạo từ trọng số đã huấn luyện trên COCO. Cấu hình chung
 cho YOLO26:
 \begin{itemize}
-  \item tối đa 100 epoch, dừng sớm nếu mAP50-95 trên val không tăng sau 20 epoch; seed 42;
+  \item tối đa 100 epoch, dừng sớm nếu mAP50-95 trên val không tăng sau 20 epoch; seed 42 (v5 được huấn luyện thêm với
+        seed 1 và 2 để đo dao động giữa các lần huấn luyện);
   \item kích thước ảnh 960 (v1 dùng 640, v4 dùng 1280); batch 16, cộng dồn gradient tới batch danh nghĩa 64;
   \item optimizer chọn tự động: với bộ dữ liệu này số vòng lặp dự kiến
         $\lceil 4714 / 64 \rceil \times 100 = 7.400 < 10.000$ nên Ultralytics chọn AdamW với tốc độ học 0.00125;
@@ -264,6 +265,8 @@ Mô hình được cải tiến qua năm phiên bản dữ liệu, mỗi lần c
     v3 & v2 + 69 frame Hà Nội nhãn tự động + 10 frame val & 960 & 80 / 100 & 0.853 / 0.616 & 0.870 / 0.573 & 1.79 \\ \hline
     v4 & như v3 & 1280 & 83 / 100 & 0.851 / 0.616 & 0.873 / 0.575 & 3.18 \\ \hline
     \textbf{v5} & v3 + 2.000 ảnh UVH-26 & 960 & 90 / 100 & 0.867 / 0.628 & 0.861 / 0.578 & 2.96 \\ \hline
+    v5, seed 1 & như v5 & 960 & 69 / 89 & 0.877 / 0.638 & 0.868 / 0.590 & 2.68 \\ \hline
+    v5, seed 2 & như v5 & 960 & 93 / 100 & 0.871 / 0.630 & 0.862 / 0.579 & 3.02 \\ \hline
     YOLO26s & như v5 & 960 & 87 / 100 & 0.873 / 0.639 & 0.884 / 0.600 & 4.90 \\ \hline
     RT-DETRv2-S & như v5 & 960 & 61 / 81 & 0.878 / 0.651 & 0.874 / 0.601 & 10.7 \\ \hline
   \end{tabularx}
@@ -303,7 +306,8 @@ Tiêu chí được đặt trước khi chạy: với mô hình phát hiện, so
 IDR trên VnTraffic; chênh lệch dưới 0.005 điểm là hoà và khi hoà chọn phương án nhanh hơn. Theo tiêu chí này:
 \begin{itemize}
   \item \textbf{v5 được chọn thay v3}: mAP50 val hoà (0.919 so với 0.917) nhưng trên VnTraffic IDR tăng từ 0.744 lên
-        0.827 và số lần đổi ID giảm từ 128 xuống 62.
+        0.827 và số lần đổi ID giảm từ 128 xuống 62. Hai lần huấn luyện lại v5 với seed khác sau đó cho cùng kết luận
+        (mục~\ref{sec:thao-luan}).
   \item \textbf{Giữ ảnh 960 cho v5}, không dùng 1280: mAP50 val hoà (0.922 so với 0.919), trên VnTraffic bản 1280 đổi
         ID nhiều hơn (85 so với 62) và chậm hơn khoảng 1.5 lần.
 \end{itemize}

@@ -48,17 +48,18 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 
 \textbf{Giới hạn:}
 \begin{itemize}
-  \item Máy chạy suy luận là laptop chỉ có CPU (Intel Core i5-8250U); việc huấn luyện chạy trên GPU Tesla T4 của Kaggle,
-        với hạn mức khoảng 30 giờ GPU mỗi tuần.
-  \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ (20--30 frame mỗi tập, một clip theo dõi dài 20 giây).
+  \item Máy chạy suy luận là laptop không có GPU rời (CPU Intel Core i5-8250U, GPU tích hợp UHD 620); việc huấn luyện
+        chạy trên GPU Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần.
+  \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ: 20--30 frame mỗi tập phát hiện, một clip theo dõi dài 20
+        giây, và 249 lượt xe qua vạch để đo sai số đếm.
   \item Mỗi cấu hình huấn luyện chỉ chạy một lần (một seed).
 \end{itemize}
 
 \addsec{Nội dung thực hiện}
 
 \begin{enumerate}
-  \item Dữ liệu: gộp sáu nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test; tạo nhãn tự động cho
-        frame huấn luyện cắt từ video Hà Nội.
+  \item Dữ liệu: gộp sáu nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test và đếm tay số lượt xe
+        qua vạch ở hai clip đêm; tạo nhãn tự động cho frame huấn luyện cắt từ video Hà Nội.
   \item Huấn luyện: năm phiên bản YOLO26n (v1 đến v5), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle.
   \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên tập phát triển VnTraffic, chấm trên clip Phạm Văn
         Đồng gán nhãn tay bằng CVAT.
@@ -74,8 +75,8 @@ các thuật toán theo dõi họ SORT và các chỉ số đánh giá chuẩn. 
 \begin{itemize}
   \item Mọi lựa chọn (mô hình, thuật toán theo dõi, kích thước ảnh đầu vào) được quyết định trên tập phát triển (dev)
         theo tiêu chí đặt ra trước khi chạy. Tập test chỉ dùng để báo cáo kết quả, không dùng để chọn; những lần tập
-        test được chấm lại được ghi rõ ở mục~\ref{sec:thao-luan}. Hai phương án chênh nhau dưới 0.005 điểm mAP được coi
-        là hoà, khi đó chọn phương án nhanh hơn.
+        test được chấm lại được ghi rõ ở mục~\ref{sec:thao-luan}. Hai phương án chênh nhau dưới 0.005 điểm (mAP50 với
+        mô hình phát hiện, IDR với theo dõi) được coi là hoà, khi đó chọn phương án nhanh hơn.
   \item Mỗi quyết định đối chiếu với quy ước của các bộ dữ liệu và benchmark lớn (COCO, KITTI, VisDrone, MOTChallenge);
         chỗ nào lệch quy ước thì nêu rõ lý do.
   \item Mọi số liệu trong báo cáo được xuất từ file kết quả của từng lần chạy, kèm cấu hình đã dùng, để có thể truy

@@ -300,7 +300,7 @@ epoch 55, nên bị dừng sớm ở epoch 81, trước pha tắt tăng cường
 \subsection{Tiêu chí chọn mô hình}
 
 Tiêu chí được đặt trước khi chạy: với mô hình phát hiện, so mAP50 chính trên val Hà Nội; với tác động lên theo dõi, so
-IDR trên VnTraffic; chênh lệch mAP dưới 0.005 là hoà và khi hoà chọn phương án nhanh hơn. Theo tiêu chí này:
+IDR trên VnTraffic; chênh lệch dưới 0.005 điểm là hoà và khi hoà chọn phương án nhanh hơn. Theo tiêu chí này:
 \begin{itemize}
   \item \textbf{v5 được chọn thay v3}: mAP50 val hoà (0.919 so với 0.917) nhưng trên VnTraffic IDR tăng từ 0.744 lên
         0.827 và số lần đổi ID giảm từ 128 xuống 62.
@@ -470,8 +470,8 @@ IDR trên VnTraffic 0.825 so với 0.827.
 
 Chương này đã trình bày cách xây dựng hệ thống. Dữ liệu huấn luyện gộp từ sáu nguồn, chia theo cảnh để tránh rò rỉ giữa
 train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm, một clip có nhãn quỹ đạo và hai clip
-đêm có số lượt qua vạch do người đếm tay. Mô hình
-phát hiện được cải tiến qua năm phiên bản dữ liệu, chọn bằng tiêu chí đặt trước trên tập dev, và mô hình triển khai là
-YOLO26n v5. Thí nghiệm so sánh với RT-DETRv2-S theo một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được.
-Thuật toán theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera. Chương~\ref{chap:ketqua} trình bày kết
-quả thực nghiệm của các lựa chọn này.
+đêm có số lượt qua vạch do người đếm tay. Mô hình phát hiện được cải tiến qua năm phiên bản dữ liệu, chọn bằng tiêu chí
+đặt trước trên tập dev, và mô hình triển khai là YOLO26n v5, xuất sang OpenVINO để chạy trên GPU tích hợp của laptop.
+Thí nghiệm so sánh với RT-DETRv2-S theo một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được. Thuật toán
+theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera. Chương~\ref{chap:ketqua} trình bày kết quả thực
+nghiệm của các lựa chọn này.

@@ -1,4 +1,4 @@
-"""Gán nhãn tự động frame Hà Nội bằng nhiều mô hình "thầy" (configs/auto_label.yaml).
+"""Gán nhãn tự động frame video bằng nhiều mô hình "thầy" (configs/auto_label*.yaml; YOLO hoặc thư mục RT-DETRv2).
 Ghi <split>/<raw-subdir>/ (mọi box sau khi gộp, kèm điểm ở cột 6 — để chọn lại ngưỡng mà không chạy lại) và
 <split>/labels/ (box có điểm >= keep_conf). Tập có nhãn người đã kiểm (HUMAN_VERIFIED.txt) chỉ được ghi raw, để đo
 chất lượng nhãn tự động — không bao giờ ghi đè labels/ của tập đó.
@@ -17,8 +17,8 @@ from pathlib import Path
 
 import cv2
 import yaml
-from ultralytics import YOLO
 
+from vtrack.detectors import load_detector
 from vtrack.label_review import is_human_verified, read_scored_yolo_file, write_yolo_file
 from vtrack.pseudo_label import Teacher, pseudo_label_image, select_pseudo_labels
 
@@ -37,7 +37,8 @@ def main() -> None:
 
     config = yaml.safe_load(Path(args.config).read_text(encoding="utf-8"))
     keep_conf = args.keep_conf if args.keep_conf is not None else config["keep_conf"]
-    teachers = [] if args.reuse_raw else [(YOLO(t.weights), t) for t in (Teacher(**spec) for spec in config["teachers"])]
+    specs = [Teacher(**spec) for spec in config["teachers"]]
+    teachers = [] if args.reuse_raw else [(load_detector(t.weights, t.imgsz).predict, t) for t in specs]
 
     for split in args.splits:
         split_dir = Path(args.root) / split

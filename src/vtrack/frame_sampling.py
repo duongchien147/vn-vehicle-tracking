@@ -1,6 +1,9 @@
-"""Chọn thời điểm lấy frame trong video để gán nhãn (theo đoạn thời gian và bước nhảy cố định)."""
+"""Chọn thời điểm lấy frame trong video để gán nhãn (theo đoạn thời gian và bước nhảy cố định), và loại frame gần trùng."""
 
 import re
+
+import cv2
+import numpy as np
 
 
 def parse_timestamp(text: str) -> float:
@@ -32,3 +35,23 @@ def parse_frame_name(stem: str) -> tuple[str, float] | None:
     if match is None:
         return None
     return match["clip"], int(match["minutes"]) * 60 + float(match["seconds"])
+
+
+# Chữ ký frame để so trùng: ảnh xám thu nhỏ 160x90 (đủ để thấy xe dịch chuyển, bỏ qua nhiễu nén video)
+SIGNATURE_SIZE = (160, 90)
+
+
+def frame_signature(image: np.ndarray) -> np.ndarray:
+    """Ảnh xám thu nhỏ của frame (float), dùng để đo hai frame giống nhau tới đâu."""
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY) if image.ndim == 3 else image
+    return cv2.resize(gray, SIGNATURE_SIZE, interpolation=cv2.INTER_AREA).astype(np.float32)
+
+
+def keep_distinct(signatures: list[np.ndarray], min_distance: float) -> list[int]:
+    """Chỉ số các frame được giữ: duyệt theo thứ tự, bỏ frame có chênh lệch điểm ảnh trung bình (thang 0–255) với một
+    frame đã giữ nhỏ hơn min_distance. Dùng cho video bị ghép lặp lại, nơi cùng một đoạn xuất hiện nhiều lần."""
+    kept: list[int] = []
+    for index, signature in enumerate(signatures):
+        if all(np.abs(signature - signatures[other]).mean() >= min_distance for other in kept):
+            kept.append(index)
+    return kept

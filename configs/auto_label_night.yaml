@@ -1,0 +1,21 @@
+# Nhãn tự động cho frame đêm của mô hình v6 (data/labeling/night_extra/train), cùng cách làm với frame Hà Nội
+# (configs/auto_label_sahi.yaml): ghép dự đoán nhiều mô hình "thầy" bằng WBF + TTA lật ngang.
+# Thầy được chọn theo kết quả trên tập test đêm vn_extra (chỉ dùng để chọn thầy, không chọn v6):
+#   - RT-DETRv2-S @960: chính xác nhất ban đêm (mAP50 0.816), box khít nhất;
+#   - YOLO26x gốc COCO @1280: mô hình lớn, độc lập với dữ liệu của đề tài;
+#   - v5 @960 và @1280: đã quen dữ liệu Việt Nam (tự huấn luyện, self-training).
+# Không dùng lát cắt SAHI: frame đêm thưa xe hơn ngã tư Hà Nội, và RT-DETRv2 trên CPU đã chậm (~1.5 s/ảnh).
+# keep_conf chọn trên tập dev đêm (night_extra/val, Gia Định, người kiểm) bằng scripts/eval_pseudo_labels.py.
+
+teachers:
+  - {weights: weights/rtdetrv2_r18_vn_v5_best, imgsz: 960, weight: 2}
+  - {weights: weights/yolo26x.pt, imgsz: 1280, weight: 2}
+  - {weights: weights/yolo26n_vn_v5_best.pt, imgsz: 960, weight: 2}
+  - {weights: weights/yolo26n_vn_v5_best.pt, imgsz: 1280, weight: 1}
+
+flip_tta: true
+predict_conf: 0.05
+wbf_iou: 0.55
+skip_box_thr: 0.05
+keep_conf: 0.15
+dedup_iou: 0.6

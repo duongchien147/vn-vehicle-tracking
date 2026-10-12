@@ -2,7 +2,7 @@
 (WBF), kèm TTA lật ngang. Cách làm chuẩn của học bán giám sát (Noisy Student, knowledge distillation): nhãn giả
 chỉ dùng cho train; val/test luôn phải có người kiểm."""
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, replace
 from typing import cast
 
@@ -15,6 +15,11 @@ from ultralytics.engine.results import Results
 from vtrack.dataset import merge_riders_into_motorbikes
 from vtrack.label_review import YoloBox, deduplicate
 from vtrack.models import class_mapping
+
+
+# Hàm dự đoán của một mô hình "thầy": (ảnh BGR, ngưỡng điểm) -> box lớp dự án, toạ độ chuẩn hoá theo ảnh đưa vào.
+# Dùng chung cho YOLO và RT-DETRv2 (vtrack.detectors.Detector.predict), nên module này không phụ thuộc kiểu mô hình.
+PredictFn = Callable[[np.ndarray, float], list[YoloBox]]
 
 
 @dataclass(frozen=True)
@@ -105,7 +110,7 @@ def predict_teacher(model: YOLO, image: np.ndarray, imgsz: int, conf: float) -> 
     ]
 
 
-def predict_teacher_tiled(model: YOLO, image: np.ndarray, imgsz: int, conf: float, tiles: int) -> list[YoloBox]:
+def predict_tiled(predict: PredictFn, image: np.ndarray, conf: float, tiles: int) -> list[YoloBox]:
     """Dự đoán kiểu SAHI: chạy mô hình trên từng ô, đưa box về ảnh gốc, bỏ box bị mép cắt làm cụt.
 
     Box của cùng một xe ở vùng chồng lấn giữa hai ô sẽ được WBF gộp ở bước sau.
@@ -114,7 +119,7 @@ def predict_teacher_tiled(model: YOLO, image: np.ndarray, imgsz: int, conf: floa
     boxes = []
     for window in tile_windows(width, height, tiles):
         crop = image[window.top:window.bottom, window.left:window.right]
-        for box in predict_teacher(model, crop, imgsz, conf):
+        for box in predict(crop, conf):
             full = tile_box_to_image(box, window, width, height)
             if not touches_inner_edge(full, window, width, height):
                 boxes.append(full)
@@ -162,7 +167,7 @@ def select_pseudo_labels(fused: Sequence[YoloBox], keep_conf: float, dedup_iou: 
 
 def pseudo_label_image(
     image: np.ndarray,
-    teachers: Sequence[tuple[YOLO, Teacher]],
+    teachers: Sequence[tuple[PredictFn, Teacher]],
     flip_tta: bool,
     predict_conf: float,
     iou_thr: float,
@@ -173,16 +178,16 @@ def pseudo_label_image(
     TTA tự làm ở đây vì `augment=True` của ultralytics không hỗ trợ YOLO26 (mô hình end-to-end): nó chỉ cảnh báo
     rồi chạy một lần như thường.
     """
-    def run(model: YOLO, teacher: Teacher, frame: np.ndarray) -> list[YoloBox]:
+    def run(predict: PredictFn, teacher: Teacher, frame: np.ndarray) -> list[YoloBox]:
         if teacher.tiles > 1:
-            return predict_teacher_tiled(model, frame, teacher.imgsz, predict_conf, teacher.tiles)
-        return predict_teacher(model, frame, teacher.imgsz, predict_conf)
+            return predict_tiled(predict, frame, predict_conf, teacher.tiles)
+        return predict(frame, predict_conf)
 
     predictions, weights = [], []
-    for model, teacher in teachers:
-        predictions.append(run(model, teacher, image))
+    for predict, teacher in teachers:
+        predictions.append(run(predict, teacher, image))
         weights.append(teacher.weight)
         if flip_tta:
-            predictions.append(flip_horizontal(run(model, teacher, cv2.flip(image, 1))))
+            predictions.append(flip_horizontal(run(predict, teacher, cv2.flip(image, 1))))
             weights.append(teacher.weight)
     return fuse(predictions, weights, iou_thr, skip_box_thr)

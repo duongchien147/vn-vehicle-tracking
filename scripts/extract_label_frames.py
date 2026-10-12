@@ -1,5 +1,7 @@
 """Trích frame từ video theo configs/label_frames.yaml vào <output>/<split>/images/ để gán nhãn.
 Mỗi đoạn có thể có `video` và `prefix` riêng (mặc định lấy ở gốc config), để một config lấy frame từ nhiều clip.
+`dedup_min_distance` (tuỳ chọn, ở gốc config): bỏ frame gần trùng với frame đã lấy trong cùng tập — cho video bị ghép
+lặp lại (cùng một đoạn xuất hiện nhiều lần), để không gán nhãn và huấn luyện lặp một cảnh.
 
 Ví dụ:
     python scripts/extract_label_frames.py
@@ -11,9 +13,10 @@ import shutil
 from pathlib import Path
 
 import cv2
+import numpy as np
 import yaml
 
-from vtrack.frame_sampling import parse_timestamp, sample_timestamps
+from vtrack.frame_sampling import frame_signature, keep_distinct, parse_timestamp, sample_timestamps
 
 
 def main() -> None:
@@ -25,6 +28,7 @@ def main() -> None:
 
     output = Path(config["output"])
     counts: dict[str, int] = {}
+    written: dict[str, list[tuple[Path, np.ndarray]]] = {}  # tập -> [(file ảnh, chữ ký)] để loại frame gần trùng
     for segment in config["segments"]:
         split = segment["split"]
         if args.splits and split not in args.splits:
@@ -46,8 +50,19 @@ def main() -> None:
             # Tên file chứa thời điểm trong video gốc, để truy ngược frame về đoạn nào
             name = f"{prefix}_{minutes:02d}m{seconds:02d}s.jpg"
             cv2.imwrite(str(images_dir / name), frame, [cv2.IMWRITE_JPEG_QUALITY, 95])
+            written.setdefault(split, []).append((images_dir / name, frame_signature(frame)))
         counts[split] = counts.get(split, 0) + len(times)
         capture.release()
+
+    min_distance = config.get("dedup_min_distance")
+    if min_distance:
+        for split, frames in written.items():
+            kept = set(keep_distinct([signature for _, signature in frames], min_distance))
+            for index, (image_path, _) in enumerate(frames):
+                if index not in kept:
+                    image_path.unlink()
+            print(f"{split}: bỏ {len(frames) - len(kept)} frame gần trùng (ngưỡng {min_distance})")
+            counts[split] = len(kept)
 
     output.mkdir(parents=True, exist_ok=True)
     shutil.copy2(args.config, output / "label_frames_config.yaml")  # lưu lại cấu hình đã dùng

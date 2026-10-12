@@ -1,0 +1,32 @@
+# Dữ liệu đêm cho mô hình v6 (12/10/2026): frame từ video giao thông ban đêm ở ĐỊA ĐIỂM MỚI, không phải hầm chui
+# (hầm chui là tập test `vn_extra` đêm và đếm xe đêm). Nguồn và giấy phép: data/videos/SOURCES.md. Dùng bởi
+# scripts/extract_label_frames.py.
+#
+#   train = hai camera của kênh Midnight Soundscape: đường có xe buýt (-J2JUaNU0BY) và đại lộ có cầu vượt (3fUYYb509YM).
+#           Hai video "3 giờ" này là các đoạn ngắn ghép lặp lại (đo 12/10/2026: đoạn 0h15 = 1h35 = 2h55 của video
+#           đường có xe buýt, chênh điểm ảnh 0.00) -> lấy dày rồi loại frame gần trùng. Nhãn tự động.
+#   val   = tập DEV đêm: nút giao Công viên Gia Định (P0qqLcfxQiw, kênh Vietnam Naturally, video liền mạch), chỉ các
+#           đoạn đã tối hẳn. Camera không có trong train -> đo khả năng tổng quát; người kiểm tay nhãn.
+output: data/labeling/night_extra
+
+# Chênh lệch điểm ảnh trung bình (thang 0–255) giữa hai frame thu nhỏ 160x90. Đo trên video hầm chui: cặp frame trùng
+# thật chênh 0.4–1.6, hai thời điểm khác nhau của video liền mạch chênh từ khoảng 2 trở lên.
+dedup_min_distance: 2.0
+
+segments:
+  # train: mỗi đoạn 2 phút, lấy 1 frame mỗi 4 giây rồi loại trùng
+  - {split: train, video: data/raw/night_extra/dem_duong_buyt_0h15.mp4, prefix: dem_duong_buyt_0h15, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_duong_buyt_0h55.mp4, prefix: dem_duong_buyt_0h55, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_duong_buyt_1h35.mp4, prefix: dem_duong_buyt_1h35, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_duong_buyt_2h15.mp4, prefix: dem_duong_buyt_2h15, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_duong_buyt_2h55.mp4, prefix: dem_duong_buyt_2h55, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_cau_vuot_0h15.mp4, prefix: dem_cau_vuot_0h15, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_cau_vuot_0h55.mp4, prefix: dem_cau_vuot_0h55, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_cau_vuot_1h35.mp4, prefix: dem_cau_vuot_1h35, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_cau_vuot_2h15.mp4, prefix: dem_cau_vuot_2h15, start: "0:01", end: "2:00", every_s: 4}
+  - {split: train, video: data/raw/night_extra/dem_cau_vuot_2h55.mp4, prefix: dem_cau_vuot_2h55, start: "0:01", end: "2:00", every_s: 4}
+  # dev: 4 đoạn tối, mỗi đoạn 8 frame cách 15 giây -> 32 frame (cảnh thưa, ~9 xe/frame, cần đủ ~300 xe cho mAP ổn định)
+  - {split: val, video: data/raw/night_extra/dem_gia_dinh_0h40.mp4, prefix: dem_gia_dinh_0h40, start: "0:05", end: "2:00", every_s: 15}
+  - {split: val, video: data/raw/night_extra/dem_gia_dinh_0h50.mp4, prefix: dem_gia_dinh_0h50, start: "0:05", end: "2:00", every_s: 15}
+  - {split: val, video: data/raw/night_extra/dem_gia_dinh_0h58.mp4, prefix: dem_gia_dinh_0h58, start: "0:05", end: "2:00", every_s: 15}
+  - {split: val, video: data/raw/night_extra/dem_gia_dinh_1h04.mp4, prefix: dem_gia_dinh_1h04, start: "0:05", end: "2:00", every_s: 15}

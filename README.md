@@ -27,8 +27,9 @@ mới đọc ở ba dòng đầu.
 **Theo dõi** (clip test PVD 20 s, nhãn tracking gán tay, chấm theo chuẩn MOTChallenge bằng TrackEval):
 HOTA **0.718**, MOTA **0.813**, IDF1 **0.880**, 26 lần đổi ID trên 183 xe.
 
-**Đếm xe qua vạch** (cùng clip): thật 73 lượt, hệ thống đếm 72; lỗi thật duy nhất là 1 xe Ford Transit (nhãn buýt)
-bị đếm thành ô tô.
+**Đếm xe qua vạch:** ban ngày (cùng clip) thật 73 lượt, hệ thống đếm 72; lỗi thật duy nhất là 1 xe Ford Transit (nhãn
+buýt) bị đếm thành ô tô. Ban đêm (hai clip hầm chui 60 giây, 176 lượt người đếm tay): sai số 8.5% với v5 và 4.5% với
+YOLO26s, toàn bộ là xe máy đi trong cụm bị sót.
 
 **Tốc độ** (video 1080p, cả pipeline phát hiện + theo dõi):
 

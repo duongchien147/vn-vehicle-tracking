@@ -94,3 +94,14 @@ sources:
     # Nhãn đã đổi về 4 lớp và bổ sung xe thiếu nhãn khi dựng (configs/uvh26.yaml), nên ánh xạ ở đây là 1-1.
     use_for: train
     class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}
+  - name: night_extra
+    path: data/labeling/night_extra
+    url: https://www.youtube.com/watch?v=-J2JUaNU0BY, https://www.youtube.com/watch?v=3fUYYb509YM (frame 1080p, xem data/videos/SOURCES.md)
+    # Mô hình v6 (từ 13/10/2026): 288 frame đêm ở 2 camera TP.HCM mới, nhãn tự động configs/auto_label_night_sahi.yaml.
+    # Chỉ lấy train. night_extra/val là tập DEV đêm (người kiểm) dùng để chọn ngưỡng nhãn tự động và so v6 với v5
+    # -> không đưa vào val của dataset (val của dataset chỉ để ultralytics chọn epoch tốt nhất).
+    use_for: predefined
+    splits: {train: train}
+    # Không lặp: hai video gốc là đoạn ngắn ghép lặp, ~1/2 nội dung đã trùng sẵn (đã loại frame gần trùng khi trích)
+    repeat: {train: 1}
+    class_map: {motorbike: motorbike, car: car, bus: bus, truck: truck}

@@ -1,0 +1,20 @@
+# Như configs/auto_label_night.yaml, thêm một thầy v5@960 cắt ảnh 2x2 (kiểu SAHI) để bắt xe nhỏ ở xa.
+# Lý do (13/10/2026, đo trên dev đêm night_extra/val, người kiểm): nhãn tự động bản không cắt ảnh có mAP50 chính 0.778
+# nhưng xe cao < 32 px chỉ bắt được ~40% ở keep_conf 0.15 (xe >= 64 px: 96%). Bản nào tốt hơn trên dev thì dùng cho train.
+# Kết quả trên dev: mAP50 chính 0.778 -> 0.800 (xe máy 0.707 -> 0.752), F1 cao nhất 0.677 -> 0.712, cả hai ở ngưỡng 0.20
+# -> DÙNG BẢN NÀY cho train, keep_conf = 0.20 (ngưỡng F1 cao nhất trên dev; outputs/pseudo_label_eval/).
+# Không cắt ảnh RT-DETRv2: 4 ô x 2 (lật) x ~1.5 s/ảnh trên CPU là quá chậm cho 288 ảnh.
+
+teachers:
+  - {weights: weights/rtdetrv2_r18_vn_v5_best, imgsz: 960, weight: 2}
+  - {weights: weights/yolo26x.pt, imgsz: 1280, weight: 2}
+  - {weights: weights/yolo26n_vn_v5_best.pt, imgsz: 960, weight: 2}
+  - {weights: weights/yolo26n_vn_v5_best.pt, imgsz: 1280, weight: 1}
+  - {weights: weights/yolo26n_vn_v5_best.pt, imgsz: 960, weight: 2, tiles: 2}
+
+flip_tta: true
+predict_conf: 0.05
+wbf_iou: 0.55
+skip_box_thr: 0.05
+keep_conf: 0.20
+dedup_iou: 0.6

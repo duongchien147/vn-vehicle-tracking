@@ -1,0 +1,18 @@
+# Tracker mặc định từ 14/10/2026 (mô hình v6) = botsort_tuned_nogmc.yaml nhưng nâng hai ngưỡng:
+#   track_high_thresh 0.25 -> 0.4 (box dùng cho lần ghép thứ nhất), new_track_thresh 0.25 -> 0.6 (điểm tối thiểu để mở
+#   track mới). Box điểm thấp hơn vẫn được dùng ở lần ghép thứ hai để nối track đã có (track_low_thresh 0.1).
+# Chọn trên tập dev VnTraffic bằng configs/tracker_tuning_v6.yaml theo tiêu chí chốt trước (outputs/eval_tracking/
+# tuning_v6/; trung bình hai lần huấn luyện v6): đổi ID 93.5 -> 62.5 (-33%), IDR 0.833 -> 0.836. Lý do: v6 sinh thêm
+# box trùng trên cùng xe; ngưỡng mở track cao hơn chặn track thừa sinh ra từ các box đó.
+tracker_type: botsort
+track_high_thresh: 0.4
+track_low_thresh: 0.1
+new_track_thresh: 0.6
+track_buffer: 90
+match_thresh: 0.8
+fuse_score: true
+gmc_method: none
+proximity_thresh: 0.5
+appearance_thresh: 0.8
+with_reid: false
+model: auto

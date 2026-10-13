@@ -59,7 +59,8 @@ MODEL_LABELS = {
     "weights/yolo26n.pt": "COCO gốc — baseline chưa fine-tune",
 }
 TRACKER_LABELS = {
-    DEFAULT_TRACKER: "BoT-SORT đã chỉnh — mặc định (camera đứng yên)",
+    DEFAULT_TRACKER: "BoT-SORT đã chỉnh cho v6 — mặc định (camera đứng yên)",
+    "configs/botsort_tuned_nogmc.yaml": "BoT-SORT đã chỉnh, ngưỡng cũ (trước v6)",
     "configs/botsort_tuned.yaml": "BoT-SORT đã chỉnh + bù rung camera (GMC) — video quay tay/rung, chậm hơn",
     "configs/botsort.yaml": "BoT-SORT mặc định",
     "configs/bytetrack.yaml": "ByteTrack mặc định",

@@ -79,17 +79,19 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
         chạy trên GPU Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần.
   \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ: 20--30 frame mỗi tập phát hiện, một clip theo dõi dài 20
         giây, và 249 lượt xe qua vạch để đo sai số đếm.
-  \item Chỉ mô hình triển khai (v5, YOLO26n) và YOLO26s được huấn luyện ba lần với ba seed; các cấu hình khác mỗi
+  \item Chỉ v5 và YOLO26s được huấn luyện ba lần với ba seed, mô hình triển khai v6 hai lần; các cấu hình khác mỗi
         cấu hình một lần.
+  \item Nhãn của frame huấn luyện (Hà Nội và ban đêm) là nhãn tự động, không có người kiểm từng frame.
 \end{itemize}
 
 \addsec{Nội dung thực hiện}
 
 \begin{enumerate}
-  \item Dữ liệu: gộp sáu nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test và đếm tay số lượt xe
-        qua vạch ở hai clip đêm; tạo nhãn tự động cho frame huấn luyện cắt từ video Hà Nội.
-  \item Huấn luyện: năm phiên bản YOLO26n (v1 đến v5), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle;
-        v5 và YOLO26s được huấn luyện thêm hai lần với seed khác.
+  \item Dữ liệu: gộp bảy nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test, một tập dev ban đêm
+        và đếm tay số lượt xe qua vạch ở hai clip đêm; tạo nhãn tự động cho frame huấn luyện cắt từ video Hà Nội và
+        video đường phố ban đêm.
+  \item Huấn luyện: sáu phiên bản YOLO26n (v1 đến v6), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle;
+        v5 và YOLO26s được huấn luyện thêm hai lần, v6 thêm một lần với seed khác.
   \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên tập phát triển VnTraffic, chấm trên clip Phạm Văn
         Đồng gán nhãn tay bằng CVAT.
   \item Ứng dụng: pipeline đếm xe qua vạch, web demo Streamlit, video demo xử lý trên GPU.

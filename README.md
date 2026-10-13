@@ -14,26 +14,28 @@ kích thước ảnh) được chốt trên tập dev theo tiêu chí đặt tr�
 
 **Phát hiện** (mAP50 trung bình xe máy + ô tô):
 
-| Tập test | COCO gốc (chưa fine-tune) | **v5 (mô hình triển khai)** |
-|---|---|---|
-| Clip TP.HCM (20 frame clip PVD) — camera mới | 0.664 | **0.892** |
-| Cảnh mới, ban ngày, nhiều xe nhỏ ở xa (`vn_extra` ngày) — camera mới | 0.458 | **0.745** |
-| Cảnh đêm Việt Nam (`vn_extra` đêm) — camera mới | 0.437 | **0.628** |
-| Test Hà Nội (30 frame gán tay) — **cùng camera** với frame huấn luyện, khác thời điểm | 0.686 | **0.923** |
+| Tập test | COCO gốc (chưa fine-tune) | v5 | **v6 (mô hình triển khai)** |
+|---|---|---|---|
+| Clip TP.HCM (20 frame clip PVD) — camera mới | 0.664 | 0.892 | **0.907** |
+| Cảnh mới, ban ngày, nhiều xe nhỏ ở xa (`vn_extra` ngày) — camera mới | 0.458 | 0.745 | **0.760** |
+| Cảnh đêm Việt Nam (`vn_extra` đêm) — camera mới | 0.437 | 0.628 | **0.755** |
+| Test Hà Nội (30 frame gán tay) — **cùng camera** với frame huấn luyện, khác thời điểm | 0.686 | 0.923 | **0.921** |
 
 Test Hà Nội đo độ chính xác khi mô hình được tinh chỉnh bằng video của chính camera đó; khả năng tổng quát sang camera
-mới đọc ở ba dòng đầu.
+mới đọc ở ba dòng đầu. v6 = v5 + 288 frame đêm (hai camera TP.HCM khác hầm chui, nhãn tự động); được nhận thay v5 theo
+ba tiêu chí viết trước khi train, chấm trên một tập dev đêm riêng (camera thứ ba, nhãn người).
 
 **Theo dõi** (clip test PVD 20 s, nhãn tracking gán tay, chấm theo chuẩn MOTChallenge bằng TrackEval):
-HOTA **0.718**, MOTA **0.813**, IDF1 **0.880**, 26 lần đổi ID trên 183 xe.
+v6: HOTA **0.732**, MOTA **0.835**, IDF1 **0.884**, 49 lần đổi ID trên 183 xe (v5: 0.718 / 0.813 / 0.880, 26 lần —
+v6 bỏ sót ít hơn nhưng đổi ID nhiều hơn).
 
-**Đếm xe qua vạch:** ban ngày (cùng clip) thật 73 lượt, hệ thống đếm 72; lỗi thật duy nhất là 1 xe Ford Transit (nhãn
-buýt) bị đếm thành ô tô. Ban đêm (hai clip hầm chui 60 giây, 176 lượt người đếm tay): sai số 8.5% với v5 và 4.5% với
-YOLO26s, toàn bộ là xe máy đi trong cụm bị sót.
+**Đếm xe qua vạch** (sai số tính riêng từng hướng): ban ngày (cùng clip, 73 lượt thật) v6 đếm đúng 71 lượt "ra", sai số
+2.7% (v5: 4.1%); lỗi thật duy nhất là 1 xe Ford Transit (nhãn buýt) bị đếm thành ô tô. Ban đêm (hai clip hầm chui 60
+giây, 176 lượt người đếm tay): sai số **2.3%** với v6, 8.5% với v5, 4.5% với YOLO26s; lỗi gần như toàn bộ ở xe máy.
 
 **Tốc độ** (video 1080p, cả pipeline phát hiện + theo dõi):
 
-| Phần cứng | v5 (YOLO26n) |
+| Phần cứng | YOLO26n (v5, v6: cùng kiến trúc, cùng tốc độ) |
 |---|---|
 | Laptop i5-8250U, OpenVINO đầu vào 544×960 trên GPU Intel UHD 620 tích hợp | ~19.8 frame/s |
 | Laptop i5-8250U, chỉ CPU, OpenVINO INT8 544×960 | ~18.8 frame/s |
@@ -45,18 +47,18 @@ Tính cả vẽ kết quả và ghi video 1080p, web demo trên laptop chạy kh
 **So sánh kiến trúc** (cùng dữ liệu, cùng giao thức): YOLO26n, YOLO26s (CNN) và RT-DETRv2-S (Transformer). Khi được
 nhìn cùng số điểm ảnh, YOLO26s và RT-DETRv2-S hoà nhau trên dữ liệu Việt Nam. RT-DETRv2-S cho box khít hơn
 (mAP50-95 cao hơn ~0.03 trên các tập nhãn độc lập) nhưng chậm hơn YOLO26s 5.8 lần trên CPU. Vì vậy mô hình triển khai
-là v5 (OpenVINO trên GPU Intel tích hợp của laptop), và nên dùng YOLO26s nếu có GPU rời. Giao thức và kết quả đầy đủ:
+là YOLO26n v6 (OpenVINO trên GPU Intel tích hợp của laptop), và nên dùng YOLO26s nếu có GPU rời. Giao thức và kết quả đầy đủ:
 [docs/giao_thuc_so_sanh_kien_truc.md](docs/giao_thuc_so_sanh_kien_truc.md).
 
 ## Pipeline
 
 ```
-Video ──► YOLO26n v5 (phát hiện 4 lớp, imgsz 960) ──► BoT-SORT (gán ID theo dõi)
+Video ──► YOLO26n v6 (phát hiện 4 lớp, imgsz 960) ──► BoT-SORT (gán ID theo dõi)
       ──► bỏ phiếu lớp theo track ──► đếm qua vạch (supervision LineZone)
       ──► video có vẽ box/ID + CSV sự kiện đếm
 ```
 
-- **Phát hiện:** YOLO26n fine-tune từ trọng số COCO trên dữ liệu xe Việt Nam và camera giao thông (`v5`).
+- **Phát hiện:** YOLO26n fine-tune từ trọng số COCO trên dữ liệu xe Việt Nam, camera giao thông và cảnh đêm (`v6`).
 - **Theo dõi:** BoT-SORT (ultralytics) đã chỉnh trên tập dev, tắt bù chuyển động camera vì camera đứng yên
   (`configs/botsort_tuned_nogmc.yaml`).
 - **Bỏ phiếu lớp:** một xe có thể bị gọi lúc "car" lúc "truck" giữa các frame; lớp cuối cùng của mỗi track được chọn
@@ -75,8 +77,8 @@ python -m venv .venv
 
 **Trọng số mô hình và dữ liệu không nằm trong repo** (quá lớn, và một số video có giấy phép không cho đăng lại).
 Trọng số được tạo bằng các notebook huấn luyện trong `notebooks/` và đặt vào `weights/` (mặc định
-`weights/yolo26n_vn_v5_best.pt`; bản OpenVINO cho web demo tạo bằng
-`scripts\export_openvino.py --weights weights\yolo26n_vn_v5_best.pt --input-hw 544 960`).
+`weights/yolo26n_vn_v6_best.pt`; bản OpenVINO cho web demo tạo bằng
+`scripts\export_openvino.py --weights weights\yolo26n_vn_v6_best.pt --input-hw 544 960`).
 
 ## Chạy thử
 
@@ -85,7 +87,7 @@ Trọng số được tạo bằng các notebook huấn luyện trong `notebooks
 .venv\Scripts\python.exe scripts\infer_video.py --source data\videos\nga_tu_hanoi_a.mp4
 # Bản OpenVINO trên GPU Intel tích hợp (#gpu; máy không có GPU Intel thì dùng bản INT8 với #cpu)
 # và vạch đếm tuỳ chọn (toạ độ tương đối 0–1)
-.venv\Scripts\python.exe scripts\infer_video.py --source <video> --weights "weights\yolo26n_vn_v5_best_544x960_openvino_model#gpu" --line 0 0.6 1 0.6
+.venv\Scripts\python.exe scripts\infer_video.py --source <video> --weights "weights\yolo26n_vn_v6_best_544x960_openvino_model#gpu" --line 0 0.6 1 0.6
 
 # Web demo: chọn clip hoặc tải video lên, chọn mô hình / tracker / vạch đếm -> video kết quả, bảng đếm, biểu đồ, CSV.
 # Chế độ "Kết quả GPU xử lý sẵn" xem lại video đã xử lý trên GPU T4 (notebooks/kaggle_demo_gpu) mà không chạy lại.

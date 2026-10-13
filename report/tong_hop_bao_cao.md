@@ -641,6 +641,35 @@ Test Hà Nội 6 khối, `vn_extra` mỗi tập 10 khối, UA-DETRAC 21 (đêm) 
 | UA-DETRAC đêm | COCO / v3 / v5 | 0.689 / 0.722 / 0.845 | [0.654–0.739] / [0.668–0.774] / [0.797–0.890] | [0.647–0.726] / [0.646–0.776] / [0.785–0.886] |
 | UA-DETRAC ngày | COCO / v3 / v5 | 0.690 / 0.709 / 0.812 | [0.661–0.753] / [0.649–0.764] / [0.755–0.870] | [0.653–0.744] / [0.601–0.836] / [0.738–0.893] |
 
+v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937]; `vn_extra` ngày 0.760 [0.724–0.795] / [0.718–0.798];
+`vn_extra` đêm 0.755 [0.708–0.795] / [0.687–0.802] (không chồng v5).
+
+### 4.16 Mô hình v6 = v5 + 288 frame đêm — MÔ HÌNH TRIỂN KHAI từ 13/10/2026
+
+- Dữ liệu: 288 frame đêm từ 2 camera TP.HCM (Midnight Soundscape `-J2JUaNU0BY`, `3fUYYb509YM`; video ghép lặp, lấy 4 s/frame
+  trên 10 đoạn 2 phút, bỏ frame gần trùng (chênh điểm ảnh < 2 ở 160×90) -> bỏ 12, còn 288). Dataset v6: train 5.002
+  ảnh (frame đêm: 6.256 xe máy / 3.811 ô tô / 162 buýt / 148 tải), val/test như v5. `configs/label_frames_night.yaml`.
+- Tập dev đêm (mới): `night_extra/val`, 32 frame nút giao Công viên Gia Định (Vietnam Naturally `P0qqLcfxQiw`, phút 40/50/58/64,
+  15 s/frame), nhãn sơ bộ YOLO26x, người kiểm 13/10/2026: 359 xe máy / 162 ô tô / 3 buýt + 20 ignore; 200/524 xe < 32 px.
+- Nhãn tự động frame đêm (`configs/auto_label_night_sahi.yaml`): thầy RT-DETRv2-S@960, YOLO26x@1280, v5@960, v5@1280,
+  v5@960 cắt 2×2; TTA lật; WBF; keep_conf 0.20 (F1 cao nhất trên dev đêm). Đo trên dev đêm: mAP50 của nhãn tự động 0.800
+  (không cắt ảnh 0.778; RT-DETRv2 đứng riêng 0.702), P 0.81 / R 0.63 / F1 0.712; xe ≥ 64 px giữ ~95%, < 32 px ~40%.
+- Train (Kaggle kernel riêng `vn-vehicles-yolo26-train-v6`): seed 42 tốt nhất epoch 73/93, val 0.868 / 0.629, Roboflow
+  0.868 / 0.584, 3.04 giờ; seed 1 85/100, 0.862 / 0.626, 0.858 / 0.587, 3.27 giờ.
+- Tiêu chí nhận (chốt 12/10/2026, trước khi train) và kết quả: (1) dev đêm cả hai seed > 0.499 (v5 tốt nhất): 0.599 /
+  0.618 ĐẠT; (2) val Hà Nội ≥ 0.909: 0.914 / 0.914 ĐẠT; (3) IDR VnTraffic ≥ 0.822: 0.841 / 0.824 ĐẠT.
+  Mô hình triển khai = seed 42.
+- Test (chấm một lần, `scripts/rerun_v6.sh`, seed 42 / seed 1): xem bảng seeds trong báo cáo (`tab:seeds`). Đêm 0.755 /
+  0.747 (v5 0.510–0.638), mAP50-95 đêm 0.495 (v5 0.404); recall đêm ≥ 64 px 0.91 (v5 0.74). Ngày ngang v5.
+- Tracking test PVD: HOTA 0.732, MOTA 0.835, IDF1 0.884, IDR 0.845, đổi ID 49 (v5 26), FN 1.689 (v5 2.157); seed 1 HOTA
+  0.722, đổi ID 38. Dev VnTraffic: IDR 0.841, AssA 0.698, đổi ID 93 (v5 61; seeds v5 61–97), FN 717 (v5 1.058).
+- Đếm xe: ngày 71/71 lượt ra, sai số 2 (2.7%); đêm sót 3, thừa 3, sai số 4 (2.3%) (seed 1: 7 = 4.0%; v5 15 = 8.5%; YOLO26s
+  8 = 4.5%). `outputs/eval_manual_counts/night_human_v6/`.
+- OpenVINO v6 (demo): FP32 GPU 544×960 val 0.914, dev đêm 0.609, IDR 0.825 (PyTorch 0.841 -> đánh đổi); INT8 CPU 0.918 /
+  0.597 / 0.825. Tốc độ như v5 (cùng kiến trúc, không đo lại).
+- Lưu ý khi bảo vệ: hướng làm v6 và việc chọn mô hình thầy xuất phát từ kết quả trên test đêm `vn_extra`; quyết định nhận
+  dựa trên dev đêm ở camera thứ ba, test chấm sau. Đã ghi trong mục "Những lần tập test được dùng lại".
+
 ## 5. Danh mục hình
 
 | Mã đề xuất | Nội dung | File | Trạng thái |

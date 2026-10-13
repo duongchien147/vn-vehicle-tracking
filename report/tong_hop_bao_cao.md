@@ -576,29 +576,45 @@ Hai lỗi thấy khi xem lại (đưa vào mục video demo của chương 4, h�
 - Xe buýt #103 (`ham_chui_dem_3`): đếm đúng là buýt ở frame 236; khi đi xa chỉ thấy đuôi, mô hình gọi chắc "truck"
   (141 lần, conf TB 0.74 so với 55 lần buýt, 0.52) → nhãn hiển thị đổi từ frame ~326. Đã khoá lớp hiển thị sau khi đếm.
 
-### 4.15 Ba seed của v5 (độ dao động giữa các lần huấn luyện)
+### 4.15 Ba seed của YOLO26n (v5) và YOLO26s (độ dao động giữa các lần huấn luyện)
 
-Kaggle 12/10/2026 (`notebooks/kaggle_train`, `SEEDS = [1, 2]`; seed 1 dừng sớm epoch 89, tốt nhất 69, 2.68 giờ T4;
+v5: Kaggle 12/10/2026 (`notebooks/kaggle_train`, `SEEDS = [1, 2]`; seed 1 dừng sớm epoch 89, tốt nhất 69, 2.68 giờ T4;
 seed 2 đủ 100 epoch, tốt nhất 93, 3.02 giờ). Chấm: `scripts/rerun_seeds.sh` -> thư mục `seeds`, `seeds_roboflow`,
 `seeds_dev`, `seeds_test` trong `outputs/eval_*`. Trọng số `weights/yolo26n_vn_v5_seed{1,2}_best.pt`.
 
-| Tập, chỉ số | v5 seed 42 | seed 1 | seed 2 | v3 |
-|---|---|---|---|---|
-| Val Hà Nội (dev) | 0.919 | 0.915 | 0.914 | 0.917 |
-| Test Hà Nội | 0.923 | 0.918 | 0.918 | 0.921 |
-| vn_extra ngày | 0.745 | 0.757 | 0.732 | 0.757 |
-| vn_extra đêm | 0.628 | 0.638 | 0.510 | 0.437 |
-| 20 frame PVD | 0.892 | 0.905 | 0.898 | 0.891 |
-| Val UVH-26 | 0.850 | 0.847 | 0.838 | 0.335 |
-| UA-DETRAC đêm / ngày | 0.845 / 0.812 | 0.846 / 0.831 | 0.833 / 0.792 | 0.722 / 0.709 |
-| Test Roboflow (4 lớp, đường chấm dự án) | 0.834 | 0.844 | 0.837 | — |
-| VnTraffic dev (không GMC): IDR / AssA / đổi ID | 0.827 / 0.709 / 61 | 0.836 / 0.711 / 97 | 0.861 / 0.722 / 95 | 0.731 / 0.653 / 130 |
-| Clip PVD test: HOTA / MOTA / IDF1 / đổi ID | 0.718 / 0.813 / 0.880 / 26 | 0.728 / 0.793 / 0.870 / 37 | 0.714 / 0.813 / 0.885 / 23 | — |
+YOLO26s: Kaggle 12–13/10/2026 (cùng notebook, batch 8; seed 1 đủ 100 epoch, tốt nhất 81, 5.36 giờ; seed 2 dừng sớm epoch
+80, tốt nhất 60, 4.31 giờ; val ultralytics mAP50 / 50-95 0.875 / 0.644 và 0.873 / 0.647; test Roboflow ultralytics
+0.879 / 0.594 và 0.887 / 0.603). Chấm: `scripts/rerun_seeds_yolo26s.sh` -> thư mục `seeds_yolo26s*`. Trọng số
+`weights/yolo26s_vn_v5_seed{1,2}_best.pt`.
 
-Kết luận: các ưu thế lớn của v5 so với v3 (UVH, UA-DETRAC, IDR dev, vn_extra đêm) đứng vững ở cả 3 seed; ngày và Hà Nội
-hoà. Cảnh đêm dao động mạnh (0.510–0.638) -> so sánh kiến trúc ban đêm (s hơn n 0.075 so với seed tốt nhất, RT-DETRv2
-hơn s 0.10) chỉ là xu hướng. Đổi ID dev 61 của seed 42 là thuận lợi (seed khác 95–97). Báo cáo: `tab:seeds` trong phần
-thảo luận chương 4.
+| Tập, chỉ số | YOLO26n (v5) seed 42 / 1 / 2 | YOLO26s seed 42 / 1 / 2 | v3 |
+|---|---|---|---|
+| Val Hà Nội (dev) | 0.919 / 0.915 / 0.914 | 0.915 / 0.911 / 0.919 | 0.917 |
+| Test Hà Nội | 0.923 / 0.918 / 0.918 | 0.914 / 0.918 / 0.919 | 0.921 |
+| vn_extra ngày | 0.745 / 0.757 / 0.732 | 0.798 / 0.828 / 0.809 | 0.757 |
+| vn_extra đêm | 0.628 / 0.638 / 0.510 | 0.713 / 0.725 / 0.821 | 0.437 |
+| 20 frame PVD | 0.892 / 0.905 / 0.898 | 0.903 / 0.903 / 0.904 | 0.891 |
+| Val UVH-26 | 0.850 / 0.847 / 0.838 | 0.859 / 0.866 / 0.871 | 0.335 |
+| UA-DETRAC đêm | 0.845 / 0.846 / 0.833 | 0.876 / 0.864 / 0.837 | 0.722 |
+| UA-DETRAC ngày | 0.812 / 0.831 / 0.792 | 0.885 / 0.885 / 0.884 | 0.709 |
+| Test Roboflow (4 lớp, đường chấm dự án) | 0.834 / 0.844 / 0.837 | 0.862 / 0.865 / 0.862 | — |
+| VnTraffic dev (không GMC): IDR | 0.827 / 0.836 / 0.861 | 0.845 / 0.826 / 0.854 | 0.731 |
+| VnTraffic dev: AssA | 0.709 / 0.711 / 0.722 | 0.711 / 0.703 / 0.708 | 0.653 |
+| VnTraffic dev: đổi ID | 61 / 97 / 95 | 65 / 71 / 62 | 130 |
+| Clip PVD test: HOTA | 0.718 / 0.728 / 0.714 | 0.758 / 0.763 / 0.767 | — |
+| Clip PVD test: MOTA | 0.813 / 0.793 / 0.813 | 0.841 / 0.864 / 0.857 | — |
+| Clip PVD test: IDF1 | 0.880 / 0.870 / 0.885 | 0.904 / 0.908 / 0.905 | — |
+| Clip PVD test: đổi ID | 26 / 37 / 23 | 31 / 19 / 30 | — |
+
+Kết luận:
+1. Các ưu thế lớn của v5 so với v3 (UVH, UA-DETRAC, IDR dev, vn_extra đêm) đứng vững ở cả 3 seed; ngày và Hà Nội hoà.
+2. YOLO26s hơn YOLO26n ở MỌI seed trên vn_extra ngày (kém nhất 0.798 > tốt nhất 0.757), vn_extra đêm (0.713 > 0.638),
+   UA-DETRAC ngày, UVH, test Roboflow, HOTA test PVD. Hà Nội, 20 frame PVD, UA-DETRAC đêm, IDR dev: xen kẽ (hoà).
+3. RT-DETRv2-S (1 lần) so với khoảng của YOLO26s: ngày 0.886 > 0.798–0.828, UVH 0.894 > 0.859–0.871 -> vượt dao động;
+   đêm 0.816 nằm trong 0.713–0.821 -> chưa phân biệt được. Cảnh đêm: cùng một mô hình dao động 0.11–0.13 giữa các seed.
+4. Đổi ID dev 61 của v5 seed 42 là thuận lợi (seed khác 95–97).
+Báo cáo: `tab:seeds` trong phần thảo luận chương 4 (viết lại 13/10/2026), kết luận 1 của mục so sánh kiến trúc, đoạn
+"Trong họ YOLO", đoạn khoảng tin cậy theo khối, kết luận/hạn chế/hướng phát triển chương 4, chương 2, 3, mở đầu.
 
 ### 4.14 Khoảng tin cậy theo khối (`outputs/eval_hanoi/ci_block/`, `outputs/eval_ua_detrac/ci_block/`)
 
@@ -796,7 +812,7 @@ số liệu.
 
 ## 10. Hạn chế cần nêu trung thực
 
-- Chỉ v5 train 3 seed (mục 4.15); các cấu hình khác 1 seed; bootstrap chỉ đo dao động do mẫu ảnh test; bootstrap theo khối giả định khối
+- Chỉ v5 và YOLO26s train 3 seed (mục 4.15); các cấu hình khác 1 seed (RT-DETRv2 ban đêm chưa so được với YOLO26s); bootstrap chỉ đo dao động do mẫu ảnh test; bootstrap theo khối giả định khối
   10 s độc lập; test Hà Nội chỉ 6 khối; PVD và UVH-26 không tính được khoảng theo khối.
 - Tập test nhỏ: 30 frame Hà Nội, 30 + 30 frame `vn_extra`, 20 frame PVD; tracking test chỉ 1 clip 20 s; sai số đếm chỉ
   73 lượt trên 1 clip.

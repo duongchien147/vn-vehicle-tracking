@@ -18,7 +18,7 @@ $PY scripts/eval_hanoi_test.py --name $NAME --models $S42 $S1 $S2
 for split in day night; do
   $PY scripts/eval_hanoi_test.py --split-dir data/labeling/vn_extra/$split --name $NAME --models $S42 $S1 $S2
 done
-$PY scripts/eval_hanoi_test.py --split-dir data/labeling/night_extra/val --name $NAME --models $S42 $S1 $S2
+$PY scripts/eval_hanoi_test.py --split-dir data/labeling/night_extra/val --name ${NAME}_nightdev --models $S42 $S1 $S2
 echo "== 20 frame clip PVD, val UVH-26, UA-DETRAC, test Roboflow"
 $PY scripts/eval_clip_detection.py --name $NAME --models $S42 $S1 $S2
 $PY scripts/eval_uvh26.py --name $NAME --models $S42 $S1 $S2

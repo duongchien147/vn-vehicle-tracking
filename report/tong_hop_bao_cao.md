@@ -71,12 +71,19 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 
 ### MỞ ĐẦU
 
-**Lý do chọn đề tài**
-- Giao thông đô thị Việt Nam: xe máy chiếm đa số, mật độ dày, che khuất nhiều; nhu cầu đếm và giám sát tự động từ
-  camera giao thông.
-- Mô hình phát hiện huấn luyện trên COCO chạy trực tiếp cho kết quả kém ở bối cảnh này (số liệu: test Hà Nội mAP50
-  chính COCO@1280 chỉ 0.686, AP50 xe máy 0.530; bảng 4.1).
-- Dữ liệu có nhãn đúng bối cảnh Việt Nam rất ít, nhất là góc camera giao thông và cảnh đêm.
+**Lý do chọn đề tài** (viết lại 13/10/2026: chỉ nêu lý do, KHÔNG đưa kết quả thực nghiệm của chương 4; kèm Hình 1
+`intro_day.jpg` / `intro_night.jpg` do `report/make_figures.py` tạo)
+- Thực tế: 77 triệu xe máy đăng ký, ~770 xe/1.000 dân (tính đến 9/2024, Ủy ban ATGT quốc gia, Báo Tiền Phong
+  4/11/2024, `tienphong2024xemay`); giao thông hỗn hợp, xe máy dồn cụm ở ngã tư; cần số liệu lưu lượng theo loại xe và
+  hướng để điều khiển đèn, cải tạo nút giao.
+- Hạ tầng camera: Hà Nội vận hành Trung tâm điều khiển giao thông thông minh 12/2025, 1.837 camera tại 195 nút giao,
+  phân tích hình ảnh để xác định mật độ, lưu lượng, chỉnh đèn (VnEconomy 13/12/2025, `vneconomy2025camera`) -> cần máy
+  tự phát hiện, phân loại, theo dõi.
+- Khoảng trống kỹ thuật: mô hình huấn luyện sẵn trên COCO (ít cảnh xe máy dày nhìn từ trên cao; xe máy và người lái là
+  hai đối tượng) -> phải tinh chỉnh và đo lại; dữ liệu Việt Nam có nhãn ít (vài camera, hầu như không có góc camera
+  giao thông, không tìm được tập đêm có nhãn); điểm trên tập test có sẵn chưa nói được về camera khác.
+- Giá trị học thuật: ghép CNN/Transformer, theo dõi đa đối tượng, chỉ số chuẩn; thu thập và gán nhãn, chia tập, cân đối
+  độ chính xác với tốc độ trên laptop không GPU rời.
 
 **Mục tiêu đề tài**
 - Tổng quát: xây dựng hệ thống phát hiện, phân loại (4 lớp `motorbike, car, bus, truck`) và theo dõi phương tiện từ

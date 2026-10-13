@@ -2,21 +2,48 @@
 
 \addsec{Lý do chọn đề tài}
 
-Đường phố đô thị Việt Nam có mật độ xe máy rất cao. Xe máy và ô tô đi xen kẽ, dừng thành cụm ở ngã tư và thường che
-khuất nhau trong khung hình camera. Đếm lưu lượng xe theo loại và theo hướng từ camera giao thông là việc hữu ích cho
-quản lý giao thông, nhưng khó làm tự động bằng các mô hình huấn luyện sẵn trên bộ dữ liệu phổ thông. Khi chạy trực
-tiếp mô hình YOLO26n huấn luyện trên COCO lên 30 frame gán nhãn tay từ video ngã tư Hà Nội, mAP50 trung bình của hai
-lớp xe máy và ô tô chỉ đạt 0.686, riêng AP50 của xe máy là 0.530 (Bảng~\ref{tab:e1-hanoi}).
+Việt Nam là một trong những nước có tỷ lệ sở hữu xe máy cao nhất thế giới. Theo Ủy ban An toàn giao thông quốc gia,
+tính đến tháng 9/2024 cả nước có 77 triệu xe máy đăng ký, khoảng 770 xe trên 1.000 dân~\cite{tienphong2024xemay}. Ở
+các thành phố lớn, xe máy đi chung đường với ô tô, xe buýt và xe tải, ít khi giữ làn, dồn thành cụm khi chờ đèn đỏ rồi
+toả ra nhiều hướng khi đèn chuyển xanh (Hình~\ref{fig:intro-traffic}a). Muốn điều chỉnh chu kỳ đèn, cải tạo nút giao
+hay đánh giá một phương án phân luồng, cơ quan quản lý cần biết có bao nhiêu xe đi qua, thuộc loại nào và theo hướng
+nào. Đếm thủ công thì tốn nhân lực và chỉ làm được trong một số khung giờ, còn camera đã có sẵn ở nhiều nút giao và
+cho biết được cả loại xe.
 
-Dữ liệu có nhãn đúng bối cảnh này lại ít. Các bộ dữ liệu xe Việt Nam công khai mà đề tài tìm được phần lớn chỉ gồm
-một vài camera, góc nhìn chéo từ trên cao của camera giao thông hầu như không có, và trong quá trình tìm kiếm đề tài
-không tìm được tập cảnh đêm Việt Nam nào có nhãn. Ngoài ra, mô hình đạt điểm cao trên tập test của bộ dữ liệu có sẵn
-chưa chắc đã tốt trên video thật: phiên bản đầu tiên của đề tài đạt mAP50 0.861 trên tập test Roboflow, nhưng mAP50
-trung bình xe máy và ô tô trên frame Hà Nội chỉ còn 0.395.
+\begin{figure}[H]
+  \centering
+  \begin{subfigure}{0.49\linewidth}\includegraphics[width=\linewidth]{intro_day.jpg}\caption{Ngã tư ở Hà Nội, ban ngày}\end{subfigure}\hfill
+  \begin{subfigure}{0.49\linewidth}\includegraphics[width=\linewidth]{intro_night.jpg}\caption{Đường phố TP.HCM, ban đêm}\end{subfigure}
+  \caption{Giao thông hỗn hợp nhìn từ camera đặt trên cao: xe máy đi dày, xen kẽ ô tô; ban đêm xe chủ yếu hiện ra qua
+           đèn xe và đèn đường (nguồn video: kênh YouTube Raw Street Capture 101 và Midnight Soundscape)}
+  \label{fig:intro-traffic}
+\end{figure}
 
-Từ đó, đề tài chọn hướng tinh chỉnh (fine-tune) mô hình phát hiện trên dữ liệu gần với bối cảnh mục tiêu, tự xây các
-tập đánh giá Việt Nam có người kiểm, rồi kết hợp với thuật toán theo dõi đa đối tượng để gán ID cho từng xe và đếm xe
-qua vạch.
+Hạ tầng để làm việc này bằng camera đang được xây dựng. Tháng 12/2025, Công an thành phố Hà Nội đưa vào vận hành Trung
+tâm điều khiển giao thông thông minh, kết nối 1.837 camera tại 195 nút giao; hình ảnh camera được phân tích để xác
+định mật độ, lưu lượng phương tiện và điều chỉnh thời gian đèn tín hiệu theo lưu lượng thực tế~\cite{vneconomy2025camera}.
+Với số camera lớn như vậy, không thể có người ngồi xem từng màn hình. Để biến video thành số liệu, máy phải tự tìm ra
+từng phương tiện trong mỗi frame, cho biết đó là loại xe gì và nhận ra cùng một chiếc xe qua các frame liên tiếp. Đó
+chính là ba bài toán phát hiện, phân loại và theo dõi đối tượng.
+
+Các mô hình phát hiện phổ biến thường được huấn luyện sẵn trên bộ dữ liệu COCO, gồm ảnh đời thường chụp ở nhiều nơi
+trên thế giới. Cảnh hàng trăm xe máy chở người đi sát nhau, nhìn từ trên cao như ở ngã tư Việt Nam, ít gặp trong bộ dữ
+liệu này; COCO còn gán xe máy và người lái thành hai đối tượng riêng. Vì vậy không thể mặc định mô hình huấn luyện sẵn
+sẽ chạy tốt trên camera giao thông Việt Nam: cần tinh chỉnh và đo lại trên dữ liệu đúng bối cảnh. Dữ liệu như thế lại
+ít. Các bộ dữ liệu xe Việt Nam công khai mà đề tài tìm được phần lớn chỉ gồm một vài camera, góc nhìn chéo từ trên cao
+của camera giao thông hầu như không có, và đề tài không tìm được tập cảnh đêm Việt Nam nào có nhãn, trong khi ban đêm
+nhiều xe chỉ lộ ra qua đèn pha, đèn hậu (Hình~\ref{fig:intro-traffic}b). Điểm cao trên tập test đi kèm một bộ dữ liệu
+cũng chưa đủ để tin mô hình chạy tốt ở camera khác, nên tự xây tập đánh giá đúng bối cảnh là một phần của bài toán.
+
+Về mặt học thuật, đề tài đặt các nội dung chính của môn học vào một bài toán có thật: mạng tích chập và Transformer cho
+phát hiện đối tượng, thuật toán theo dõi đa đối tượng, các chỉ số đánh giá chuẩn như mAP và HOTA. Đề tài cũng phải làm
+những việc ít gặp khi làm bài tập trên dữ liệu có sẵn: thu thập và gán nhãn dữ liệu, chia tập sao cho con số đo được phản ánh
+đúng khả năng tổng quát, cân đối độ chính xác với tốc độ khi máy chỉ là laptop không có GPU rời. Kết quả cuối cùng, số
+xe đi qua một vạch, lại dễ kiểm chứng bằng mắt.
+
+Từ những lý do trên, đề tài chọn ứng dụng học sâu vào phát hiện, phân loại và theo dõi phương tiện trong video camera
+giao thông Việt Nam, cả ban ngày và ban đêm: tinh chỉnh mô hình phát hiện trên dữ liệu gần bối cảnh mục tiêu, tự xây
+các tập đánh giá có người kiểm, rồi kết hợp với thuật toán theo dõi để gán ID cho từng xe và đếm xe qua vạch.
 
 \addsec{Mục tiêu đề tài}
 

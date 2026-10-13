@@ -119,3 +119,5 @@
 % Không dùng hyperref: báo cáo nộp bản in, bỏ liên kết bấm được để mỗi lượt biên dịch nhanh hơn ~0.3 s
 \usepackage{url}
 \urlstyle{same}
+% Cho phép ngắt dòng URL ở dấu gạch ngang: URL bài báo tiếng Việt dài, chỉ ngắt ở / và . thì tràn lề
+\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks\do\-}

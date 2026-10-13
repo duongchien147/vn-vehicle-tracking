@@ -1,5 +1,6 @@
 """Tạo hình cho báo cáo LaTeX (report/overleaf/figures/) từ kết quả có sẵn trong outputs/ và data/:
-biểu đồ độ chính xác – tốc độ, đường học, frame video demo, ảnh ví dụ từng nguồn dữ liệu, ảnh phân tích lỗi.
+biểu đồ độ chính xác – tốc độ, đường học, frame video demo, ảnh minh hoạ phần mở đầu, ảnh ví dụ từng nguồn dữ liệu,
+ảnh phân tích lỗi.
 Số liệu biểu đồ đọc từ CSV kết quả (không gõ tay) để hình khớp bảng trong báo cáo. Biểu đồ xuất PDF, ảnh xuất JPEG:
 XeLaTeX nhúng hai loại này gần như không tốn thời gian, còn PNG lớn làm chậm biên dịch (Overleaf miễn phí giới hạn 10 s).
 
@@ -36,6 +37,12 @@ FRAME_TIME_S = 30  # lấy frame giữa clip demo 60 s
 # Lỗi gặp trong video demo: xe cứu hộ chở ô tô ở ham_chui_dem_1 giây 47.5 (frame 1425); vùng cắt x1, y1, x2, y2 (px)
 # chọn bằng mắt cho đủ xe cứu hộ và nhãn của nó
 TOW_TRUCK_FRAME = ("ham_chui_dem_1", 1425, (0, 380, 880, 960))
+# Ảnh gốc (chưa qua mô hình) minh hoạ lý do chọn đề tài: tên file -> (video, giây), chọn bằng mắt.
+# Ban ngày: ngã tư Hà Nội lúc xe máy đi dày xen ô tô; ban đêm: đường phố TP.HCM nhiều xe, chỉ có đèn đường và đèn xe.
+INTRO_FRAMES = {
+    "intro_day.jpg": ("data/videos/nga_tu_hanoi_a.mp4", 35),
+    "intro_night.jpg": ("data/raw/night_extra/dem_duong_buyt_1h35.mp4", 1),
+}
 JPEG_QUALITY = 85
 MAX_SIDE = 1600  # thu nhỏ ảnh để gói Overleaf gọn, vẫn đủ nét khi in
 SPEED_TICKS_MS = [100, 200, 500, 1000, 2000]
@@ -157,6 +164,17 @@ def demo_frames() -> None:
         save_jpeg(frame, OUT / f"demo_{clip}.jpg")
 
 
+def intro_frames() -> None:
+    for name, (video, second) in INTRO_FRAMES.items():
+        capture = cv2.VideoCapture(video)
+        capture.set(cv2.CAP_PROP_POS_MSEC, second * 1000)
+        ok, frame = capture.read()
+        capture.release()
+        if not ok:
+            raise RuntimeError(f"Không đọc được giây {second} của {video}")
+        save_jpeg(frame, OUT / name)
+
+
 def demo_error_case() -> None:
     clip, frame_index, (x1, y1, x2, y2) = TOW_TRUCK_FRAME
     capture = cv2.VideoCapture(str(DEMO_DIR / f"{clip}_tracked.mp4"))
@@ -197,6 +215,7 @@ def main() -> None:
     accuracy_vs_speed()
     learning_curves()
     demo_frames()
+    intro_frames()
     demo_error_case()
     data_source_examples()
     copy_existing()

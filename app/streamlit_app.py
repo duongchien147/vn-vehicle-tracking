@@ -41,16 +41,18 @@ GPU_DEFAULT_CLIP = "pvd_goc_a"
 # trình xuống ~7 frame/s)
 MODES = ("Kết quả GPU xử lý sẵn", "Clip có sẵn (chạy trên máy)", "Tải video lên (chạy trên máy)")
 UPLOAD_SUFFIXES = ("mp4", "avi", "mov")
-# Mô hình chọn sẵn trong demo: trọng số v5, OpenVINO đầu vào 544x960 (khung video 16:9) trên GPU Intel tích hợp —
-# cả pipeline 19.8 frame/s so với 7.5 của PyTorch trên CPU (outputs/benchmark_speed/e2_igpu_openvino, e2_cpu_openvino);
-# mAP50 val Hà Nội 0.918 / IDR dev VnTraffic 0.825, so với 0.919 / 0.827 của bản PyTorch (hoà theo tiêu chí chốt trước)
-DEMO_WEIGHTS = "weights/yolo26n_vn_v5_best_544x960_openvino_model#gpu"
+# Mô hình chọn sẵn trong demo: trọng số v6, OpenVINO đầu vào 544x960 (khung video 16:9) trên GPU Intel tích hợp.
+# Cùng kiến trúc và đầu vào với bản v5 đã đo tốc độ: cả pipeline 19.8 frame/s so với 7.5 của PyTorch trên CPU
+# (outputs/benchmark_speed/e2_igpu_openvino, e2_cpu_openvino). Trên dev (outputs/*/openvino_v6*): mAP50 val Hà Nội 0.914
+# = bản PyTorch, dev đêm 0.609 vs 0.599, nhưng IDR VnTraffic 0.825 vs 0.841 -> đánh đổi một ít độ ổn định ID lấy tốc độ
+DEMO_WEIGHTS = "weights/yolo26n_vn_v6_best_544x960_openvino_model#gpu"
 # Tên hiển thị theo thứ tự trong danh sách; mô hình chưa có trong weights/ thì không hiện
 MODEL_LABELS = {
-    DEMO_WEIGHTS: "v5 — OpenVINO trên GPU Intel tích hợp (mặc định, nhanh nhất)",
-    "weights/yolo26n_vn_v5_best_int8_544x960_openvino_model#cpu": "v5 — OpenVINO INT8 trên CPU (máy không có GPU Intel)",
+    DEMO_WEIGHTS: "v6 — OpenVINO trên GPU Intel tích hợp (mặc định, nhanh nhất)",
+    "weights/yolo26n_vn_v6_best_int8_544x960_openvino_model#cpu": "v6 — OpenVINO INT8 trên CPU (máy không có GPU Intel)",
     "weights/yolo26s_vn_v5_best_544x960_openvino_model#gpu": "YOLO26s — OpenVINO trên GPU Intel tích hợp (chính xác hơn, chậm hơn)",
-    DEFAULT_WEIGHTS: "v5 — PyTorch trên CPU",
+    DEFAULT_WEIGHTS: "v6 — PyTorch trên CPU",
+    "weights/yolo26n_vn_v5_best.pt": "v5 — trước khi thêm dữ liệu ban đêm",
     "weights/yolo26n_vn_v3_best.pt": "v3 — trước khi thêm dữ liệu camera giao thông UVH-26",
     "weights/yolo26n_vn_v4_best.pt": "v4 — v3 ở imgsz 1280",
     "weights/yolo26n_vn_v2_best.pt": "v2",
@@ -202,7 +204,7 @@ def main() -> None:
     info = sv.VideoInfo.from_video_path(str(source))
     video_seconds = (info.total_frames or 0) / info.fps
     max_seconds = st.sidebar.slider("Chỉ xử lý N giây đầu", 5, max(5, int(video_seconds)), min(20, max(5, int(video_seconds))),
-                                     help="Tính cả vẽ và ghi video 1080p: v5 OpenVINO khoảng 7 frame/s, PyTorch khoảng 6 frame/s.")
+                                     help="Tính cả vẽ và ghi video 1080p: YOLO26n OpenVINO khoảng 7 frame/s, PyTorch khoảng 6 frame/s.")
     max_frames = int(max_seconds * info.fps / vid_stride)
 
     col_preview, col_info = st.columns([3, 1])

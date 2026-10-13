@@ -8,8 +8,9 @@ from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
 
-# Mô hình mặc định hiện tại (v5 = v3 + UVH-26, imgsz 960; chọn theo tiêu chí chốt trước: mAP50 val Hà Nội + IDR VnTraffic — xem ghi chú dự án)
-DEFAULT_WEIGHTS = "weights/yolo26n_vn_v5_best.pt"
+# Mô hình mặc định hiện tại (v6 = v5 + 288 frame đêm nhãn tự động, imgsz 960, seed 42; nhận theo tiêu chí chốt trước:
+# mAP50 dev đêm, mAP50 val Hà Nội, IDR VnTraffic — xem ghi chú dự án). Trước 13/10/2026 là v5 (weights/yolo26n_vn_v5_best.pt).
+DEFAULT_WEIGHTS = "weights/yolo26n_vn_v6_best.pt"
 
 # Dùng khi không đọc được imgsz lúc train từ file trọng số; 640 là mặc định của ultralytics
 FALLBACK_IMGSZ = 640

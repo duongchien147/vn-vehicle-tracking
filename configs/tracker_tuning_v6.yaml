@@ -1,0 +1,23 @@
+# Chỉnh lại ngưỡng của BoT-SORT cho mô hình v6 trên tập DEV VnTraffic:
+#   python scripts/eval_tracking.py --grid configs/tracker_tuning_v6.yaml --sequences vntraffic \
+#       --weights weights/yolo26n_vn_v6_best.pt weights/yolo26n_vn_v6_seed1_best.pt --name tuning_v6
+# Lý do (13/10/2026): v6 đổi ID nhiều hơn v5 trên clip test (49 so với 26), trong khi tracker chỉ từng được chỉnh
+# track_buffer và ReID với v3; các ngưỡng tạo track / ghép vẫn là mặc định của ultralytics. v6 phát hiện thêm box,
+# kể cả box trùng trên cùng xe (đo trên clip PVD: 9.2 so với 8.0 cặp IoU > 0.5 mỗi frame) -> ngưỡng tạo track mới cao
+# hơn có thể bớt track thừa sinh ra từ box trùng.
+#
+# Tiêu chí chọn (CHỐT TRƯỚC khi chạy, 13/10/2026): với mỗi cấu hình, lấy trung bình hai lần huấn luyện v6 (seed 42, 1).
+#   - Điều kiện: IDR trung bình không thấp hơn IDR trung bình của cấu hình hiện tại (botsort_tuned_nogmc) quá 0.005.
+#   - Trong các cấu hình đạt điều kiện, chọn cấu hình có số lần đổi ID trung bình ít nhất.
+#   - Chỉ đổi cấu hình mặc định nếu số lần đổi ID trung bình giảm ít nhất 10% so với cấu hình hiện tại; không thì giữ.
+# Cấu hình được chọn chấm MỘT lần trên clip test PVD (với v6 và v5) để báo cáo; test không dùng để chọn.
+selection_metric: idr
+
+min_track_ages: [1]
+
+experiments:
+  - base: configs/botsort_tuned_nogmc.yaml
+    grid:
+      new_track_thresh: [0.25, 0.4, 0.6]  # điểm tối thiểu để mở track mới (mặc định 0.25)
+      track_high_thresh: [0.25, 0.4]  # ngưỡng của lần ghép thứ nhất (mặc định 0.25)
+      match_thresh: [0.8, 0.9]  # ngưỡng chi phí ghép, cao hơn = dễ ghép hơn (mặc định 0.8)

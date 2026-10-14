@@ -667,6 +667,13 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   8 = 4.5%). `outputs/eval_manual_counts/night_human_v6/`.
 - OpenVINO v6 (demo): FP32 GPU 544×960 val 0.914, dev đêm 0.609, IDR 0.825 (PyTorch 0.841 -> đánh đổi); INT8 CPU 0.918 /
   0.597 / 0.825. Tốc độ như v5 (cùng kiến trúc, không đo lại).
+- Thử giảm đổi ID cho v6 (14/10/2026, báo cáo bảng `tab:giam-doi-id`), cả hai không được nhận, tracker mặc định giữ
+  `botsort_tuned_nogmc`: (a) ngưỡng mở track 0.6 + ghép lần một 0.4 (`configs/botsort_v6.yaml`): dev đổi ID 93.5 -> 62.5,
+  IDR 0.833 -> 0.836, FN 714 -> 833; test đổi ID 49 -> 7 nhưng FN 1.689 -> 3.291, HOTA 0.732 -> 0.687, IDF1 0.884 ->
+  0.853, đếm đêm 2.3% -> 3.4% -> loại DỰA VÀO TEST (VnTraffic thiếu nhãn xe nhỏ ở xa); (b) bộ lọc box trùng không phân
+  lớp trước tracker (`vtrack/box_filter.py`, YOLO26 end-to-end không có NMS): IoU 0.6 dev đổi ID 63, FN +1.4% nhưng
+  mAP50 dev đêm −0.006 (giới hạn 0.005) -> không đạt tiêu chí chốt trước (`configs/tracker_tuning_v6_nms.yaml`), không
+  chấm test. Hướng tiếp: ReID riêng cho xe; clip dev tracking có xe nhỏ ở xa.
 - Lưu ý khi bảo vệ: hướng làm v6 và việc chọn mô hình thầy xuất phát từ kết quả trên test đêm `vn_extra`; quyết định nhận
   dựa trên dev đêm ở camera thứ ba, test chấm sau. Đã ghi trong mục "Những lần tập test được dùng lại".
 

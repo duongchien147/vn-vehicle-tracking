@@ -488,6 +488,41 @@ số tổng hợp (HOTA 0.758 so với 0.718, IDF1 0.904 so với 0.880), chủ 
 đổi lại phát hiện thừa nhiều hơn (683 so với 357) và đổi ID nhiều hơn một chút (31 so với 26). Kết quả này khớp với
 khuyến nghị ở mục~\ref{sec:toc-do}: có GPU thì dùng YOLO26s.
 
+\textbf{Thử giảm số lần đổi ID của v6.} Đề tài thử hai cách, mỗi cách có tiêu chí viết ra trước khi chạy
+(Bảng~\ref{tab:giam-doi-id}). Số trên dev là trung bình hai lần huấn luyện v6; số trên test là của v6 với seed 42.
+
+\begin{table}[H]
+  \centering
+  \caption{Hai cách thử giảm số lần đổi ID của v6 (dev: VnTraffic; test: clip Phạm Văn Đồng)}
+  \label{tab:giam-doi-id}
+  \footnotesize
+  \begin{tabularx}{\linewidth}{|L|*{6}{>{\centering\arraybackslash}p{1.3cm}|}}
+    \hline
+    \thead{Cấu hình tracker} & \thead{Dev: đổi ID} & \thead{Dev: IDR} & \thead{Dev: bỏ sót} & \thead{Test: đổi ID} &
+      \thead{Test: HOTA} & \thead{Test: bỏ sót} \\ \hline
+    Mặc định (ngưỡng mở track 0.25, không lọc) & 93.5 & 0.833 & 714 & 49 & 0.732 & 1.689 \\ \hline
+    Ngưỡng mở track 0.6, ngưỡng ghép lần một 0.4 & 62.5 & 0.836 & 833 & 7 & 0.687 & 3.291 \\ \hline
+    Lọc box trùng không phân lớp, IoU 0.6 & 63.0 & 0.841 & 724 & -- & -- & -- \\ \hline
+  \end{tabularx}
+\end{table}
+
+Cách thứ nhất nâng ngưỡng điểm để mở track mới từ 0.25 lên 0.6. Trên dev, số lần đổi ID giảm 33\% mà IDR giữ nguyên,
+nên cấu hình này được chọn theo tiêu chí. Trên clip test, đổi ID giảm từ 49 xuống 7, nhưng số box bỏ sót tăng gần gấp
+đôi (1.689 lên 3.291), HOTA giảm từ 0.732 xuống 0.687, IDF1 từ 0.884 xuống 0.853, và sai số đếm ban đêm tăng từ 2.3\%
+lên 3.4\%. Xe nhỏ ở xa có điểm tin cậy thấp nên không bao giờ được mở track; VnTraffic gần như không gán nhãn các xe
+này, nên tiêu chí trên dev không thấy cái giá đó. Cấu hình bị loại khỏi mặc định dựa vào kết quả test
+(mục~\ref{sec:thao-luan}) và chỉ còn là một tuỳ chọn ``ít đổi ID'' trong web demo.
+
+Cách thứ hai nhắm vào nguyên nhân. YOLO26 là mô hình end-to-end nên Ultralytics bỏ qua bước NMS, và trên dev khoảng 20
+trong 82 box mỗi frame của v6 là box phụ chồng lên box khác của cùng một xe. Một bộ lọc NMS không phân lớp được đặt
+trước tracker, còn ngưỡng mở track giữ ở 0.25. Tiêu chí lần này có thêm hai điều kiện để chặn bỏ sót: số box bỏ sót
+trên VnTraffic không tăng quá 2\%, và mAP50 trên val Hà Nội và trên dev đêm (200 trong 524 xe cao dưới 32 điểm ảnh)
+không giảm quá 0.005. Với ngưỡng IoU 0.6, đổi ID giảm từ 93.5 xuống 63 và bỏ sót chỉ tăng 1.4\%, nhưng mAP50 dev đêm
+giảm 0.006, vượt giới hạn; ngưỡng 0.7 và 0.5 cũng không đạt. Bộ lọc vì vậy không được bật và không được chấm trên test.
+Cả hai lần thử cho cùng một kết luận: với v6 và BoT-SORT, bớt box đưa vào tracker thì giảm được đổi ID nhưng phải trả
+bằng bỏ sót. Muốn giảm đổi ID mà không mất xe cần thêm thông tin ngoài vị trí box, chẳng hạn đặc trưng ngoại hình từ
+một mô hình ReID riêng cho xe.
+
 \begin{table}[H]
   \centering
   \caption{Ablation trên tập test (chỉ để báo cáo, lựa chọn đã chốt trên dev)}
@@ -782,6 +817,11 @@ khác hầm chui, quyết định nhận v6 dựa trên một tập dev đêm ri
 và tập test chỉ được chấm sau khi v6 đã được nhận. Dù vậy, mức tăng ban đêm của v6 trên \texttt{vn\_extra} có thể hơi
 lạc quan hơn mức tăng trên một cảnh đêm hoàn toàn mới.
 
+Có một lần kết quả test làm đổi một lựa chọn: cấu hình tracker ngưỡng cao cho v6 được chọn trên dev nhưng bị loại sau
+khi thấy nó làm bỏ sót gần gấp đôi trên clip test (mục~\ref{sec:theo-doi}). Tracker mặc định vì vậy giữ nguyên cấu hình
+đã chọn từ trước, và lần thử tiếp theo (bộ lọc box trùng) được chốt tiêu chí mới, có điều kiện về bỏ sót, rồi chỉ
+chạy trên dev.
+
 \textbf{Frame tương quan và khoảng tin cậy theo khối.} Bảng~\ref{tab:block-ci} đặt khoảng tin cậy lấy mẫu theo ảnh cạnh
 khoảng lấy mẫu theo khối 10 giây (UA-DETRAC: theo video, mục~\ref{sec:bootstrap}) cho các so sánh mà kết luận
 của đề tài dựa vào. Khoảng theo khối rộng hơn, nhiều nhất ở UA-DETRAC ngày, nơi 545 frame chỉ đến từ 39 video (khoảng của
@@ -886,7 +926,8 @@ camera giao thông quan trọng hơn kích thước ảnh: v4 (ảnh 1280) chỉ
 v6 thay v5 theo ba tiêu chí viết trước (mục~\ref{sec:tieu-chi-chon}), và kết quả test xác nhận lựa chọn đó ở điểm quan
 trọng nhất: mAP50 ban đêm trên camera mới tăng từ 0.628 lên 0.755, sai số đếm ban đêm giảm (mục~\ref{sec:dem-xe}).
 Cái giá là số lần đổi ID tăng; tiêu chí chọn dùng IDR, không dùng số lần đổi ID, nên điều này không đổi quyết định
-nhưng cần biết khi triển khai.
+nhưng cần biết khi triển khai. Hai cách thử giảm đổi ID bằng cấu hình tracker đều phải trả bằng bỏ sót và không được
+nhận (mục~\ref{sec:theo-doi}).
 
 \textbf{Đánh đổi độ chính xác và tốc độ.} RT-DETRv2-S cho box khít nhất, nhưng chậm hơn YOLO26n 15 lần khi cùng chạy
 PyTorch trên CPU. Khi cho YOLO cùng số điểm ảnh, khoảng cách độ chính xác trên dữ liệu Việt Nam gần như biến mất. Vì vậy
@@ -941,7 +982,9 @@ chiếu.
         ước COCO; xe bị che một phần được khoanh phần nhìn thấy, lệch quy ước MOTChallenge.
   \item Trên laptop, phát hiện và theo dõi đạt khoảng 20 frame/s, chưa bằng 30 frame/s của video; tính cả vẽ và ghi video
         1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32.
-  \item Tracker được chỉnh tham số với v3 rồi dùng cho v5 và v6; v6 đổi ID nhiều hơn v5 trên clip test.
+  \item Tracker được chỉnh tham số với v3 rồi dùng cho v5 và v6; v6 đổi ID nhiều hơn v5 trên clip test, và hai cách
+        giảm đổi ID bằng cấu hình tracker đều làm tăng bỏ sót. VnTraffic, tập dev duy nhất cho theo dõi, gần như không có
+        nhãn xe nhỏ ở xa nên không đo được loại bỏ sót này.
   \item Nhãn của 288 frame đêm huấn luyện là nhãn tự động, chỉ giữ được khoảng 40\% xe cao dưới 32 điểm ảnh; frame đêm
         đến từ hai camera trong hai video ghép lặp. Tập dev đêm chỉ có 32 frame từ một camera, và hướng làm v6 có xuất
         phát từ kết quả trên tập test đêm (mục~\ref{sec:thao-luan}).
@@ -958,7 +1001,8 @@ chiếu.
   \item Huấn luyện RT-DETRv2-S thêm vài lần để so sánh với YOLO26s ở cảnh đêm cho chắc chắn.
   \item Cho người kiểm nhãn frame đêm huấn luyện và thêm camera đêm khác: v6 cho thấy dữ liệu đêm có tác dụng rõ, trong
         khi nhãn hiện tại còn thiếu nhiều xe nhỏ ở xa.
-  \item Thử mô hình ReID chuyên cho xe thay cho đặc trưng của mô hình phát hiện.
+  \item Thử mô hình ReID chuyên cho xe thay cho đặc trưng của mô hình phát hiện, để giảm đổi ID của v6 mà không phải
+        bớt box đưa vào tracker; gán nhãn quỹ đạo cho một clip dev có nhiều xe nhỏ ở xa.
   \item Tăng tốc bằng TensorRT hoặc FP16 trên GPU; xuất RT-DETRv2 sang OpenVINO; chọn kích thước ảnh theo cảnh.
   \item Tách khâu vẽ kết quả và ghi video sang luồng riêng hoặc dùng bộ mã hoá video phần cứng: khi phần phát hiện đã
         nhanh, đây là khâu chậm nhất của web demo.

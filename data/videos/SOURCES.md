@@ -37,6 +37,7 @@ Bản gốc 1080p do người làm đồ án tự tải (ytsave), lưu ở `data
 | ham_chui_dem_3.mp4 | Như trên | 2:40:00–2:41:00 | **Chỉ test** | như trên |
 | data/raw/night_extra/dem_duong_buyt_*.mp4 | Đường có xe buýt và biển quảng cáo, TP.HCM, ban đêm, nhìn chéo từ trên cao | 5 đoạn 2 phút ở 0:15, 0:55, 1:35, 2:15, 2:55 | **Train v6** (nhãn tự động) | https://www.youtube.com/watch?v=-J2JUaNU0BY — Midnight Soundscape. Video ghép lặp: đoạn 0:15 = 1:35 = 2:55, 0:55 = 2:15 |
 | data/raw/night_extra/dem_cau_vuot_*.mp4 | Đại lộ có cầu vượt, TP.HCM, ban đêm, thưa xe | 5 đoạn 2 phút như trên | **Train v6** (nhãn tự động) | https://www.youtube.com/watch?v=3fUYYb509YM — Midnight Soundscape. Cũng là đoạn ngắn ghép lặp |
+| data/tracking_gt/pvd_goc_c_dev/clip.mp4 | Phạm Văn Đồng góc C, 20 s (600 frame) | 1:48:00–1:48:20 (video `VswAfC4fER0`) | **Dev theo dõi** (nhãn quỹ đạo người gán, 14/10/2026): khác camera với clip test theo dõi (góc A); cách 2 phút với clip `pvd_goc_c` của test phát hiện, không chung xe | như PVD |
 | data/raw/night_extra/dem_gia_dinh_*.mp4 | Nút giao Công viên Gia Định, TP.HCM, nhìn từ trên cao; tối hẳn từ khoảng phút 40 | 0:40, 0:50, 0:58, 1:04 (dev), 0:10 (chạng vạng, không dùng) | **Dev đêm cho v6** (người kiểm) | https://www.youtube.com/watch?v=P0qqLcfxQiw — Vietnam Naturally. Liền mạch, không cắt cảnh |
 
 Ghi chú về video gốc:

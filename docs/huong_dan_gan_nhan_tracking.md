@@ -1,7 +1,12 @@
-# Hướng dẫn gán nhãn tracking bằng CVAT (clip test `pvd_goc_a`)
+# Hướng dẫn gán nhãn tracking bằng CVAT (clip test `pvd_goc_a`, clip dev `pvd_goc_c_dev`)
 
-Mục đích: tạo nhãn tracking **đầy đủ** cho 1 clip 20 s (600 frame, 30 fps) để làm **tập test** của tracker. Tập dev là
-VnTraffic (nhãn thiếu, chỉ dùng để chỉnh tham số). Clip test chỉ dùng để chấm cấu hình đã chọn, **một lần**.
+Mục đích: tạo nhãn tracking **đầy đủ** cho clip 20 s (600 frame, 30 fps).
+- `pvd_goc_a` (góc A, giây 20–40 của clip `pvd_goc_a`) là **tập test** của tracker: chỉ chấm cấu hình đã chọn, **một lần**.
+- `pvd_goc_c_dev` (góc C, 1:48:00–1:48:20 của video gốc, thêm 14/10/2026) là **tập dev** thứ hai, dùng để chỉnh
+  tracker cùng VnTraffic. Lý do thêm: nhãn VnTraffic gần như không có xe nhỏ ở xa, nên một cấu hình làm bỏ sót các xe
+  này vẫn trông tốt trên dev (đã xảy ra với v6). Nhãn sơ bộ của clip này lấy từ YOLO26s (bản v5), không phải v6 là
+  mô hình đang được chỉnh tracker. Quy tắc gán **giống hệt clip test**, nhất là vùng ignore (mục 3): xe cao từ 25 điểm
+  ảnh trở lên vẫn phải gán, vì chính những xe nhỏ này là thứ clip dev cần đo.
 
 ## 1. Chuẩn bị (máy đã làm sẵn)
 

@@ -21,17 +21,18 @@ from vtrack.mot_format import MotBox
 # ByteTrack/BoT-SORT dùng cả detection điểm thấp cho bước ghép thứ hai (nối track bị che khuất);
 # việc tạo track mới do `new_track_thresh` trong config tracker quyết định, nên conf đầu vào để thấp.
 DEFAULT_DETECTION_CONF = 0.1
-# Tracker đã chỉnh trên tập dev VnTraffic, tắt bù chuyển động camera (GMC): camera trong phạm vi đồ án đứng yên
-# (tắt GMC: IDR như nhau, pipeline OpenVINO nhanh hơn 1.4 lần, outputs/eval_tracking/gmc_dev/). Từ 14/10/2026 (mô hình
-# v6) nâng ngưỡng mở track mới 0.25 -> 0.6 và ngưỡng ghép thứ nhất 0.25 -> 0.4: trên dev đổi ID 93.5 -> 62.5, IDR giữ
-# nguyên (outputs/eval_tracking/tuning_v6/, chú thích trong file cấu hình). Trước đó: configs/botsort_tuned_nogmc.yaml.
-# Video camera rung/quay theo thì dùng configs/botsort_tuned.yaml (có GMC).
-DEFAULT_TRACKER = "configs/botsort_v6.yaml"
+# Tracker đã chỉnh trên tập dev VnTraffic, tắt bù chuyển động camera (GMC): camera trong phạm vi đồ án đứng yên.
+# Trên dev, tắt GMC cho IDR như nhau (0.827) và đổi ID 61 vs 62, pipeline OpenVINO nhanh hơn 1.4 lần
+# (outputs/eval_tracking/gmc_dev/). Video camera rung/quay theo thì dùng configs/botsort_tuned.yaml (có GMC).
+# Hai lần thử giảm đổi ID cho v6 (14/10/2026) đều không được nhận: configs/botsort_v6.yaml (ngưỡng mở track 0.6) làm bỏ
+# sót gấp đôi trên clip test; bộ lọc box trùng (configs/tracker_tuning_v6_nms.yaml) không đạt tiêu chí trên dev.
+DEFAULT_TRACKER = "configs/botsort_tuned_nogmc.yaml"
 # Track phải sống đủ 3 frame mới hiện/được đếm: bằng min_hits mặc định của SORT. Trên VnTraffic giảm đổi ID
 # 128 -> 118 và MOTA +0.04, đổi lại IDR -0.004 (mất 2 frame đầu của mỗi xe). Bộ chấm tracking vẫn báo kết quả thô.
 DEFAULT_MIN_TRACK_AGE = 3
-# Lọc box trùng bất kể lớp trước tracker (vtrack.box_filter): None = tắt. Giá trị mặc định chọn trên dev, xem
-# configs/tracker_tuning_v6_nms.yaml.
+# Lọc box trùng bất kể lớp trước tracker (vtrack.box_filter): None = tắt. Thử trên dev 14/10/2026
+# (configs/tracker_tuning_v6_nms.yaml): ngưỡng 0.6 giảm đổi ID 93.5 -> 63 nhưng mAP50 dev đêm giảm 0.006, quá mức cho
+# phép 0.005 (mất một ít xe thật) -> không ngưỡng nào đạt tiêu chí, giữ tắt.
 DEFAULT_AGNOSTIC_NMS_IOU: float | None = None
 
 

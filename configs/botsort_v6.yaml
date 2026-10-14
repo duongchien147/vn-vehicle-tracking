@@ -1,4 +1,7 @@
-# Tracker mặc định từ 14/10/2026 (mô hình v6) = botsort_tuned_nogmc.yaml nhưng nâng hai ngưỡng:
+# KHÔNG phải mặc định (chỉ là tuỳ chọn "ít đổi ID" trong app). Trên clip test PVD với v6: đổi ID 49 -> 7 nhưng bỏ sót
+# 1.689 -> 3.291 box, HOTA 0.732 -> 0.687, IDF1 0.884 -> 0.853 (outputs/eval_tracking/tracker_v6_test/): VnTraffic (dev)
+# gần như không có nhãn xe nhỏ ở xa nên không thấy cái giá này. Loại khỏi mặc định dựa vào kết quả test (ghi trong báo cáo).
+# = botsort_tuned_nogmc.yaml nhưng nâng hai ngưỡng:
 #   track_high_thresh 0.25 -> 0.4 (box dùng cho lần ghép thứ nhất), new_track_thresh 0.25 -> 0.6 (điểm tối thiểu để mở
 #   track mới). Box điểm thấp hơn vẫn được dùng ở lần ghép thứ hai để nối track đã có (track_low_thresh 0.1).
 # Chọn trên tập dev VnTraffic bằng configs/tracker_tuning_v6.yaml theo tiêu chí chốt trước (outputs/eval_tracking/

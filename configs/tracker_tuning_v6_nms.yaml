@@ -1,0 +1,27 @@
+# Lần chỉnh thứ hai cho v6 (14/10/2026): giảm đổi ID mà KHÔNG tăng bỏ sót.
+#
+# Bối cảnh: configs/botsort_v6.yaml (ngưỡng mở track 0.6) được chọn trên dev VnTraffic theo
+# configs/tracker_tuning_v6.yaml, nhưng trên clip test PVD đổi ID 49 -> 7 trong khi bỏ sót tăng gấp đôi (FN 1.689 ->
+# 3.291), HOTA 0.732 -> 0.687. Nguyên nhân: VnTraffic gần như không có nhãn cho xe nhỏ ở xa, nên tiêu chí cũ không thấy
+# cái giá của việc không mở track cho xe điểm thấp. Việc loại botsort_v6 dựa vào kết quả test -> ghi rõ trong báo cáo.
+#
+# Cách làm lần này: giữ ngưỡng mở track 0.25 (configs/botsort_tuned_nogmc.yaml) để không chặn xe nhỏ, chỉ thêm bộ lọc box
+# trùng bất kể lớp trước tracker (vtrack.box_filter; YOLO26 end-to-end nên ultralytics không chạy NMS; trên dev v6 có
+# ~20/82 box mỗi frame là box phụ chồng lên box khác). Chạy:
+#   python scripts/eval_tracking.py --sequences vntraffic --trackers configs/botsort_tuned_nogmc.yaml \
+#       --agnostic-nms-ious none 0.7 0.6 0.5 --weights weights/yolo26n_vn_v6_best.pt weights/yolo26n_vn_v6_seed1_best.pt \
+#       --name tuning_v6_nms
+#   python scripts/eval_hanoi_test.py --split-dir <dev> --agnostic-nms-iou <iou> --name dev_v6_nms<iou> --models <2 seed v6>
+#     với <dev> = data/labeling/hanoi/val và data/labeling/night_extra/val
+#
+# Tiêu chí (CHỐT TRƯỚC khi chạy, 14/10/2026), mọi số là trung bình hai lần huấn luyện v6 (seed 42, 1), so với "tắt":
+#   - IDR VnTraffic không giảm quá 0.005;
+#   - số box bỏ sót (FN) trên VnTraffic không tăng quá 2%;
+#   - mAP50 chính trên val Hà Nội và trên dev đêm (200/524 xe cao < 32 px) không giảm quá 0.005 — điều kiện này bảo vệ
+#     xe nhỏ ở xa, thứ VnTraffic không đo được.
+#   Trong các ngưỡng đạt cả ba điều kiện, chọn ngưỡng có số lần đổi ID trung bình ít nhất. Chỉ bật bộ lọc nếu số lần đổi
+#   ID giảm ít nhất 10%; nếu không, tracker mặc định là botsort_tuned_nogmc không bộ lọc (như trước v6).
+# Cấu hình được chọn chấm MỘT lần trên clip test PVD và đếm xe ngày/đêm (lần thứ hai test được dùng cho tracker của v6,
+# ghi trong báo cáo).
+tracker: configs/botsort_tuned_nogmc.yaml
+agnostic_nms_ious: [none, 0.7, 0.6, 0.5]

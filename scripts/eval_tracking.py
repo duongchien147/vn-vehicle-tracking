@@ -14,6 +14,7 @@ import csv
 import json
 import time
 from dataclasses import asdict, dataclass
+from itertools import product
 from pathlib import Path
 
 import supervision as sv
@@ -32,7 +33,9 @@ from vtrack.mot_format import (
     resolve_duplicate_ids,
 )
 from vtrack.tracker_config import expand_grid, write_variant
-from vtrack.tracking import DEFAULT_DETECTION_CONF, filter_young_tracks, to_mot_boxes, track_video
+from vtrack.tracking import (
+    DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_DETECTION_CONF, filter_young_tracks, to_mot_boxes, track_video,
+)
 from vtrack.tracking_eval import evaluate_trackers, write_ground_truth_sequence, write_tracker_sequence
 
 # ByteTrack và BoT-SORT là 2 tracker so sánh chính trong kế hoạch; OC-SORT thêm làm mốc (chuẩn mạnh về che khuất).
@@ -73,13 +76,20 @@ def prepare_ground_truth(name: str, spec: dict, gt_root: Path) -> PreparedSequen
     return PreparedSequence(num_frames, ignore_regions)
 
 
-def run_tracker(video: str, model: YOLO, tracker: str, imgsz: int, conf: float, num_frames: int) -> tuple[list[MotBox], float]:
+def run_tracker(
+    video: str, model: YOLO, tracker: str, imgsz: int, conf: float, num_frames: int, agnostic_nms_iou: float | None,
+) -> tuple[list[MotBox], float]:
     """Chạy detector + tracker trên `num_frames` frame đầu; trả về box dạng MOT và tốc độ (frame/giây, CPU)."""
     boxes = []
     started = time.perf_counter()
-    for tracked in track_video(video, model, tracker, imgsz, conf, max_frames=num_frames):
+    for tracked in track_video(video, model, tracker, imgsz, conf, max_frames=num_frames,
+                               agnostic_nms_iou=agnostic_nms_iou):
         boxes += to_mot_boxes(tracked)
     return boxes, num_frames / (time.perf_counter() - started)
+
+
+def parse_nms_iou(value: str) -> float | None:
+    return None if value.lower() == "none" else float(value)
 
 
 def make_run_name(base_name: str, min_track_age: int) -> str:
@@ -111,6 +121,9 @@ def main() -> None:
     parser.add_argument("--min-track-ages", nargs="+", type=int, default=[1],
                         help="Chấm thêm với bộ lọc TrackAgeFilter (1 = không lọc); --grid tự đặt giá trị này")
     parser.add_argument("--conf", type=float, default=DEFAULT_DETECTION_CONF)
+    parser.add_argument("--agnostic-nms-ious", nargs="+", type=parse_nms_iou,
+                        default=[DEFAULT_AGNOSTIC_NMS_IOU],
+                        help="Ngưỡng IoU của bộ lọc box trùng trước tracker (vtrack.box_filter); 'none' = tắt")
     parser.add_argument("--name", default="trackers", help="Tên thí nghiệm -> outputs/eval_tracking/<tên>")
     args = parser.parse_args()
 
@@ -128,16 +141,18 @@ def main() -> None:
         min_track_ages = grid_config.get("min_track_ages", [1])
         selection_metric = grid_config.get("selection_metric")
 
+    nms_ious: list[float | None] = args.agnostic_nms_ious
     run_info = {}
     for weights in args.weights:
         model = load_model(weights)
         imgsz = args.imgsz or training_imgsz(model) or FALLBACK_IMGSZ
-        for tracker in trackers:
-            base_name = f"{Path(weights).stem}-{Path(tracker).stem}"
+        for tracker, nms_iou in product(trackers, nms_ious):
+            base_name = f"{Path(weights).stem}-{Path(tracker).stem}" + ("" if nms_iou is None else f"-nms{nms_iou}")
             speeds = []
             for name, spec in sequences.items():
                 print(f"  chạy {base_name} @{imgsz} trên {name} ...", flush=True)
-                boxes, fps = run_tracker(spec["video"], model, tracker, imgsz, args.conf, prepared[name].num_frames)
+                boxes, fps = run_tracker(spec["video"], model, tracker, imgsz, args.conf, prepared[name].num_frames,
+                                         nms_iou)
                 boxes = drop_boxes_in_regions(boxes, prepared[name].ignore_regions)
                 speeds.append(fps)
                 for min_age in min_track_ages:
@@ -146,7 +161,7 @@ def main() -> None:
             for min_age in min_track_ages:
                 run_info[make_run_name(base_name, min_age)] = {
                     "weights": weights, "tracker": tracker, "imgsz": imgsz, "min_track_age": min_age,
-                    "fps_cpu": sum(speeds) / len(speeds),
+                    "agnostic_nms_iou": nms_iou, "fps_cpu": sum(speeds) / len(speeds),
                 }
 
     metrics = evaluate_trackers(gt_root, trackers_root, list(sequences), list(run_info), out_dir / "trackeval")

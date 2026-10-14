@@ -13,6 +13,7 @@ import supervision as sv
 from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
+from vtrack.box_filter import set_agnostic_nms
 from vtrack.counting import TrackClassVoter
 from vtrack.models import class_mapping
 from vtrack.mot_format import MotBox
@@ -29,6 +30,9 @@ DEFAULT_TRACKER = "configs/botsort_v6.yaml"
 # Track phải sống đủ 3 frame mới hiện/được đếm: bằng min_hits mặc định của SORT. Trên VnTraffic giảm đổi ID
 # 128 -> 118 và MOTA +0.04, đổi lại IDR -0.004 (mất 2 frame đầu của mỗi xe). Bộ chấm tracking vẫn báo kết quả thô.
 DEFAULT_MIN_TRACK_AGE = 3
+# Lọc box trùng bất kể lớp trước tracker (vtrack.box_filter): None = tắt. Giá trị mặc định chọn trên dev, xem
+# configs/tracker_tuning_v6_nms.yaml.
+DEFAULT_AGNOSTIC_NMS_IOU: float | None = None
 
 
 class TrackAgeFilter:
@@ -82,12 +86,15 @@ def track_video(
     vid_stride: int = 1,
     max_frames: int | None = None,
     min_track_age: int = 1,
+    agnostic_nms_iou: float | None = DEFAULT_AGNOSTIC_NMS_IOU,
 ) -> Iterator[TrackedFrame]:
     """Sinh lần lượt từng frame đã được theo dõi. `max_frames` giới hạn số frame đọc (vd. bằng độ dài nhãn chuẩn);
-    `min_track_age` > 1 ẩn track mới cho tới khi nó sống đủ số frame đó (xem TrackAgeFilter)."""
+    `min_track_age` > 1 ẩn track mới cho tới khi nó sống đủ số frame đó (xem TrackAgeFilter); `agnostic_nms_iou` bật
+    bộ lọc box trùng trước tracker (vtrack.box_filter)."""
     mapping = class_mapping(model.names)
     if not mapping:
         raise ValueError(f"Mô hình không có lớp phương tiện nào: {model.names}")
+    set_agnostic_nms(model, agnostic_nms_iou)
     voter = TrackClassVoter()
     age_filter = TrackAgeFilter(min_track_age)
     frames = sv.get_video_frames_generator(str(source), stride=vid_stride)

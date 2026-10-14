@@ -19,7 +19,9 @@ from vtrack import CLASS_NAMES
 from vtrack.count_eval import make_line_zone
 from vtrack.display_ids import CountedClasses, DisplayIds, label_mask
 from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
-from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER, track_video
+from vtrack.tracking import (
+    DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_DETECTION_CONF, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER, track_video,
+)
 from vtrack.video_io import to_h264
 
 
@@ -89,6 +91,7 @@ def process_video(
     min_track_age: int = DEFAULT_MIN_TRACK_AGE,
     max_frames: int | None = None,
     on_progress: Callable[[int, int], None] | None = None,
+    agnostic_nms_iou: float | None = DEFAULT_AGNOSTIC_NMS_IOU,
 ) -> VideoResult:
     """`line` là toạ độ tương đối (x1, y1, x2, y2) trong [0, 1] của khung hình.
 
@@ -135,7 +138,7 @@ def process_video(
     out_info = sv.VideoInfo(width=w, height=h, fps=info.fps / vid_stride)
     with sv.VideoSink(str(raw_path), out_info) as sink:
         for frames, tracked in enumerate(
-            track_video(source, model, tracker, imgsz, conf, vid_stride, max_frames, min_track_age), start=1
+            track_video(source, model, tracker, imgsz, conf, vid_stride, max_frames, min_track_age, agnostic_nms_iou), start=1
         ):
             detections, track_ids, class_ids = (
                 tracked.detections, tracked.track_ids, tracked.class_ids

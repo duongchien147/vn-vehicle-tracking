@@ -10,6 +10,7 @@ from pathlib import Path
 import numpy as np
 import torch
 
+from vtrack.box_filter import set_agnostic_nms
 from vtrack.complexity import Complexity, count_gflops, count_params_m, yolo_input_hw
 from vtrack.label_review import YoloBox
 from vtrack.models import FALLBACK_IMGSZ, load_model, training_imgsz
@@ -35,9 +36,12 @@ def is_rtdetr_dir(path: str | Path) -> bool:
     return json.loads(config_path.read_text(encoding="utf-8")).get("model_type") == RTDETR_MODEL_TYPE
 
 
-def load_detector(weights: str, imgsz: int | None = None) -> Detector:
-    """`imgsz` None = kích thước lúc train/export của mô hình."""
+def load_detector(weights: str, imgsz: int | None = None, agnostic_nms_iou: float | None = None) -> Detector:
+    """`imgsz` None = kích thước lúc train/export của mô hình. `agnostic_nms_iou` bật bộ lọc box trùng bất kể lớp
+    (vtrack.box_filter, chỉ cho YOLO) để chấm đúng thứ tracker nhận khi bật bộ lọc này."""
     if is_rtdetr_dir(weights):
+        if agnostic_nms_iou is not None:
+            raise ValueError("Bộ lọc box trùng chỉ dùng cho mô hình YOLO")
         # Import muộn: transformers nạp chậm (vài giây) và chỉ cần khi thật sự dùng RT-DETRv2
         from vtrack.rtdetr import RtDetrDetector
 
@@ -51,6 +55,7 @@ def load_detector(weights: str, imgsz: int | None = None) -> Detector:
         return Detector(Path(weights).name, rtdetr.imgsz, rtdetr.predict, rtdetr_complexity)
 
     model = load_model(weights)
+    set_agnostic_nms(model, agnostic_nms_iou)
     size = imgsz or training_imgsz(model) or FALLBACK_IMGSZ
     network = model.model
 
@@ -61,5 +66,6 @@ def load_detector(weights: str, imgsz: int | None = None) -> Detector:
         return Complexity(count_params_m(network), count_gflops(network, torch.zeros(1, 3, *input_hw)), input_hw)
 
     # predict_teacher gộp người lái vào xe máy với mô hình COCO -> cùng quy ước nhãn với dữ liệu Việt Nam
-    return Detector(Path(weights).stem, size, lambda image, conf: predict_teacher(model, image, size, conf),
+    name = Path(weights).stem + ("" if agnostic_nms_iou is None else f"+nms{agnostic_nms_iou}")
+    return Detector(name, size, lambda image, conf: predict_teacher(model, image, size, conf),
                     yolo_complexity if Path(weights).suffix == ".pt" else None)

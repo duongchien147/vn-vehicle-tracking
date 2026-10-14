@@ -70,11 +70,13 @@ def score_model(
     main_classes: list[str],
     bootstrap_rounds: int,
     groups: list[str] | None = None,
+    agnostic_nms_iou: float | None = None,
 ) -> ModelScore:
     """Dự đoán trên mọi ảnh rồi chấm. `load_frame(i)` trả ảnh thứ i (đọc khi cần: tập lớn không nạp hết vào RAM).
     Ghi dự đoán vào `images[i].predictions` (ghi đè kết quả của mô hình trước).
-    `groups` (nhãn khối/cụm của từng ảnh): có thì tính thêm khoảng tin cậy bootstrap theo khối."""
-    detector = load_detector(spec.weights, spec.imgsz)
+    `groups` (nhãn khối/cụm của từng ảnh): có thì tính thêm khoảng tin cậy bootstrap theo khối.
+    `agnostic_nms_iou`: bật bộ lọc box trùng trước khi chấm (vtrack.box_filter)."""
+    detector = load_detector(spec.weights, spec.imgsz, agnostic_nms_iou)
     started = time.perf_counter()
     for index, image in enumerate(images):
         image.predictions = detector.predict(load_frame(index), EVAL_CONF)

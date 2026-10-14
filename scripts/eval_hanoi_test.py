@@ -39,6 +39,8 @@ def main() -> None:
     parser.add_argument("--name", help="Tên thí nghiệm -> outputs/eval_hanoi/<tên>/<tập> (không ghi đè bảng cũ)")
     parser.add_argument("--min-instances", type=int, default=MIN_INSTANCES_FOR_MAIN_MAP,
                         help="mAP chính chỉ tính trên lớp có ít nhất bấy nhiêu box nhãn chuẩn")
+    parser.add_argument("--agnostic-nms-iou", type=float,
+                        help="Bật bộ lọc box trùng bất kể lớp với ngưỡng IoU này (vtrack.box_filter); mặc định tắt")
     args = parser.parse_args()
 
     split_dir = Path(args.split_dir)
@@ -58,7 +60,7 @@ def main() -> None:
     rows = []
     for spec in args.models:
         score = score_model(ModelSpec.parse(spec), images, lambda i: loaded[i][1], main_classes, args.bootstrap,
-                            groups=blocks)
+                            groups=blocks, agnostic_nms_iou=args.agnostic_nms_iou)
         rows.append(score.to_row(counts))
         print(describe(score), flush=True)
 

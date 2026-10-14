@@ -37,3 +37,10 @@ def test_label_and_coordinates_are_written_in_corner_format():
     box = track.find("box")
     assert box is not None
     assert (box.get("xtl"), box.get("ytl"), box.get("xbr"), box.get("ybr")) == ("10.00", "20.00", "40.00", "60.00")
+
+
+def test_no_outside_box_after_last_frame():
+    # Xe còn trong cảnh tới frame cuối (MOT frame 3 = CVAT frame 2): không ghi box outside ở CVAT frame 3
+    track = [MotBox(frame, 5, 10, 20, 30, 40) for frame in (1, 2, 3)]
+    boxes = parse_boxes(tracks_to_cvat_xml(track, {5: "car"}, keyframe_every=10, num_frames=3))
+    assert max(frame for _, frame, _ in boxes) == 2

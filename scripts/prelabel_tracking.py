@@ -58,7 +58,7 @@ def main() -> None:
             lengths[int(track_id)] += 1
 
     kept = [box for box in boxes if lengths[box.track_id] >= MIN_PRELABEL_TRACK_FRAMES]
-    xml = tracks_to_cvat_xml(kept, track_labels, KEYFRAME_EVERY)
+    xml = tracks_to_cvat_xml(kept, track_labels, KEYFRAME_EVERY, num_frames)
     (out_dir / "prelabel_cvat.xml").write_text(xml, encoding="utf-8")
     (out_dir / "labels.txt").write_text("\n".join([*CLASS_NAMES, IGNORE_LABEL]) + "\n", encoding="utf-8")
     n_kept = len({box.track_id for box in kept})

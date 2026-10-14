@@ -12,12 +12,13 @@ from vtrack.mot_format import MotBox
 
 
 def tracks_to_cvat_xml(
-    boxes: list[MotBox], track_labels: dict[int, str], keyframe_every: int = 10,
+    boxes: list[MotBox], track_labels: dict[int, str], keyframe_every: int = 10, num_frames: int | None = None,
 ) -> str:
     """`boxes` có frame đánh từ 1 (MOTChallenge) -> XML CVAT đánh từ 0. `track_labels`: track_id -> tên nhãn CVAT.
 
     Mỗi track: keyframe ở frame đầu, mỗi `keyframe_every` frame, frame cuối của mỗi đoạn liên tục; nếu track
     vắng mặt giữa chừng hoặc kết thúc thì thêm box `outside="1"` ngay sau đó (đúng cách CVAT đánh dấu xe rời cảnh).
+    `num_frames` (số frame của clip): không ghi box `outside` sau frame cuối, vì CVAT từ chối frame không tồn tại.
     """
     by_track: dict[int, list[MotBox]] = defaultdict(list)
     for box in boxes:
@@ -28,6 +29,8 @@ def tracks_to_cvat_xml(
         track = sorted(by_track[track_id], key=lambda b: b.frame)
         lines.append(f'  <track id="{cvat_id}" label={quoteattr(track_labels[track_id])} source="auto">')
         for box, outside in _keyframes(track, keyframe_every):
+            if num_frames is not None and box.frame > num_frames:
+                continue
             lines.append("    " + _box_xml(box, outside))
         lines.append("  </track>")
     lines.append("</annotations>")

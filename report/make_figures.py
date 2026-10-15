@@ -21,7 +21,7 @@ from matplotlib.axes import Axes  # noqa: E402
 OUT = Path("report/overleaf/figures")
 KAGGLE_YOLO = Path("outputs/kaggle/vn-vehicles-yolo26-train")
 RTDETR_EPOCHS = Path("outputs/kaggle/vn-vehicles-rtdetrv2-train/rtdetrv2_r18_v5_e100_960_epochs.csv")
-DEMO_DIR = Path("outputs/kaggle/vtrack-demo-gpu/demo")
+DEMO_DIR = Path("outputs/demo_precomputed")  # video demo của mô hình chính, tạo bằng scripts/make_demo_videos.sh
 DOCX = Path("docs/DL AND CV.docx")
 
 # Bảng màu danh mục (3 ô đầu đạt kiểm tra mù màu theo mọi cặp) + marker/nét khác nhau để in đen trắng vẫn phân biệt

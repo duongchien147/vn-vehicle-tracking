@@ -806,8 +806,8 @@ trên cùng một xe.
 
 Web demo (Hình~\ref{fig:app}) cho chọn clip, xem video kết quả có box, ID, vết di chuyển và vạch đếm, cùng bảng đếm
 theo lớp và hướng, biểu đồ số xe cộng dồn theo thời gian, danh sách sự kiện và nút tải CSV. Chế độ mặc định nạp video
-đã xử lý sẵn trên GPU để trình chiếu mượt; chế độ chạy trực tiếp trên laptop (mặc định v6 OpenVINO trên GPU tích hợp,
-mục~\ref{sec:openvino}) dùng khi cần xử lý video mới.
+đã xử lý sẵn bằng mô hình chính YOLO26s-v6 để trình chiếu mượt; chế độ chạy trực tiếp trên laptop (mặc định bản nhẹ v6
+qua OpenVINO trên GPU tích hợp, mục~\ref{sec:openvino}) dùng khi cần xử lý video mới.
 
 \begin{figure}[H]
   \centering
@@ -823,14 +823,18 @@ mục~\ref{sec:openvino}) dùng khi cần xử lý video mới.
   \label{fig:app}
 \end{figure}
 
-Sáu clip demo dài 60 giây (ba góc máy đại lộ Phạm Văn Đồng và ba clip hầm chui ban đêm) được xử lý sẵn trên GPU T4 bằng
-YOLO26s ở ảnh 960 và BoT-SORT đã chỉnh, đúng chương trình dùng trên máy local. Tính cả vẽ kết quả và mã hoá video 1080p,
-tốc độ xử lý là 15.4--20.9 frame/s; con số này thấp hơn khoảng 42 frame/s của riêng phát hiện và theo dõi, vì khi có
-GPU thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất. Số lượt qua vạch trong 60 giây là 194 ở góc A (chỉ
-chiều ra, vì làn ngược chiều ra khỏi khung hình trước vạch), 169 ở góc B, 254 ở góc C, và 69, 76, 98 ở ba clip hầm chui.
-Với hai clip hầm chui thứ hai và thứ ba, các con số này đã được so với số người đếm tay ở mục~\ref{sec:dem-xe}; các clip
-còn lại chưa có số thật. Clip hầm chui thứ nhất trùng phần lớn nội dung với clip thứ hai và có một chỗ cắt cảnh
-(mục~\ref{sec:tap-danh-gia}), nên chỉ dùng để minh hoạ. Hình~\ref{fig:demo-dem} là một frame của clip này.
+Sáu clip demo dài 60 giây (ba góc máy đại lộ Phạm Văn Đồng và ba clip hầm chui ban đêm) được xử lý sẵn bằng YOLO26s-v6
+ở ảnh 960, BoT-SORT đã chỉnh và bộ lọc box trùng, đúng chương trình dòng lệnh của hệ thống; vạch đếm của từng clip ghi
+trong một file cấu hình. Các video này được xử lý trên CPU của laptop, đạt 2.6--2.8 frame/s tính cả vẽ kết quả và mã
+hoá video 1080p, tức khoảng 11--12 phút mỗi clip. Cùng chương trình chạy trên GPU T4 với YOLO26s học dữ liệu v5 (cùng
+kiến trúc) đạt 15.4--20.9 frame/s. Con số đó thấp hơn khoảng 43 frame/s của riêng phát hiện và theo dõi, vì khi có GPU
+thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất.
+
+Số lượt qua vạch trong 60 giây là 194 ở góc A (193 lượt ra, vì làn ngược chiều ra khỏi khung hình trước vạch), 180 ở
+góc B, 247 ở góc C, và 70, 79, 96 ở ba clip hầm chui. Số của clip hầm chui thứ hai và thứ ba trùng với kết quả đếm của
+YOLO26s-v6 đã so với người đếm tay ở Bảng~\ref{tab:dem-xe-dem}; các clip còn lại chưa có số thật. Clip hầm chui thứ nhất
+trùng phần lớn nội dung với clip thứ hai và có một chỗ cắt cảnh (mục~\ref{sec:tap-danh-gia}), nên chỉ dùng để minh hoạ.
+Hình~\ref{fig:demo-dem} là một frame của clip này.
 
 \begin{figure}[H]
   \centering
@@ -839,19 +843,22 @@ còn lại chưa có số thật. Clip hầm chui thứ nhất trùng phần l�
   \label{fig:demo-dem}
 \end{figure}
 
-Xem lại video demo còn thấy hai lỗi mà các tập test có nhãn không có:
+Xem lại video demo thấy một lỗi mà các tập test có nhãn không có, và một trường hợp dẫn tới cách hiển thị lớp của video:
 \begin{itemize}
-  \item \textbf{Xe cứu hộ chở ô tô} (Hình~\ref{fig:demo-tow}, giây 47.5 của clip hầm chui thứ nhất). Box của mô hình
-        chỉ ôm cabin và gọi cabin là buýt; chiếc ô tô trên sàn được nhận thành một xe riêng. Vì box chỉ ôm cabin, đáy
-        box qua vạch ở giây 47.5 trong khi bánh xe thật vẫn còn dưới vạch tới chỗ cắt cảnh ở giây 48.3, nên pipeline đếm
-        thừa một lượt, lại sai lớp (buýt thay vì tải); chiếc ô tô trên sàn không bị đếm thêm. Xe cứu hộ hiếm gặp trong
-        dữ liệu huấn luyện, nên đây là lỗi phát hiện, không sửa được bằng cấu hình tracker hay bộ đếm.
-  \item \textbf{Đổi nhãn sau khi đã đếm} (xe buýt \#103, clip hầm chui thứ ba). Lúc ở gần, xe được gọi đúng là buýt
-        (55 lần, độ tin cậy trung bình 0.52) và được đếm là buýt khi cắt vạch ở frame 236. Khi đi xa chỉ còn thấy đuôi
-        xe, mô hình gọi chắc chắn là tải (141 lần, độ tin cậy trung bình 0.74), nên từ khoảng frame 326 phiếu bầu cộng
-        dồn nghiêng về tải và nhãn trên video đổi theo, dù số đếm vẫn đúng. Video demo vì vậy khoá lớp hiển thị của
-        mỗi xe tại thời điểm xe được đếm, để nhãn trên video khớp với bảng đếm; lớp dùng để đếm và để chấm điểm không
-        đổi.
+  \item \textbf{Xe cứu hộ chở ô tô} (Hình~\ref{fig:demo-tow}, khoảng giây 47.6 của clip hầm chui thứ nhất). Box của mô
+        hình chỉ ôm cabin và gọi cabin là buýt; chiếc ô tô trên sàn được nhận thành một xe riêng. Vì box chỉ ôm cabin,
+        đáy box qua vạch ở giây 47.6 trong khi bánh xe thật vẫn còn dưới vạch tới chỗ cắt cảnh ở giây 48.3, nên hệ thống
+        đếm thừa một lượt, lại sai lớp (buýt thay vì tải); chiếc ô tô trên sàn không bị đếm thêm. YOLO26s học dữ liệu v5
+        cũng mắc đúng lỗi này. Xe cứu hộ hiếm gặp trong dữ liệu huấn luyện, nên đây là lỗi phát hiện, không sửa được
+        bằng cấu hình tracker hay bộ đếm.
+  \item \textbf{Đổi nhãn sau khi đã đếm.} Bỏ phiếu lớp cộng dồn có thể đổi lớp của một xe sau khi xe đã được đếm. Điều
+        này xảy ra với YOLO26s học dữ liệu v5 ở một xe buýt trong clip hầm chui thứ ba. Lúc ở gần, xe được gọi đúng là
+        buýt (55 lần, độ tin cậy trung bình 0.52) và được đếm là buýt khi cắt vạch ở frame 236. Khi đi xa chỉ còn thấy
+        đuôi xe, mô hình gọi chắc chắn là tải (141 lần, độ tin cậy trung bình 0.74), nên từ khoảng frame 326 nhãn trên
+        video đổi sang tải dù số đếm vẫn đúng. Video demo vì vậy khoá lớp hiển thị của mỗi xe tại thời điểm xe được
+        đếm, để nhãn trên video khớp với bảng đếm; lớp dùng để đếm và để chấm điểm không đổi. Với YOLO26s-v6, cũng xe
+        này được gọi là buýt 405 trong 427 lần phát hiện (độ tin cậy trung bình 0.85), chỉ 10 lần là tải, nên lớp bỏ
+        phiếu giữ là buýt suốt thời gian xe ở trong khung hình.
 \end{itemize}
 
 \begin{figure}[H]

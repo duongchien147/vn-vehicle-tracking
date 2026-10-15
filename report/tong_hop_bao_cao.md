@@ -737,9 +737,16 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 - Tốc độ: chưa đo lại riêng; cùng kiến trúc với YOLO26s v5 (T4 pipeline 43 frame/s; laptop OpenVINO GPU tích hợp 544×960
   9.4 frame/s, INT8 CPU 8.2, PyTorch CPU 3.3).
 - Video demo (15/10/2026, hết quota GPU Kaggle tuần đó): xử lý sẵn trên máy bằng `scripts/make_demo_videos.sh` ->
-  `outputs/demo_precomputed/`, app chế độ "Kết quả xử lý sẵn"; danh sách mô hình của app = YOLO26s-v6 (OpenVINO GPU tích hợp
-  / PyTorch) + bản nhẹ v6 + COCO gốc; bỏ chọn tracker. Ảnh chụp app trong báo cáo (`app_gpu_demo.jpg`, `app_counts.jpg`)
-  cần chụp lại.
+  `outputs/demo_precomputed/` (YOLO26s-v6 PyTorch CPU, bộ lọc box trùng 0.6, lọc tuổi track 3, vạch theo
+  `configs/demo_clips.yaml`), 2.57–2.80 frame/s cả quy trình (~11–12 phút/clip). Lượt qua vạch 60 s: pvd_goc_a 194 (1 vào /
+  193 ra), pvd_goc_b 180, pvd_goc_c 247, hầm chui 1/2/3: 70 / 79 / 96 (clip 2, 3 trùng số đã chấm với người đếm tay).
+  Xe cứu hộ (hầm chui 1, frame 1429 = 47.6 s): VẪN lỗi như bản cũ — box chỉ ôm cabin, gọi "bus", đếm thừa 1; ô tô trên
+  sàn (#243) không bị đếm. Xe buýt hầm chui 3 (track 212, hiển thị #72, đếm "bus" ở frame 236): YOLO26s-v6 gọi buýt 405 /
+  427 lần (conf TB 0.85), tải 10, ô tô 12 -> lớp bỏ phiếu không đổi (kiểm bằng script tạm chạy lại 700 frame đầu, đúng cấu
+  hình demo). App chế độ "Kết quả xử lý sẵn"; danh sách mô hình = YOLO26s-v6 (OpenVINO GPU tích hợp / PyTorch) + bản nhẹ
+  v6 + COCO gốc; bỏ chọn tracker. Ảnh chụp app (`app_gpu_demo.jpg`, `app_counts.jpg`) người làm đồ án đã chụp lại
+  15/10/2026; ảnh frame demo (`demo_pvd_goc_a.jpg`, `demo_ham_chui_dem_1.jpg`, `demo_tow_truck.jpg`) tạo lại từ video mới
+  (`report/make_figures.py`, `DEMO_DIR = outputs/demo_precomputed`).
 - Lưu ý khi bảo vệ: hướng làm YOLO26s-v6 có tham khảo kết quả test của YOLO26s v5 (tốt ban ngày) và v6 (tốt ban đêm);
   quyết định nhận dựa trên dev, test chấm một lần sau đó (đã ghi trong mục "Những lần tập test được dùng lại"). Chỉ 2 seed;
   đêm chênh 0.040 giữa hai lần.

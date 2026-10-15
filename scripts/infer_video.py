@@ -21,7 +21,7 @@ from pathlib import Path
 
 from vtrack.models import DEFAULT_WEIGHTS
 from vtrack.pipeline import process_video
-from vtrack.tracking import DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
+from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
 
 
 def main() -> None:
@@ -30,6 +30,8 @@ def main() -> None:
     parser.add_argument("--weights", default=DEFAULT_WEIGHTS,
                         help=".pt hoặc thư mục *_openvino_model (thêm #cpu / #gpu để chọn thiết bị)")
     parser.add_argument("--tracker", default=DEFAULT_TRACKER)
+    parser.add_argument("--agnostic-nms-iou", type=float, default=DEFAULT_AGNOSTIC_NMS_IOU,
+                        help="Ngưỡng IoU của bộ lọc box trùng trước tracker (vtrack.box_filter); mặc định như pipeline")
     parser.add_argument("--line", type=float, nargs=4, default=[0.0, 0.6, 1.0, 0.6],
                         metavar=("X1", "Y1", "X2", "Y2"), help="Vạch đếm, toạ độ tương đối [0, 1]")
     parser.add_argument("--conf", type=float, default=0.1)
@@ -55,6 +57,7 @@ def main() -> None:
         conf=args.conf,
         imgsz=args.imgsz,
         vid_stride=args.vid_stride,
+        agnostic_nms_iou=args.agnostic_nms_iou,
         on_progress=show_progress,
     )
     print()

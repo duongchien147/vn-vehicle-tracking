@@ -22,7 +22,7 @@ from vtrack.count_eval import compare_counts, count_ground_truth
 from vtrack.models import DEFAULT_WEIGHTS
 from vtrack.mot_format import read_cvat_mot_labeled
 from vtrack.pipeline import process_video
-from vtrack.tracking import DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
+from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
 
 DEFAULT_LINE = (0.0, 0.6, 1.0, 0.6)  # = mặc định của process_video
 
@@ -33,6 +33,8 @@ def main() -> None:
     parser.add_argument("--sequence", default="pvd_goc_a")
     parser.add_argument("--weights", default=DEFAULT_WEIGHTS)
     parser.add_argument("--tracker", default=DEFAULT_TRACKER)
+    parser.add_argument("--agnostic-nms-iou", type=float, default=DEFAULT_AGNOSTIC_NMS_IOU,
+                        help="Ngưỡng IoU của bộ lọc box trùng trước tracker (vtrack.box_filter); mặc định như pipeline")
     parser.add_argument("--line", type=float, nargs=4, default=DEFAULT_LINE, metavar=("X1", "Y1", "X2", "Y2"),
                         help="Vạch đếm, toạ độ tương đối 0–1")
     parser.add_argument("--name", default="default", help="Tên thí nghiệm -> outputs/eval_counting/<tên>/<sequence>")
@@ -51,7 +53,8 @@ def main() -> None:
     out_dir = Path("outputs/eval_counting") / args.name / args.sequence
     out_dir.mkdir(parents=True, exist_ok=True)
     truth = count_ground_truth(labeled, line, width, height)
-    result = process_video(sequence["video"], out_dir / "tracked.mp4", args.weights, tracker=args.tracker, line=line)
+    result = process_video(sequence["video"], out_dir / "tracked.mp4", args.weights, tracker=args.tracker, line=line,
+                           agnostic_nms_iou=args.agnostic_nms_iou)
     rows = compare_counts(truth, result.counts())
     result.write_events_csv(out_dir / "events.csv")
 

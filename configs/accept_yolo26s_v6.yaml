@@ -1,0 +1,30 @@
+# Tiêu chí nhận YOLO26s-v6 làm MÔ HÌNH CHÍNH cho bối cảnh thực tế (CHỐT TRƯỚC khi train, 15/10/2026).
+#
+# Bối cảnh: hệ thống camera giao thông xử lý tập trung trên máy chủ có GPU. Trên T4, cả pipeline của YOLO26s (43
+# frame/s) nhanh ngang YOLO26n (42 frame/s) mà chính xác hơn ở mọi seed trên camera mới; RT-DETRv2-S chỉ 16 frame/s
+# riêng khâu phát hiện (outputs/benchmark_speed/e2_gpu_t4). Nhưng YOLO26s hiện chỉ học dữ liệu v5 (chưa có ảnh đêm), nên
+# ban đêm thua v6 (YOLO26n). YOLO26s-v6 = YOLO26s, dữ liệu v6 (v5 + 288 frame đêm), cấu hình y hệt YOLO26s v5 (imgsz 960,
+# batch 8 cộng dồn tới 64, 100 epoch, patience 20), 2 seed (42, 1). Train: notebooks/kaggle_train/train.ipynb.
+#
+# Mốc so sánh (mAP50 chính; IDR với botsort_tuned_nogmc, CHƯA lọc box trùng — đúng điều kiện đo các mốc):
+#   YOLO26s v5 seed 42 / 1 / 2: dev đêm 0.627 / 0.597 / 0.641; val Hà Nội 0.915 / 0.911 / 0.919; IDR 0.845 / 0.826 / 0.854
+#   v6 (YOLO26n) seed 42 / 1:   dev đêm 0.599 / 0.618;          val Hà Nội 0.914 / 0.914;          IDR 0.841 / 0.824
+#
+# Nhận YOLO26s-v6 nếu đạt cả ba (mỗi điều kiện vượt cả hai mô hình đang có):
+#   1. mAP50 dev đêm của CẢ HAI seed > 0.641 (lần tốt nhất của mọi seed YOLO26s v5 và v6).
+#   2. mAP50 val Hà Nội của mỗi seed >= 0.909 (= lần kém nhất của v6 - 0.005; ngưỡng của YOLO26s v5 là 0.906, thấp hơn).
+#   3. IDR VnTraffic của mỗi seed >= 0.821 (= lần kém nhất của YOLO26s v5 - 0.005; ngưỡng của v6 là 0.819, thấp hơn).
+# Nhận -> YOLO26s-v6 seed 42 là mô hình chính (máy chủ GPU, video demo GPU); v6 (YOLO26n) là bản nhẹ cho máy không có GPU
+# (chế độ chạy trực tiếp trên laptop). Không nhận -> giữ hiện trạng, báo cáo kết quả âm tính.
+#
+# Sau khi nhận: chọn tracker cho YOLO26s-v6 trên hai tập dev (VnTraffic + pvd_goc_c_dev) với ĐÚNG luật của
+# configs/tracker_tuning_v6_dev2.yaml (mốc = không lọc; bỏ sót dev mới <= +2%, HOTA dev mới >= -0.005, IDR VnTraffic
+# >= -0.005; ít đổi ID nhất; đổi khi giảm >= 10%), ứng viên = bộ lọc box trùng none / 0.7 / 0.6 / 0.5. Không chạy lại
+# lưới ngưỡng BoT-SORT: với v6 mọi thay đổi ngưỡng mở track/ghép lần một đều làm bỏ sót tăng 9–43% trên dev mới, và
+# YOLO26s chậm trên CPU (lưới 48 lần chạy). Rồi chấm test MỘT lần (mọi tập test phát hiện, tracking PVD, đếm ngày/đêm).
+seeds: [42, 1]
+thresholds:
+  night_dev_map50_gt: 0.641
+  val_hanoi_map50_ge: 0.909
+  vntraffic_idr_ge: 0.821
+tracker_candidates_agnostic_nms_iou: [none, 0.7, 0.6, 0.5]

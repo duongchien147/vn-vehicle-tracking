@@ -351,7 +351,7 @@ dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đ
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev}
+  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (IDR trên VnTraffic, chưa lọc box trùng)}
   \label{tab:openvino}
   \footnotesize
   \begin{tabularx}{\linewidth}{|p{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
@@ -374,6 +374,9 @@ dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đ
     PyTorch FP32 & CPU & 544×960 & 284.3 & 3.3 & 0.915 & 0.845 \\ \hline
     OpenVINO INT8 & CPU & 544×960 & 103.8 & 8.2 & 0.914 & 0.851 \\ \hline
     OpenVINO FP32 & GPU tích hợp & 544×960 & 84.5 & 9.4 & 0.915 & 0.848 \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26s-v6} (tốc độ như YOLO26s, không đo lại)} \\ \hline
+    PyTorch FP32 & CPU & 544×960 & -- & -- & 0.911 & 0.866 \\ \hline
+    OpenVINO FP32 & GPU tích hợp & 544×960 & -- & -- & 0.912 & 0.875 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -406,9 +409,16 @@ lần. YOLO26s, mô hình chính xác hơn ở cảnh khó, đạt 9.4 frame/s t
 Khi v6 thay v5, web demo dùng cùng cấu hình đó cho v6. Trên dev, bản OpenVINO của v6 hoà PyTorch về mAP50 val (0.914
 so với 0.914) và ban đêm còn nhỉnh hơn (mAP50 dev đêm 0.609 so với 0.599), nhưng IDR thấp hơn 0.016 (0.825 so với
 0.841), quá ngưỡng hoà. Như vậy với v6, chạy OpenVINO là đổi một ít độ ổn định ID lấy tốc độ gấp 2.6 lần. So với bản
-OpenVINO của v5 mà nó thay thế, bản của v6 có cùng IDR (0.825) và tốt hơn hẳn ban đêm. Khi mô hình chính chuyển sang
-YOLO26s-v6, chế độ chạy trên laptop vẫn mặc định dùng bản nhẹ v6, vì YOLO26s trên GPU tích hợp chỉ đạt 9.4 frame/s;
-bản OpenVINO 544×960 của YOLO26s-v6 có trong danh sách để chọn, nhưng độ chính xác của bản xuất này chưa được đo riêng.
+OpenVINO của v5 mà nó thay thế, bản của v6 có cùng IDR (0.825) và tốt hơn hẳn ban đêm.
+
+Khi mô hình chính chuyển sang YOLO26s-v6, chế độ chạy trên laptop vẫn mặc định dùng bản nhẹ v6, vì YOLO26s trên GPU tích
+hợp chỉ đạt 9.4 frame/s. Bản OpenVINO 544×960 của YOLO26s-v6 trên GPU tích hợp có trong danh sách để chọn và được chấm
+trên cùng các tập dev. Về phát hiện, nó hoà bản PyTorch: mAP50 val Hà Nội 0.912 so với 0.911, dev đêm 0.710 so với
+0.711. Về theo dõi, kết quả đổi chiều theo cấu hình. Khi không lọc box trùng, bản OpenVINO có IDR trên VnTraffic cao hơn
+(0.875 so với 0.866, đổi ID 57 so với 63). Với bộ lọc box trùng mặc định thì ngược lại: IDR 0.860 so với 0.870, đổi ID
+66 so với 62, tức kém 0.010, quá ngưỡng hoà. Trên clip dev Phạm Văn Đồng góc C, cũng với bộ lọc, HOTA là 0.754 so với
+0.760 và số lần đổi ID là 15 so với 18. Như vậy, với cấu hình mặc định, bản OpenVINO của YOLO26s-v6 giữ nguyên độ chính
+xác phát hiện và đổi một ít độ ổn định ID trên VnTraffic lấy tốc độ, giống trường hợp của v6.
 
 Khi tính cả khâu vẽ kết quả và ghi video 1080p, cả quy trình của web demo chỉ còn khoảng 7 frame/s. Phần phát hiện đã
 nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm nhất, giống điều đã thấy với video demo trên GPU T4
@@ -1098,8 +1108,8 @@ chiếu về độ chính xác.
         ước COCO; xe bị che một phần được khoanh phần nhìn thấy, lệch quy ước MOTChallenge.
   \item Mô hình chính cần GPU; trên laptop chỉ bản nhẹ đạt khoảng 20 frame/s cho phát hiện và theo dõi, chưa bằng 30
         frame/s của video; tính cả vẽ và ghi video
-        1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32. Bộ lọc box trùng chưa được đo lại tốc độ, và độ
-        chính xác của bản OpenVINO YOLO26s-v6 chưa được đo riêng.
+        1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32. Bộ lọc box
+        trùng chưa được đo lại tốc độ.
   \item Thời gian giữ track của BoT-SORT được chỉnh với v3; với v6 và YOLO26s-v6 chỉ chọn lại các ngưỡng và bộ lọc box trùng. Clip
         dev theo dõi thứ hai chỉ dài 20 giây ở một camera, và box của 8 xe trong đó lấy từ đề xuất của YOLO26x gốc COCO
         rồi duyệt bằng mắt (mục~\ref{sec:tap-danh-gia}). Clip test theo dõi đã được dùng ba lần cho tracker của v6,

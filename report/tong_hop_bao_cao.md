@@ -715,7 +715,7 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 - Train (Kaggle, `notebooks/kaggle_train/train.ipynb`, MODEL `yolo26s.pt`, batch 8, cấu hình y hệt YOLO26s v5): seed 42
   dừng sớm epoch 97, tốt nhất 77, val ultralytics 0.871 / 0.645, Roboflow 0.890 / 0.601, 5.16 giờ T4; seed 1 dừng 78, tốt
   nhất 58, 0.885 / 0.648, 0.880 / 0.592, 3.99 giờ. Trọng số `weights/yolo26s_vn_v6_best.pt`, `_seed1_best.pt`; OpenVINO
-  `yolo26s_vn_v6_best_544x960_openvino_model` (độ chính xác bản xuất chưa đo).
+  `yolo26s_vn_v6_best_544x960_openvino_model` (GPU tích hợp) chấm trên dev (`scripts/rerun_openvino_yolo26s_v6.sh`, `outputs/eval_hanoi/openvino_yolo26s_v6{,_nightdev}/`, `outputs/eval_tracking/openvino_yolo26s_v6_*`): mAP50 val HN 0.912 vs PyTorch 0.911, dev đêm 0.710 vs 0.711 (hoà); VnTraffic không lọc IDR 0.875 vs 0.866, đổi ID 57 vs 63; có lọc 0.6 (mặc định) IDR 0.860 vs 0.870, đổi ID 66 vs 62 (kém 0.010 = đánh đổi, như v6); dev PVD góc C có lọc HOTA 0.754 vs 0.760, đổi ID 15 vs 18; báo cáo: dòng YOLO26s-v6 trong `tab:openvino` + đoạn sau bảng.
 - Tiêu chí nhận (commit trước khi train, `configs/accept_yolo26s_v6.yaml`; chấm `scripts/rerun_yolo26s_v6_dev.sh`, kiểm
   `scripts/check_accept_yolo26s_v6.py`), mỗi điều kiện vượt cả YOLO26s v5 lẫn v6: (1) dev đêm cả hai seed > 0.641 (YOLO26s
   v5 tốt nhất; v6 tốt nhất 0.618): 0.711 / 0.712 ĐẠT; (2) val Hà Nội ≥ 0.909: 0.911 / 0.916 ĐẠT; (3) IDR VnTraffic ≥ 0.821

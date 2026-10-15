@@ -21,7 +21,8 @@ BUNDLE_DIR = Path("outputs/kaggle_gpu_bundle")
 DATASET_SLUG = "vtrack-gpu-benchmark"
 VIDEO = Path("data/raw/vntraffic/VNTraffic/VNTraffic_Original-video.mp4")
 VIDEO_NAME = "vntraffic_1080p.mp4"  # tên trong gói; kernel truyền đường dẫn này cho benchmark_speed.py
-WEIGHTS = ["weights/yolo26n_vn_v5_best.pt", "weights/yolo26s_vn_v5_best.pt", "weights/rtdetrv2_r18_vn_v5_best"]
+WEIGHTS = ["weights/yolo26n_vn_v5_best.pt", "weights/yolo26s_vn_v5_best.pt", "weights/rtdetrv2_r18_vn_v5_best",
+           "weights/yolo26s_vn_v6_best.pt"]  # YOLO26s-v6: mô hình chính, dùng cho video demo GPU (từ 16/10/2026)
 FILES = ["scripts/benchmark_speed.py", "scripts/infer_video.py", "configs/botsort_tuned_nogmc.yaml"]
 DEMO_CLIPS = [f"data/videos/pvd_goc_{c}.mp4" for c in "abc"] + [f"data/videos/ham_chui_dem_{i}.mp4" for i in (1, 2, 3)]
 

@@ -5,8 +5,9 @@ chiếu lúc bảo vệ mà không phụ thuộc mạng. Dữ liệu lấy từ 
 Đẩy lên: python scripts/kaggle_train.py push --notebook-dir notebooks/kaggle_demo_gpu
 Kết quả: /kaggle/working/demo/<clip>_tracked.mp4, _events.csv, _run_config.json
 
-Mô hình YOLO26s: trên GPU nó nhanh ngang YOLO26n (cả pipeline ~42 frame/s, outputs/kaggle/vtrack-gpu-benchmark-run/)
-mà chính xác hơn ở cảnh khó -> đúng khuyến nghị "có GPU thì dùng YOLO26s". Tracker = mặc định của dự án.
+Mô hình = YOLO26s-v6, mô hình chính của dự án (configs/accept_yolo26s_v6.yaml): trên GPU nó nhanh ngang YOLO26n (cả
+pipeline ~42 frame/s, outputs/kaggle/vtrack-gpu-benchmark-run/) mà chính xác hơn, và đã học thêm ảnh đêm. Tracker và bộ
+lọc box trùng = mặc định của dự án (vtrack.tracking: botsort_tuned_nogmc, IoU 0.6).
 """
 
 import os
@@ -18,7 +19,7 @@ from pathlib import Path
 # Cùng phiên bản với máy local (requirements.txt)
 PACKAGES = ["ultralytics==8.4.163", "supervision==0.30.5", "transformers==5.18.0", "openvino", "lap",
             "pycocotools==2.0.11", "ensemble-boxes==1.0.9", "trackeval==1.3.0", "imageio-ffmpeg"]
-WEIGHTS = "weights/yolo26s_vn_v5_best.pt"
+WEIGHTS = "weights/yolo26s_vn_v6_best.pt"
 TRACKER = "configs/botsort_tuned_nogmc.yaml"
 # clip -> vạch đếm (x1, y1, x2, y2) tương đối 0–1, chọn bằng mắt trên frame mẫu: cắt ngang lòng đường ở chỗ xe đủ lớn.
 # pvd_goc_c: vạch ngang ở 0.6 nằm quá xa -> 0.7. pvd_goc_a: vạch ngang 0.6 = vạch đã dùng khi chấm sai số đếm (video

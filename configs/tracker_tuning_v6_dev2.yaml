@@ -1,0 +1,42 @@
+# Lần chỉnh thứ ba cho tracker của v6 (15/10/2026): chọn lại trên HAI tập dev, trong đó có clip dev mới pvd_goc_c_dev
+# (nhãn đầy đủ, nhiều xe nhỏ ở xa) — thứ hai lần trước thiếu.
+#
+# Bối cảnh: hai lần trước chỉ có dev VnTraffic (thiếu nhãn xe nhỏ ở xa).
+#   - configs/tracker_tuning_v6.yaml chọn botsort_v6 (ngưỡng mở track 0.6), nhưng trên test bỏ sót gấp đôi -> bị loại
+#     dựa vào test.
+#   - configs/tracker_tuning_v6_nms.yaml (bộ lọc box trùng) dùng mAP50 dev đêm làm điều kiện thay thế cho "không bỏ sót xe
+#     nhỏ"; không ngưỡng nào đạt (giảm 0.006–0.009 > 0.005).
+# Lần này điều kiện bỏ sót được đo TRỰC TIẾP trên clip dev mới (số box bỏ sót và HOTA), nên điều kiện mAP50 thay thế
+# được bỏ. Thay đổi này chốt trước khi chạy bất kỳ cấu hình nào trên pvd_goc_c_dev; kết quả mAP cũ của bộ lọc đã biết
+# và được ghi trong báo cáo.
+#
+# Ứng viên (đều với v6 seed 42 và seed 1):
+#   - 12 tổ hợp ngưỡng của lưới dưới đây (gồm cả tổ hợp trùng cấu hình hiện tại 0.25/0.25/0.8);
+#   - bộ lọc box trùng không phân lớp IoU 0.7 / 0.6 / 0.5 với cấu hình hiện tại;
+#   - mốc so sánh: cấu hình hiện tại configs/botsort_tuned_nogmc.yaml, không lọc.
+# Chạy: bash scripts/rerun_tracker_v6_dev2.sh  (kết quả VnTraffic dùng lại outputs/eval_tracking/tuning_v6{,_nms}/ —
+# chấm tất định), rồi python scripts/select_tracker_v6.py
+#
+# Tiêu chí (CHỐT TRƯỚC khi chạy, 15/10/2026). Mọi số là trung bình hai seed; so với mốc:
+#   1. Bỏ sót: số box bỏ sót (FN) trên pvd_goc_c_dev không tăng quá 2%.
+#   2. HOTA trên pvd_goc_c_dev không giảm quá 0.005.
+#   3. IDR trên VnTraffic không giảm quá 0.005.
+#   Trong các ứng viên đạt cả ba, chọn ứng viên có tổng số lần đổi ID (pvd_goc_c_dev + VnTraffic) ít nhất; bằng nhau thì
+#   lấy HOTA pvd_goc_c_dev cao hơn. Chỉ đổi mặc định nếu tổng đổi ID giảm ít nhất 10% so với mốc; không thì giữ mốc.
+# Nếu đổi: cấu hình mới chấm MỘT lần trên clip test PVD và đếm xe ngày/đêm (lần thứ ba test được dùng cho tracker của v6,
+# ghi trong báo cáo). Nếu giữ mốc: không chạy test.
+min_track_ages: [1]
+
+experiments:
+  - base: configs/botsort_tuned_nogmc.yaml
+    grid:
+      new_track_thresh: [0.25, 0.4, 0.6]
+      track_high_thresh: [0.25, 0.4]
+      match_thresh: [0.8, 0.9]
+
+selection:
+  baseline_tracker: configs/botsort_tuned_nogmc.yaml
+  max_fn_increase: 0.02
+  max_hota_drop: 0.005
+  max_idr_drop: 0.005
+  min_id_switch_reduction: 0.10

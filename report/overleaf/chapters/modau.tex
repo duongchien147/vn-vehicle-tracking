@@ -37,9 +37,9 @@ cũng chưa đủ để tin mô hình chạy tốt ở camera khác, nên tự x
 
 Về mặt học thuật, đề tài đặt các nội dung chính của môn học vào một bài toán có thật: mạng tích chập và Transformer cho
 phát hiện đối tượng, thuật toán theo dõi đa đối tượng, các chỉ số đánh giá chuẩn như mAP và HOTA. Đề tài cũng phải làm
-những việc ít gặp khi làm bài tập trên dữ liệu có sẵn: thu thập và gán nhãn dữ liệu, chia tập sao cho con số đo được phản ánh
-đúng khả năng tổng quát, cân đối độ chính xác với tốc độ cho cả máy chủ có GPU lẫn máy không có GPU rời. Kết quả cuối cùng, số
-xe đi qua một vạch, lại dễ kiểm chứng bằng mắt.
+những việc ít gặp khi làm bài tập trên dữ liệu có sẵn: thu thập và gán nhãn dữ liệu, chia tập sao cho con số đo được
+phản ánh đúng khả năng tổng quát, cân đối độ chính xác với tốc độ cho cả máy chủ có GPU lẫn máy không có GPU rời. Kết
+quả cuối cùng, số xe đi qua một vạch, lại dễ kiểm chứng bằng mắt.
 
 Từ những lý do trên, đề tài chọn ứng dụng học sâu vào phát hiện, phân loại và theo dõi phương tiện trong video camera
 giao thông Việt Nam, cả ban ngày và ban đêm: tinh chỉnh mô hình phát hiện trên dữ liệu gần bối cảnh mục tiêu, tự xây
@@ -55,9 +55,9 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 \begin{itemize}
   \item Thu thập, gộp và chuẩn hoá dữ liệu huấn luyện từ nhiều nguồn; tự xây các tập test Việt Nam có người kiểm, gồm
         cả cảnh ban đêm, và hai clip có nhãn theo dõi (một để chọn tracker, một để test).
-  \item Tinh chỉnh YOLO26n qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
+  \item Tinh chỉnh YOLO26 qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
   \item So sánh kiến trúc CNN (YOLO26n, YOLO26s) với kiến trúc Transformer (RT-DETRv2-S) theo một giao thức công bằng,
-        đo cả độ chính xác lẫn tốc độ.
+        đo cả độ chính xác lẫn tốc độ, để chọn mô hình hợp với bối cảnh xử lý camera trên máy chủ có GPU.
   \item Chọn và tinh chỉnh thuật toán theo dõi (ByteTrack, BoT-SORT, OC-SORT) trên tập phát triển, rồi chấm cấu hình đã
         chọn trên tập test.
   \item Xây dựng ứng dụng đếm xe qua vạch theo lớp và hướng, đo sai số đếm cả ban ngày và ban đêm; làm web demo bằng
@@ -76,7 +76,8 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 \textbf{Giới hạn:}
 \begin{itemize}
   \item Máy để phát triển và chạy demo là laptop không có GPU rời (CPU Intel Core i5-8250U, GPU tích hợp UHD 620);
-        việc huấn luyện và đo tốc độ trên GPU dùng Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần.
+        việc huấn luyện và đo tốc độ trên GPU dùng Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần. Bối cảnh
+        máy chủ có GPU chỉ được đo với một luồng video trên T4, chưa đo khi nhiều camera chạy cùng lúc.
   \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ: 20--30 frame mỗi tập phát hiện, một clip theo dõi dài 20
         giây, và 249 lượt xe qua vạch để đo sai số đếm.
   \item v5 và YOLO26s (dữ liệu v5) được huấn luyện ba lần với ba seed, v6 và mô hình chính YOLO26s-v6 hai lần; các

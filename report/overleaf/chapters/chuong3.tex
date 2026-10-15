@@ -66,7 +66,8 @@ tỉ lệ 60/20/20 để không nhóm nào nằm ở hai tập. Ảnh được t
 
 Frame Hà Nội được chia theo đoạn thời gian của video: 30 frame test lấy từ phút 0:35 đến 1:35 (mỗi 2 giây một frame),
 10 frame val từ 1:45 đến 2:39, frame train lấy từ các đoạn sau đó. Cả ba phần đến từ \textbf{cùng một camera nhìn
-xuống cùng một ngã tư}, chỉ khác thời điểm và mức zoom. Vì vậy với các mô hình đã học frame Hà Nội (v3 đến v6), tập test
+xuống cùng một ngã tư}, chỉ khác thời điểm và mức zoom. Vì vậy với các mô hình đã học frame Hà Nội (từ v3 trở đi, kể
+cả YOLO26s và RT-DETRv2-S), tập test
 Hà Nội đo độ chính xác \emph{trên chính camera đã dùng để tinh chỉnh}. Đây là một kịch bản triển khai có thật: camera
 giao thông cố định, mô hình được tinh chỉnh bằng video của chính camera đó. Nhưng tập này không đo được khả năng tổng
 quát sang camera mới. Khả năng tổng quát được đo trên các tập có camera không xuất hiện trong dữ liệu huấn luyện:
@@ -79,8 +80,8 @@ gần trùng với frame đã lấy (chênh lệch điểm ảnh trung bình dư
 video hầm chui, cặp frame trùng thật chênh 0.4--1.6). Các đoạn lặp lệch pha nhau nên bộ lọc chỉ bỏ 12 frame, còn 288
 frame. Số cảnh giao thông thật sự khác nhau trong 288 frame này vì thế ít hơn con số 288.
 
-Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6 (bản dùng cho mô hình chính YOLO26s-v6 và bản nhẹ v6): 5.002 ảnh train, 320 ảnh
-val và 308 ảnh test. Bộ v5 giống hệt, chỉ thiếu dòng frame đêm (4.714 ảnh train).
+Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6, bản dùng cho mô hình chính YOLO26s-v6 và bản nhẹ v6:
+5.002 ảnh train, 320 ảnh val và 308 ảnh test. Bộ v5 giống hệt, chỉ thiếu dòng frame đêm (4.714 ảnh train).
 
 \begin{table}[H]
   \centering
@@ -123,7 +124,7 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
     \hline
     \thead{Tập} & \thead{Nội dung} & \thead{Quy mô} & \thead{Vai trò} \\ \hline
     Val Hà Nội & 10 frame video ngã tư Hà Nội, nhãn người & 889 / 156 / 7 / 1 & Dev: chọn mô hình \\ \hline
-    Test Hà Nội & 30 frame ngã tư Hà Nội, nhãn người (sơ bộ từ v2); cùng camera với frame train của v3--v6 & 2.982 /
+    Test Hà Nội & 30 frame ngã tư Hà Nội, nhãn người (sơ bộ từ v2); cùng camera với frame train từ v3 trở đi & 2.982 /
       539 / 5 / 2 & Test phát hiện trên camera đã học \\ \hline
     \texttt{vn\_extra} ngày & 30 frame hai góc máy đại lộ Phạm Văn Đồng, nhãn người (sơ bộ từ YOLO26x) & 552 / 156 /
       0 / 2 & Test phát hiện \\ \hline
@@ -335,9 +336,9 @@ Lý do của từng bước:
         đêm là cảnh v5 yếu nhất và dao động mạnh nhất giữa các lần huấn luyện (mục~\ref{sec:thao-luan}). Frame đêm lấy từ camera
         khác với clip hầm chui dùng để test.
   \item \textbf{YOLO26s-v6} là YOLO26s học đúng dữ liệu v6, cấu hình giống hệt bản YOLO26s học dữ liệu v5. Lý do là bối
-        cảnh triển khai: camera giao thông được xử lý trên máy chủ có GPU, nơi YOLO26s nhanh ngang YOLO26n mà chính xác
-        hơn (mục~\ref{sec:toc-do}), nhưng bản YOLO26s dùng cho so sánh kiến trúc chưa học frame đêm. Tiêu chí nhận ở
-        mục~\ref{sec:tieu-chi-chon}.
+        cảnh triển khai: camera giao thông được xử lý trên máy chủ có GPU, nơi YOLO26s nhanh ngang YOLO26n
+        (mục~\ref{sec:toc-do}) mà chính xác hơn ở cảnh khó (mục~\ref{sec:thao-luan}), nhưng bản YOLO26s dùng cho so
+        sánh kiến trúc chưa học frame đêm. Tiêu chí nhận ở mục~\ref{sec:tieu-chi-chon}.
 \end{itemize}
 
 Hai mô hình YOLO26s và RT-DETRv2-S dùng đúng dữ liệu v5 để so sánh kiến trúc (mục~\ref{sec:giao-thuc}). Hình~\ref{fig:hoc}
@@ -377,22 +378,26 @@ kiện; nếu không, giữ v5 và báo cáo kết quả âm tính. Kết quả:
   \item IDR trên VnTraffic của mỗi lần v6 không thấp hơn lần kém nhất của v5 quá 0.005 (từ 0.822 trở lên): 0.841 và
         0.824, \textbf{đạt}, lần thứ hai sát ngưỡng.
 \end{enumerate}
-v6 với seed 42 trở thành mô hình mặc định lúc đó, theo cùng quy ước với các phiên bản trước; lần huấn luyện với seed 1
-chỉ dùng để đo độ dao động.
+v6 với seed 42 thay v5 làm mô hình mặc định, theo cùng quy ước với các phiên bản trước; lần huấn luyện với seed 1 chỉ
+dùng để đo độ dao động.
 
 \textbf{Mô hình chính YOLO26s-v6.} Bối cảnh của đề tài là camera giao thông đưa hình về xử lý tập trung trên máy chủ có
-GPU. Trên GPU T4, cả pipeline của YOLO26s nhanh ngang YOLO26n (43 so với 42 frame/s, mục~\ref{sec:toc-do}) trong khi
-YOLO26s chính xác hơn ở mọi lần huấn luyện trên camera mới; RT-DETRv2-S chỉ đạt 16 frame/s cho riêng phần phát hiện.
-Mô hình hợp với bối cảnh này vì vậy là YOLO26s, nhưng bản YOLO26s của thí nghiệm kiến trúc chỉ học dữ liệu v5 nên ban
-đêm kém v6. Đề tài huấn luyện YOLO26s trên dữ liệu v6 hai lần (seed 42 và 1), với tiêu chí viết và lưu vào kho mã nguồn
-trước khi huấn luyện. YOLO26s-v6 được nhận nếu đạt cả ba điều kiện, mỗi điều kiện vượt cả YOLO26s học dữ liệu v5 lẫn v6:
+GPU. Trên GPU T4, cả pipeline của YOLO26s nhanh ngang YOLO26n (43 so với 42 frame/s, mục~\ref{sec:toc-do}), còn
+RT-DETRv2-S chỉ đạt 16 frame/s cho riêng phần phát hiện. Về độ chính xác, ở cả ba lần huấn luyện, YOLO26s hơn YOLO26n
+trên \texttt{vn\_extra} ngày và đêm, val UVH-26, UA-DETRAC ngày, test Roboflow và HOTA của clip test theo dõi; ở các
+tập còn lại hai mô hình ngang nhau (mục~\ref{sec:thao-luan}). Mô hình hợp với bối cảnh này vì vậy là YOLO26s, nhưng
+bản YOLO26s của thí nghiệm kiến trúc chỉ học dữ liệu v5 nên ban đêm kém v6. Hướng làm này rút ra từ kết quả test của
+hai mô hình đó, nên quyết định nhận phải dựa trên tập dev: đề tài huấn luyện YOLO26s trên dữ liệu v6 hai lần (seed 42
+và 1), với tiêu chí viết và lưu vào kho mã nguồn trước khi huấn luyện. Mỗi ngưỡng lấy mức chặt hơn giữa YOLO26s học dữ
+liệu v5 và v6: trên dev đêm phải cao hơn lần tốt nhất của cả hai, trên val Hà Nội và VnTraffic không được kém lần kém
+nhất của cả hai quá 0.005. Kết quả:
 \begin{enumerate}
   \item mAP50 chính trên dev đêm của cả hai lần cao hơn 0.641 (lần tốt nhất của ba lần YOLO26s học dữ liệu v5; lần tốt
         nhất của v6 là 0.618): đạt 0.711 và 0.712, \textbf{đạt}.
-  \item mAP50 chính trên val Hà Nội của mỗi lần từ 0.909 trở lên (lần kém nhất của v6 trừ 0.005): 0.911 và 0.916,
-        \textbf{đạt}.
-  \item IDR trên VnTraffic của mỗi lần từ 0.821 trở lên (lần kém nhất của YOLO26s học dữ liệu v5 trừ 0.005): 0.866 và
-        0.870, \textbf{đạt}.
+  \item mAP50 chính trên val Hà Nội của mỗi lần từ 0.909 trở lên (lần kém nhất của v6 trừ 0.005; ngưỡng tính theo
+        YOLO26s học dữ liệu v5 là 0.906): 0.911 và 0.916, \textbf{đạt}.
+  \item IDR trên VnTraffic của mỗi lần từ 0.821 trở lên (lần kém nhất của YOLO26s học dữ liệu v5 trừ 0.005; ngưỡng tính
+        theo v6 là 0.819): 0.866 và 0.870, \textbf{đạt}.
 \end{enumerate}
 Mô hình chính của hệ thống là \textbf{YOLO26s-v6 với seed 42}. v6 (YOLO26n) giữ vai trò bản nhẹ cho máy không có GPU
 rời, như laptop hay thiết bị đặt tại camera.
@@ -566,10 +571,10 @@ và chạy trên GPU Intel tích hợp. Cấu hình này được chọn khi v5 
 \section{Kết luận chương}
 
 Chương này đã trình bày cách xây dựng hệ thống. Dữ liệu huấn luyện gộp từ bảy nguồn, chia theo cảnh để tránh rò rỉ giữa
-train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm, một clip có nhãn quỹ đạo và hai clip
-đêm có số lượt qua vạch do người đếm tay. Mô hình phát hiện được cải tiến qua sáu phiên bản dữ liệu, chọn bằng tiêu chí
-đặt trước trên tập dev. Mô hình chính là YOLO26s học dữ liệu v6, hợp với bối cảnh máy chủ có GPU; YOLO26n v6 là bản
-nhẹ, xuất sang OpenVINO để chạy trên laptop.
-Thí nghiệm so sánh với RT-DETRv2-S theo một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được. Thuật toán
-theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera, có lọc box trùng trước khi ghép. Chương~\ref{chap:ketqua} trình bày kết quả thực
-nghiệm của các lựa chọn này.
+train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm, hai clip có nhãn quỹ đạo (một để chọn
+tracker, một để test) và hai clip đêm có số lượt qua vạch do người đếm tay. Mô hình phát hiện được cải tiến qua sáu
+phiên bản dữ liệu, chọn bằng tiêu chí đặt trước trên tập dev. Mô hình chính là YOLO26s học dữ liệu v6, hợp với bối cảnh
+máy chủ có GPU; YOLO26n v6 là bản nhẹ, xuất sang OpenVINO để chạy trên laptop. Thí nghiệm so sánh với RT-DETRv2-S theo
+một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được. Thuật toán theo dõi được chọn là BoT-SORT đã chỉnh,
+không bù chuyển động camera, có lọc box trùng trước khi ghép. Chương~\ref{chap:ketqua} trình bày kết quả thực nghiệm của
+các lựa chọn này.

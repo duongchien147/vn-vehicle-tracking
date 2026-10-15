@@ -69,7 +69,8 @@ nhãn và hàm mất mát.
 \subsection{YOLO26}
 
 YOLO26~\cite{jocher2026yolo26} là thế hệ YOLO mới nhất của Ultralytics~\cite{ultralytics}, có năm cỡ n, s, m, l, x. Đề
-tài dùng cỡ n (2.5 triệu tham số) làm mô hình triển khai và cỡ s (10.0 triệu tham số) để so sánh. Các điểm khác biệt
+tài dùng cỡ s (10.0 triệu tham số) làm mô hình chính và cỡ n (2.5 triệu tham số) làm bản nhẹ cho máy không có GPU rời;
+hai cỡ cũng được so sánh với nhau trên cùng dữ liệu. Các điểm khác biệt
 chính so với thế hệ trước:
 \begin{itemize}
   \item \textbf{Phát hiện đầu cuối, không cần NMS.} Theo hướng của YOLOv10~\cite{wang2024yolov10}, khi suy luận mô hình

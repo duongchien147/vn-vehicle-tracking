@@ -747,6 +747,12 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   v6 + COCO gốc; bỏ chọn tracker. Ảnh chụp app (`app_gpu_demo.jpg`, `app_counts.jpg`) người làm đồ án đã chụp lại
   15/10/2026; ảnh frame demo (`demo_pvd_goc_a.jpg`, `demo_ham_chui_dem_1.jpg`, `demo_tow_truck.jpg`) tạo lại từ video mới
   (`report/make_figures.py`, `DEMO_DIR = outputs/demo_precomputed`).
+- So với RT-DETRv2-S (học dữ liệu v5): mAP50 `vn_extra` ngày thấp hơn (0.830 vs 0.886), đêm cao hơn (0.887 vs 0.816; khác
+  dữ liệu nên không kết luận về kiến trúc). mAP50-95 trên tập nhãn độc lập RT-DETRv2-S vẫn khít nhất: UVH 0.757 vs 0.729,
+  UA-DETRAC đêm 0.588 vs 0.556, ngày 0.599 vs 0.573 (`outputs/eval_uvh26/yolo26s_v6/`, `outputs/eval_ua_detrac/yolo26s_v6/`).
+  So với YOLO26s học v5: ngang ở hầu hết tập, test Roboflow thấp hơn một chút (0.848–0.857 vs 0.862–0.865).
+- Đếm đêm: 3 lượt sót = 2 xe máy mà v6 và seed 1 cũng sót (giây 24.43, 39.4 clip 3) + 1 xe máy ở frame cuối clip (59.97 s).
+- Hạn chế thêm: bối cảnh máy chủ GPU mới đo một luồng video trên T4 (FP32, chưa TensorRT/FP16), chưa đo nhiều camera cùng lúc.
 - Lưu ý khi bảo vệ: hướng làm YOLO26s-v6 có tham khảo kết quả test của YOLO26s v5 (tốt ban ngày) và v6 (tốt ban đêm);
   quyết định nhận dựa trên dev, test chấm một lần sau đó (đã ghi trong mục "Những lần tập test được dùng lại"). Chỉ 2 seed;
   đêm chênh 0.040 giữa hai lần.

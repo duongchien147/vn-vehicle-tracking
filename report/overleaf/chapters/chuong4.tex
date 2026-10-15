@@ -1022,8 +1022,8 @@ chiếu.
   \item Trên laptop, phát hiện và theo dõi đạt khoảng 20 frame/s, chưa bằng 30 frame/s của video; tính cả vẽ và ghi video
         1080p chỉ khoảng 7 frame/s. RT-DETRv2 chưa được xuất sang OpenVINO; trên GPU T4 mới đo ở FP32.
   \item Thời gian giữ track của BoT-SORT được chỉnh với v3; với v6 chỉ chọn lại các ngưỡng và bộ lọc box trùng. Clip
-        dev theo dõi thứ hai chỉ dài 20 giây ở một camera, và nhãn của nó có phần được rà soát với trợ lý AI và box đề
-        xuất của YOLO26x gốc COCO (mục~\ref{sec:tap-danh-gia}). Clip test theo dõi đã được dùng ba lần cho tracker của v6,
+        dev theo dõi thứ hai chỉ dài 20 giây ở một camera, và box của 8 xe trong đó lấy từ đề xuất của YOLO26x gốc COCO
+        rồi duyệt bằng mắt (mục~\ref{sec:tap-danh-gia}). Clip test theo dõi đã được dùng ba lần cho tracker của v6,
         một lần trong đó làm đổi lựa chọn (mục~\ref{sec:thao-luan}).
   \item Nhãn của 288 frame đêm huấn luyện là nhãn tự động, chỉ giữ được khoảng 40\% xe cao dưới 32 điểm ảnh; frame đêm
         đến từ hai camera trong hai video ghép lặp. Tập dev đêm chỉ có 32 frame từ một camera, và hướng làm v6 có xuất

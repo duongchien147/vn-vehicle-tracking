@@ -696,7 +696,9 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   góc clip test), 600 frame, 96 track (80 ngoài vùng ignore y < 637), 11.071 box xe máy / 5.649 ô tô. Nhãn sơ bộ YOLO26s
   v5; người gán trên CVAT; trợ lý AI soát/sửa qua API CVAT (lấp chỗ hở, gộp/tách track, khôi phục 2 track bị xoá nhầm, tách
   box hai xe chạy song song bằng mắt, 8 xe đường bên trái từ box YOLO26x COCO đã duyệt) — nhật ký
-  `data/tracking_gt/pvd_goc_c_dev/cvat_backup/edit_log.json`. Báo cáo ghi rõ có trợ lý AI hỗ trợ rà soát.
+  `data/tracking_gt/pvd_goc_c_dev/cvat_backup/edit_log.json`. Báo cáo mô tả là "kiểm tra lại bằng script đọc nhãn từ
+  CVAT, xem ảnh từng chỗ trước khi sửa; YOLO26x COCO dò chỗ sót và đề xuất box cho 8 xe, duyệt bằng mắt" (người làm đồ án
+  chọn cách diễn đạt này 15/10/2026).
 - Lưu ý khi bảo vệ: hướng làm v6 và việc chọn mô hình thầy xuất phát từ kết quả trên test đêm `vn_extra`; quyết định nhận
   dựa trên dev đêm ở camera thứ ba, test chấm sau. Đã ghi trong mục "Những lần tập test được dùng lại".
 

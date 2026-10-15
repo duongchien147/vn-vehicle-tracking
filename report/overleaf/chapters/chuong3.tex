@@ -169,10 +169,11 @@ Bốn tập dev được dùng để ra quyết định; mọi tập còn lại 
         frame hai phút) và khác góc máy của clip test theo dõi. Vì vậy clip này chỉ dùng để chọn tracker, không dùng cho
         quyết định nào về mô hình phát hiện. Nhãn sơ bộ lấy từ YOLO26s bản v5, không phải từ v6 là mô hình đang được chỉnh
         tracker. Người gán sửa trên CVAT theo đúng quy tắc của clip test; vùng bỏ qua là dải phía trên y = 637, nơi xe máy
-        cao dưới 25 điểm ảnh. Sau đó nhãn được rà soát thêm với sự hỗ trợ của trợ lý AI qua API của CVAT: tìm
-        chỗ box bị hở, track trùng và track nhảy sang xe khác. Mô hình YOLO26x gốc COCO, không phải mô hình của đề tài,
-        chỉ được dùng để dò chỗ có thể sót xe và đề xuất box cho 8 xe ở làn bên kia dải phân cách; mọi box đều được duyệt
-        bằng mắt, mọi chỉnh sửa được ghi lại kèm bản sao lưu.
+        cao dưới 25 điểm ảnh. Sau đó nhãn được kiểm tra lại bằng script đọc nhãn trực tiếp từ CVAT, để tìm chỗ box bị hở
+        giữa chừng, hai track trên cùng một xe và track nhảy sang xe khác; mỗi chỗ đều được xem ảnh trước khi sửa. Để dò
+        xe có thể bị sót, đề tài dùng mô hình YOLO26x gốc COCO, không phải mô hình của đề tài; mô hình này cũng đề xuất
+        box cho 8 xe ở làn bên kia dải phân cách mà nhãn còn thiếu, và từng box được duyệt bằng mắt. Mọi chỉnh sửa được
+        ghi lại kèm bản sao lưu.
   \item \textbf{Video hầm chui.} Ba clip đêm được cắt ở ba thời điểm khác nhau của một video dài khoảng ba giờ, nhưng
         khi đếm xe từng frame mới thấy video gốc có đoạn lặp: frame 0--1387 của clip thứ nhất trùng frame 412--1799 của
         clip thứ hai (so chênh lệch điểm ảnh giữa các cặp frame), và clip thứ nhất có một chỗ cắt cảnh ở giây 48.3. Clip

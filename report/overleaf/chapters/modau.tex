@@ -38,7 +38,7 @@ cũng chưa đủ để tin mô hình chạy tốt ở camera khác, nên tự x
 Về mặt học thuật, đề tài đặt các nội dung chính của môn học vào một bài toán có thật: mạng tích chập và Transformer cho
 phát hiện đối tượng, thuật toán theo dõi đa đối tượng, các chỉ số đánh giá chuẩn như mAP và HOTA. Đề tài cũng phải làm
 những việc ít gặp khi làm bài tập trên dữ liệu có sẵn: thu thập và gán nhãn dữ liệu, chia tập sao cho con số đo được phản ánh
-đúng khả năng tổng quát, cân đối độ chính xác với tốc độ khi máy chỉ là laptop không có GPU rời. Kết quả cuối cùng, số
+đúng khả năng tổng quát, cân đối độ chính xác với tốc độ cho cả máy chủ có GPU lẫn máy không có GPU rời. Kết quả cuối cùng, số
 xe đi qua một vạch, lại dễ kiểm chứng bằng mắt.
 
 Từ những lý do trên, đề tài chọn ứng dụng học sâu vào phát hiện, phân loại và theo dõi phương tiện trong video camera
@@ -75,12 +75,12 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 
 \textbf{Giới hạn:}
 \begin{itemize}
-  \item Máy chạy suy luận là laptop không có GPU rời (CPU Intel Core i5-8250U, GPU tích hợp UHD 620); việc huấn luyện
-        chạy trên GPU Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần.
+  \item Máy để phát triển và chạy demo là laptop không có GPU rời (CPU Intel Core i5-8250U, GPU tích hợp UHD 620);
+        việc huấn luyện và đo tốc độ trên GPU dùng Tesla T4 của Kaggle, với hạn mức khoảng 30 giờ GPU mỗi tuần.
   \item Các tập test do đề tài tự gán nhãn có kích thước nhỏ: 20--30 frame mỗi tập phát hiện, một clip theo dõi dài 20
         giây, và 249 lượt xe qua vạch để đo sai số đếm.
-  \item Chỉ v5 và YOLO26s được huấn luyện ba lần với ba seed, mô hình triển khai v6 hai lần; các cấu hình khác mỗi
-        cấu hình một lần.
+  \item v5 và YOLO26s (dữ liệu v5) được huấn luyện ba lần với ba seed, v6 và mô hình chính YOLO26s-v6 hai lần; các
+        cấu hình khác mỗi cấu hình một lần.
   \item Nhãn của frame huấn luyện (Hà Nội và ban đêm) là nhãn tự động, không có người kiểm từng frame.
 \end{itemize}
 
@@ -90,8 +90,8 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
   \item Dữ liệu: gộp bảy nguồn dữ liệu huấn luyện, chia tập theo cảnh; gán nhãn tay các tập test, một tập dev ban đêm
         và đếm tay số lượt xe qua vạch ở hai clip đêm; tạo nhãn tự động cho frame huấn luyện cắt từ video Hà Nội và
         video đường phố ban đêm.
-  \item Huấn luyện: sáu phiên bản YOLO26n (v1 đến v6), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle;
-        v5 và YOLO26s được huấn luyện thêm hai lần, v6 thêm một lần với seed khác.
+  \item Huấn luyện: sáu phiên bản YOLO26n (v1 đến v6), YOLO26s trên dữ liệu v5 và v6, một bản RT-DETRv2-S trên
+        Kaggle; v5 và YOLO26s (dữ liệu v5) được huấn luyện thêm hai lần, v6 và YOLO26s-v6 thêm một lần với seed khác.
   \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên hai tập phát triển (VnTraffic và một clip Phạm Văn
         Đồng gán nhãn tay), chấm trên một clip Phạm Văn Đồng khác gán nhãn tay bằng CVAT.
   \item Ứng dụng: pipeline đếm xe qua vạch, web demo Streamlit, video demo xử lý trên GPU.

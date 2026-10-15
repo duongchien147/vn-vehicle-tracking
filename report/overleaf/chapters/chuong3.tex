@@ -79,7 +79,7 @@ gần trùng với frame đã lấy (chênh lệch điểm ảnh trung bình dư
 video hầm chui, cặp frame trùng thật chênh 0.4--1.6). Các đoạn lặp lệch pha nhau nên bộ lọc chỉ bỏ 12 frame, còn 288
 frame. Số cảnh giao thông thật sự khác nhau trong 288 frame này vì thế ít hơn con số 288.
 
-Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6 (bản dùng cho mô hình triển khai): 5.002 ảnh train, 320 ảnh
+Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6 (bản dùng cho mô hình chính YOLO26s-v6 và bản nhẹ v6): 5.002 ảnh train, 320 ảnh
 val và 308 ảnh test. Bộ v5 giống hệt, chỉ thiếu dòng frame đêm (4.714 ảnh train).
 
 \begin{table}[H]
@@ -117,8 +117,9 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
   \centering
   \caption{Các tập đánh giá và vai trò (số box theo thứ tự xe máy / ô tô / buýt / tải)}
   \label{tab:tap-danh-gia}
-  \small
-  \begin{tabularx}{\linewidth}{|p{2.6cm}|L|p{2.9cm}|p{2.2cm}|}
+  \footnotesize
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|L|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{2.6cm}|}
     \hline
     \thead{Tập} & \thead{Nội dung} & \thead{Quy mô} & \thead{Vai trò} \\ \hline
     Val Hà Nội & 10 frame video ngã tư Hà Nội, nhãn người & 889 / 156 / 7 / 1 & Dev: chọn mô hình \\ \hline
@@ -128,14 +129,14 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
       0 / 2 & Test phát hiện \\ \hline
     \texttt{vn\_extra} đêm & 30 frame hầm chui TP.HCM ban đêm, nhãn người (sơ bộ từ YOLO26x) & 468 / 157 / 6 / 9 & Test
       phát hiện \\ \hline
-    Dev đêm & 32 frame nút giao Công viên Gia Định (TP.HCM) ban đêm, YouTube kênh Vietnam Naturally; nhãn người (sơ bộ
-      từ YOLO26x), 20 vùng bỏ qua; camera không có trong dữ liệu huấn luyện & 359 / 162 / 3 / 0 & Dev: nhận v6, chọn
-      ngưỡng nhãn tự động ban đêm \\ \hline
+    Dev đêm & 32 frame đêm nút giao Công viên Gia Định, TP.HCM (YouTube, kênh Vietnam Naturally), camera không có
+      trong dữ liệu train; nhãn người (sơ bộ từ YOLO26x), 20 vùng bỏ qua & 359 / 162 / 3 / 0 & Dev: nhận v6 và
+      YOLO26s-v6; chọn ngưỡng nhãn tự động \\ \hline
     20 frame PVD & 1 frame mỗi giây của clip theo dõi & 375 / 238 / 12 / 0 & Test phát hiện \\ \hline
     Clip theo dõi PVD & 20 giây (600 frame, 30 fps), nhãn quỹ đạo bằng CVAT & 183 quỹ đạo & Test theo dõi, đếm xe
       ban ngày \\ \hline
-    Clip dev theo dõi PVD & 20 giây (600 frame, 30 fps) ở góc máy khác clip test, nhãn quỹ đạo bằng CVAT & 80 quỹ đạo
-      ngoài vùng bỏ qua & Dev: chọn tracker cho v6 \\ \hline
+    Clip dev theo dõi PVD & 20 giây, góc máy khác clip test, nhãn quỹ đạo bằng CVAT & 80 quỹ đạo ngoài vùng bỏ qua &
+      Dev: chọn tracker \\ \hline
     Đếm xe hầm chui & Hai clip đêm 60 giây, người đếm tay từng lượt qua vạch & 176 lượt: 149 / 25 / 1 / 1 & Test đếm xe
       ban đêm \\ \hline
     VnTraffic~\cite{le2026vntraffic} & Video giao thông Việt Nam (nguồn kênh HTV), nhìn chéo từ trên cao, 17 giây & 501
@@ -293,7 +294,8 @@ Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần c
   \caption{Lịch sử huấn luyện các mô hình (val và test Roboflow do bộ chấm của thư viện tính khi train)}
   \label{tab:lich-su-train}
   \footnotesize
-  \begin{tabularx}{\linewidth}{|p{1.5cm}|L|>{\centering\arraybackslash}p{0.8cm}|>{\centering\arraybackslash}p{1.5cm}|>{\centering\arraybackslash}p{1.7cm}|>{\centering\arraybackslash}p{1.8cm}|>{\centering\arraybackslash}p{0.9cm}|}
+  \setlength{\tabcolsep}{3pt}
+  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.5cm}|L|>{\centering\arraybackslash}p{0.8cm}|>{\centering\arraybackslash}p{1.3cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{0.8cm}|}
     \hline
     \thead{Mô hình} & \thead{Dữ liệu train} & \thead{Ảnh} & \thead{Epoch tốt nhất / đã chạy} &
       \thead{Val mAP50 / 50-95} & \thead{Test Roboflow mAP50 / 50-95} & \thead{Giờ T4} \\ \hline
@@ -305,12 +307,14 @@ Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần c
     v5 & v3 + 2.000 ảnh UVH-26 & 960 & 90 / 100 & 0.867 / 0.628 & 0.861 / 0.578 & 2.96 \\ \hline
     v5, seed 1 & như v5 & 960 & 69 / 89 & 0.877 / 0.638 & 0.868 / 0.590 & 2.68 \\ \hline
     v5, seed 2 & như v5 & 960 & 93 / 100 & 0.871 / 0.630 & 0.862 / 0.579 & 3.02 \\ \hline
-    \textbf{v6} & v5 + 288 frame đêm nhãn tự động & 960 & 73 / 93 & 0.868 / 0.629 & 0.868 / 0.584 & 3.04 \\ \hline
+    v6 & v5 + 288 frame đêm nhãn tự động & 960 & 73 / 93 & 0.868 / 0.629 & 0.868 / 0.584 & 3.04 \\ \hline
     v6, seed 1 & như v6 & 960 & 85 / 100 & 0.862 / 0.626 & 0.858 / 0.587 & 3.27 \\ \hline
     YOLO26s & như v5 & 960 & 87 / 100 & 0.873 / 0.639 & 0.884 / 0.600 & 4.90 \\ \hline
     YOLO26s, seed 1 & như v5 & 960 & 81 / 100 & 0.875 / 0.644 & 0.879 / 0.594 & 5.36 \\ \hline
     YOLO26s, seed 2 & như v5 & 960 & 60 / 80 & 0.873 / 0.647 & 0.887 / 0.603 & 4.31 \\ \hline
     RT-DETRv2-S & như v5 & 960 & 61 / 81 & 0.878 / 0.651 & 0.874 / 0.601 & 10.7 \\ \hline
+    \textbf{YOLO26s-v6} & như v6 & 960 & 77 / 97 & 0.871 / 0.645 & 0.890 / 0.601 & 5.16 \\ \hline
+    YOLO26s-v6, seed 1 & như v6 & 960 & 58 / 78 & 0.885 / 0.648 & 0.880 / 0.592 & 3.99 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -330,6 +334,10 @@ Lý do của từng bước:
   \item \textbf{v6} thêm 288 frame đêm từ hai camera mới, gán nhãn tự động. Hướng này xuất phát từ kết quả của v5: ban
         đêm là cảnh v5 yếu nhất và dao động mạnh nhất giữa các lần huấn luyện (mục~\ref{sec:thao-luan}). Frame đêm lấy từ camera
         khác với clip hầm chui dùng để test.
+  \item \textbf{YOLO26s-v6} là YOLO26s học đúng dữ liệu v6, cấu hình giống hệt bản YOLO26s học dữ liệu v5. Lý do là bối
+        cảnh triển khai: camera giao thông được xử lý trên máy chủ có GPU, nơi YOLO26s nhanh ngang YOLO26n mà chính xác
+        hơn (mục~\ref{sec:toc-do}), nhưng bản YOLO26s dùng cho so sánh kiến trúc chưa học frame đêm. Tiêu chí nhận ở
+        mục~\ref{sec:tieu-chi-chon}.
 \end{itemize}
 
 Hai mô hình YOLO26s và RT-DETRv2-S dùng đúng dữ liệu v5 để so sánh kiến trúc (mục~\ref{sec:giao-thuc}). Hình~\ref{fig:hoc}
@@ -369,8 +377,25 @@ kiện; nếu không, giữ v5 và báo cáo kết quả âm tính. Kết quả:
   \item IDR trên VnTraffic của mỗi lần v6 không thấp hơn lần kém nhất của v5 quá 0.005 (từ 0.822 trở lên): 0.841 và
         0.824, \textbf{đạt}, lần thứ hai sát ngưỡng.
 \end{enumerate}
-Mô hình triển khai là \textbf{v6 với seed 42}, theo cùng quy ước với các phiên bản trước; lần huấn luyện với seed 1 chỉ
-dùng để đo độ dao động.
+v6 với seed 42 trở thành mô hình mặc định lúc đó, theo cùng quy ước với các phiên bản trước; lần huấn luyện với seed 1
+chỉ dùng để đo độ dao động.
+
+\textbf{Mô hình chính YOLO26s-v6.} Bối cảnh của đề tài là camera giao thông đưa hình về xử lý tập trung trên máy chủ có
+GPU. Trên GPU T4, cả pipeline của YOLO26s nhanh ngang YOLO26n (43 so với 42 frame/s, mục~\ref{sec:toc-do}) trong khi
+YOLO26s chính xác hơn ở mọi lần huấn luyện trên camera mới; RT-DETRv2-S chỉ đạt 16 frame/s cho riêng phần phát hiện.
+Mô hình hợp với bối cảnh này vì vậy là YOLO26s, nhưng bản YOLO26s của thí nghiệm kiến trúc chỉ học dữ liệu v5 nên ban
+đêm kém v6. Đề tài huấn luyện YOLO26s trên dữ liệu v6 hai lần (seed 42 và 1), với tiêu chí viết và lưu vào kho mã nguồn
+trước khi huấn luyện. YOLO26s-v6 được nhận nếu đạt cả ba điều kiện, mỗi điều kiện vượt cả YOLO26s học dữ liệu v5 lẫn v6:
+\begin{enumerate}
+  \item mAP50 chính trên dev đêm của cả hai lần cao hơn 0.641 (lần tốt nhất của ba lần YOLO26s học dữ liệu v5; lần tốt
+        nhất của v6 là 0.618): đạt 0.711 và 0.712, \textbf{đạt}.
+  \item mAP50 chính trên val Hà Nội của mỗi lần từ 0.909 trở lên (lần kém nhất của v6 trừ 0.005): 0.911 và 0.916,
+        \textbf{đạt}.
+  \item IDR trên VnTraffic của mỗi lần từ 0.821 trở lên (lần kém nhất của YOLO26s học dữ liệu v5 trừ 0.005): 0.866 và
+        0.870, \textbf{đạt}.
+\end{enumerate}
+Mô hình chính của hệ thống là \textbf{YOLO26s-v6 với seed 42}. v6 (YOLO26n) giữ vai trò bản nhẹ cho máy không có GPU
+rời, như laptop hay thiết bị đặt tại camera.
 
 \section{Giao thức so sánh kiến trúc CNN và Transformer}
 \label{sec:giao-thuc}
@@ -456,7 +481,7 @@ Quá trình chọn gồm năm bước, kết quả chi tiết ở mục~\ref{sec
         rác; bộ chấm vẫn báo kết quả thô làm số chính.
   \item Với v6, thêm bộ lọc box trùng không phân lớp (NMS, ngưỡng IoU 0.6) trước tracker. YOLO26 là mô hình end-to-end
         nên Ultralytics không chạy NMS, và v6 sinh nhiều box phụ chồng lên cùng một xe. Bộ lọc được chọn trên hai tập
-        dev sau ba lần thử (mục~\ref{sec:giam-doi-id}).
+        dev sau ba lần thử (mục~\ref{sec:giam-doi-id}). Chọn lại theo đúng luật đó cho YOLO26s-v6 cũng ra bộ lọc IoU 0.6.
 \end{enumerate}
 
 \begin{table}[H]
@@ -527,21 +552,24 @@ tại thời điểm xe cắt vạch.
 \subsection{Web demo và triển khai}
 
 Web demo viết bằng Streamlit có hai chế độ. Chế độ chạy trực tiếp cho chọn clip có sẵn hoặc tải video lên, chọn mô hình,
-tracker, ngưỡng tin cậy và vị trí vạch đếm, rồi hiển thị video kết quả, bảng đếm theo lớp và hướng, biểu đồ số xe cộng
-dồn theo thời gian và cho tải file CSV. Chế độ thứ hai nạp lại video đã xử lý sẵn trên GPU, dùng khi trình chiếu vì
-trên laptop, tính cả vẽ kết quả và ghi video 1080p, cả quy trình chỉ đạt khoảng 7 frame/s.
+ngưỡng tin cậy và vị trí vạch đếm, rồi hiển thị video kết quả, bảng đếm theo lớp và hướng, biểu đồ số xe cộng dồn theo
+thời gian và cho tải file CSV. Danh sách mô hình chỉ gồm mô hình chính YOLO26s-v6, bản nhẹ YOLO26n-v6 và mô hình gốc
+COCO để so sánh trước và sau tinh chỉnh; tracker là cấu hình mặc định. Chế độ thứ hai nạp lại video đã xử lý sẵn bằng
+mô hình chính, dùng khi trình chiếu vì trên laptop, tính cả vẽ kết quả và ghi video 1080p, cả quy trình chỉ đạt vài
+frame/s.
 
-Để chạy nhanh trên laptop, mô hình triển khai được xuất sang OpenVINO~\cite{openvino}. Bản dùng cho web demo nhận ảnh
-544×960, đúng khung video 16:9 với cạnh dài bằng kích thước ảnh lúc huấn luyện, và chạy trên GPU Intel tích hợp của
-laptop. Cấu hình này được chọn khi v5 còn là mô hình triển khai; cách chọn và các phương án khác (INT8, chạy trên CPU)
-trình bày ở mục~\ref{sec:openvino}. v6 dùng lại đúng cấu hình đó, vì cùng kiến trúc và cùng kích thước đầu vào.
+Để chạy nhanh trên laptop, mô hình được xuất sang OpenVINO~\cite{openvino}. Khi chạy trực tiếp trên laptop, web demo mặc
+định dùng bản nhẹ YOLO26n-v6, nhận ảnh 544×960 (đúng khung video 16:9 với cạnh dài bằng kích thước ảnh lúc huấn luyện)
+và chạy trên GPU Intel tích hợp. Cấu hình này được chọn khi v5 còn là mô hình mặc định; cách chọn và các phương án khác
+(INT8, chạy trên CPU, YOLO26s) trình bày ở mục~\ref{sec:openvino}.
 
 \section{Kết luận chương}
 
 Chương này đã trình bày cách xây dựng hệ thống. Dữ liệu huấn luyện gộp từ bảy nguồn, chia theo cảnh để tránh rò rỉ giữa
 train và test; các tập đánh giá Việt Nam do đề tài tự gán nhãn, gồm cả cảnh đêm, một clip có nhãn quỹ đạo và hai clip
 đêm có số lượt qua vạch do người đếm tay. Mô hình phát hiện được cải tiến qua sáu phiên bản dữ liệu, chọn bằng tiêu chí
-đặt trước trên tập dev, và mô hình triển khai là YOLO26n v6, xuất sang OpenVINO để chạy trên GPU tích hợp của laptop.
+đặt trước trên tập dev. Mô hình chính là YOLO26s học dữ liệu v6, hợp với bối cảnh máy chủ có GPU; YOLO26n v6 là bản
+nhẹ, xuất sang OpenVINO để chạy trên laptop.
 Thí nghiệm so sánh với RT-DETRv2-S theo một giao thức ghi rõ các yếu tố đồng nhất và không đồng nhất được. Thuật toán
-theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera. Chương~\ref{chap:ketqua} trình bày kết quả thực
+theo dõi được chọn là BoT-SORT đã chỉnh, không bù chuyển động camera, có lọc box trùng trước khi ghép. Chương~\ref{chap:ketqua} trình bày kết quả thực
 nghiệm của các lựa chọn này.

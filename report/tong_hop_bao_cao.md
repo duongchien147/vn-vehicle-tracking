@@ -570,7 +570,9 @@ vạch vài frame (chọn trên dev).
 3 clip hầm chui, 20 s mỗi clip, mốc ngày = clip PVD: độ tin cậy trung vị v5 0.59–0.63 (đêm) vs 0.63 (ngày); tỉ lệ track
 < 1 s 47–52% vs 54% → v5 gần như không suy giảm; v3 tụt rõ (0.36–0.45; 67–73% track ngắn). Chỉ là chỉ số thay thế.
 
-### 4.13 Video demo GPU (`outputs/kaggle/vtrack-demo-gpu/demo/`)
+### 4.13 Video demo GPU (`outputs/kaggle/vtrack-demo-gpu/demo/`) — bản cũ, YOLO26s học dữ liệu v5
+
+Từ 15/10/2026 video demo dùng YOLO26s-v6, xử lý sẵn trên máy (mục 4.17); số dưới đây là của bản cũ.
 
 YOLO26s @960 + `botsort_tuned_nogmc`, 6 clip × 60 s 1080p; lượt qua vạch: pvd_goc_a 194 (chỉ chiều ra), pvd_goc_b
 169, pvd_goc_c 254, hầm chui 1/2/3: 69 / 76 / 98 (chưa có nhãn — không phải số đánh giá).
@@ -646,7 +648,7 @@ Test Hà Nội 6 khối, `vn_extra` mỗi tập 10 khối, UA-DETRAC 21 (đêm) 
 v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937]; `vn_extra` ngày 0.760 [0.724–0.795] / [0.718–0.798];
 `vn_extra` đêm 0.755 [0.708–0.795] / [0.687–0.802] (không chồng v5).
 
-### 4.16 Mô hình v6 = v5 + 288 frame đêm — MÔ HÌNH TRIỂN KHAI từ 13/10/2026
+### 4.16 Mô hình v6 = v5 + 288 frame đêm — mặc định 13–15/10/2026, nay là bản nhẹ (mô hình chính: mục 4.17)
 
 - Dữ liệu: 288 frame đêm từ 2 camera TP.HCM (Midnight Soundscape `-J2JUaNU0BY`, `3fUYYb509YM`; video ghép lặp, lấy 4 s/frame
   trên 10 đoạn 2 phút, bỏ frame gần trùng (chênh điểm ảnh < 2 ở 160×90) -> bỏ 12, còn 288). Dataset v6: train 5.002
@@ -660,7 +662,7 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   0.868 / 0.584, 3.04 giờ; seed 1 85/100, 0.862 / 0.626, 0.858 / 0.587, 3.27 giờ.
 - Tiêu chí nhận (chốt 12/10/2026, trước khi train) và kết quả: (1) dev đêm cả hai seed > 0.499 (v5 tốt nhất): 0.599 /
   0.618 ĐẠT; (2) val Hà Nội ≥ 0.909: 0.914 / 0.914 ĐẠT; (3) IDR VnTraffic ≥ 0.822: 0.841 / 0.824 ĐẠT.
-  Mô hình triển khai = seed 42.
+  v6 = seed 42 (mặc định tới 15/10/2026, nay là bản nhẹ).
 - Test (chấm một lần, `scripts/rerun_v6.sh`, seed 42 / seed 1): xem bảng seeds trong báo cáo (`tab:seeds`). Đêm 0.755 /
   0.747 (v5 0.510–0.638), mAP50-95 đêm 0.495 (v5 0.404); recall đêm ≥ 64 px 0.91 (v5 0.74). Ngày ngang v5.
 - Tracking test PVD với tracker MẶC ĐỊNH HIỆN TẠI (BoT-SORT đã chỉnh, không GMC, lọc box trùng IoU 0.6, từ 15/10/2026;
@@ -702,6 +704,48 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   chọn cách diễn đạt này 15/10/2026).
 - Lưu ý khi bảo vệ: hướng làm v6 và việc chọn mô hình thầy xuất phát từ kết quả trên test đêm `vn_extra`; quyết định nhận
   dựa trên dev đêm ở camera thứ ba, test chấm sau. Đã ghi trong mục "Những lần tập test được dùng lại".
+
+### 4.17 YOLO26s-v6 — MÔ HÌNH CHÍNH từ 15/10/2026 (v6 thành bản nhẹ)
+
+- Khung trình bày (người làm đồ án chốt 15/10/2026): so sánh ba kiến trúc trả lời "mô hình nào hợp bối cảnh đề tài" —
+  camera giao thông đưa hình về máy chủ có GPU — chứ không phải "mô hình nào chạy được trên laptop". Trên T4, cả pipeline
+  YOLO26s 43 frame/s ≈ YOLO26n 42; YOLO26s chính xác hơn ở mọi seed trên camera mới; RT-DETRv2-S 16 frame/s riêng detector,
+  chỉ hơn YOLO26s cùng số điểm ảnh ở độ khít box. Nhưng YOLO26s của thí nghiệm kiến trúc chỉ học dữ liệu v5 -> huấn luyện
+  YOLO26s trên dữ liệu v6. v6 (YOLO26n) giữ vai trò bản nhẹ cho laptop / thiết bị tại camera.
+- Train (Kaggle, `notebooks/kaggle_train/train.ipynb`, MODEL `yolo26s.pt`, batch 8, cấu hình y hệt YOLO26s v5): seed 42
+  dừng sớm epoch 97, tốt nhất 77, val ultralytics 0.871 / 0.645, Roboflow 0.890 / 0.601, 5.16 giờ T4; seed 1 dừng 78, tốt
+  nhất 58, 0.885 / 0.648, 0.880 / 0.592, 3.99 giờ. Trọng số `weights/yolo26s_vn_v6_best.pt`, `_seed1_best.pt`; OpenVINO
+  `yolo26s_vn_v6_best_544x960_openvino_model` (độ chính xác bản xuất chưa đo).
+- Tiêu chí nhận (commit trước khi train, `configs/accept_yolo26s_v6.yaml`; chấm `scripts/rerun_yolo26s_v6_dev.sh`, kiểm
+  `scripts/check_accept_yolo26s_v6.py`), mỗi điều kiện vượt cả YOLO26s v5 lẫn v6: (1) dev đêm cả hai seed > 0.641 (YOLO26s
+  v5 tốt nhất; v6 tốt nhất 0.618): 0.711 / 0.712 ĐẠT; (2) val Hà Nội ≥ 0.909: 0.911 / 0.916 ĐẠT; (3) IDR VnTraffic ≥ 0.821
+  (YOLO26s v5 kém nhất − 0.005): 0.866 / 0.870 ĐẠT. Mô hình chính = seed 42.
+- Bộ lọc box trùng chọn lại theo đúng luật của mục 4.16 (c), ứng viên không lọc / IoU 0.7 / 0.6 / 0.5: vẫn IoU 0.6 (tổng
+  đổi ID hai dev 88.5 -> 70.5 = −20%, FN dev mới +1.2%, HOTA dev mới 0.748 -> 0.751); IoU 0.5 loại vì IDR VnTraffic.
+- Dev VnTraffic (chưa lọc, `tab:detector-tracking`): HOTA 0.565, AssA 0.714, IDR 0.866, đổi ID 63, FN 632, 327 track.
+- Test (chấm một lần, `scripts/rerun_yolo26s_v6_test.sh`, thư mục `yolo26s_v6*`), mAP50 chính seed 42 / 1: Hà Nội 0.920
+  [0.911–0.931] / 0.927; `vn_extra` ngày 0.830 [0.801–0.858] / 0.841 (mAP50-95 0.545), đêm 0.887 [0.861–0.913] / 0.847
+  (mAP50-95 0.614; khối [0.851–0.915]); 20 frame PVD 0.901 / 0.914; UVH 0.871 / 0.875; UA-DETRAC đêm 0.867 / 0.872, ngày
+  0.881 / 0.881; Roboflow 0.857 / 0.848. Recall theo chiều cao — ngày <20 / 20–32 / 32–64 / ≥64 px: 0.51 / 0.68 / 0.89 /
+  0.93; đêm 20–32 / 32–64 / ≥64 px: 0.62 / 0.79 / 0.94.
+- Tracking test PVD (`outputs/eval_tracking/yolo26s_v6_test/`, BoT-SORT đã chỉnh, không GMC, lọc box trùng 0.6): HOTA
+  0.755, DetA 0.717, AssA 0.811, MOTA 0.874, IDF1 0.916, IDR 0.882, IDP 0.953, đổi ID 22, FN 1.353, FP 340; lọc track < 3
+  frame: 0.745 / đổi ID 17; seed 1 HOTA 0.769.
+- Đếm: ngày (`outputs/eval_counting/yolo26s_v6_*`) 70 lượt ra / 71 thật, sai số theo hướng 3 (4.1%; seed 1: 2 = 2.7%) —
+  1 xe máy sót + Transit thành ô tô (2 lượt "vào" của nhãn là hiện tượng tán cây như mục 4.11); đêm
+  (`outputs/eval_manual_counts/night_human_yolo26s_v6/`) clip 2 đúng 79/79, clip 3 sai số 3 -> 3 = 1.7% (seed 1 1.1%).
+- Tốc độ: chưa đo lại riêng; cùng kiến trúc với YOLO26s v5 (T4 pipeline 43 frame/s; laptop OpenVINO GPU tích hợp 544×960
+  9.4 frame/s, INT8 CPU 8.2, PyTorch CPU 3.3).
+- Video demo (15/10/2026, hết quota GPU Kaggle tuần đó): xử lý sẵn trên máy bằng `scripts/make_demo_videos.sh` ->
+  `outputs/demo_precomputed/`, app chế độ "Kết quả xử lý sẵn"; danh sách mô hình của app = YOLO26s-v6 (OpenVINO GPU tích hợp
+  / PyTorch) + bản nhẹ v6 + COCO gốc; bỏ chọn tracker. Ảnh chụp app trong báo cáo (`app_gpu_demo.jpg`, `app_counts.jpg`)
+  cần chụp lại.
+- Lưu ý khi bảo vệ: hướng làm YOLO26s-v6 có tham khảo kết quả test của YOLO26s v5 (tốt ban ngày) và v6 (tốt ban đêm);
+  quyết định nhận dựa trên dev, test chấm một lần sau đó (đã ghi trong mục "Những lần tập test được dùng lại"). Chỉ 2 seed;
+  đêm chênh 0.040 giữa hai lần.
+- Báo cáo: mở đầu, chương 1 ("Thứ sáu, yêu cầu thời gian thực và giới hạn tài nguyên"), chương 3 (`tab:lich-su-train`,
+  `sec:tieu-chi-chon`, web demo), chương 4 (mọi bảng chính thêm cột/dòng YOLO26s-v6, `tab:seeds`, thảo luận, kết luận),
+  sơ đồ pipeline.
 
 ## 5. Danh mục hình
 

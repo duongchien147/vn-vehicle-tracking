@@ -73,9 +73,11 @@ phần lớn chụp ngang tầm mắt, từ drone hoặc từ một camera duy n
 xe van là \texttt{car} trong VisDrone nhưng là một lớp riêng trong KITTI và UA-DETRAC, còn xe Ford Transit 16 chỗ có
 nơi xếp vào buýt, có nơi xếp vào ô tô.
 
-\textbf{Thứ sáu, giới hạn tài nguyên.} Việc huấn luyện phụ thuộc hạn mức GPU của Kaggle; việc chạy demo diễn ra trên
-laptop không có GPU rời, chỉ có CPU và GPU tích hợp, nên mô hình phải đủ nhẹ. Mô hình chính xác nhất trong các thí
-nghiệm (RT-DETRv2-S) mất 1.53 giây mỗi frame trên CPU, không dùng được cho video.
+\textbf{Thứ sáu, yêu cầu thời gian thực và giới hạn tài nguyên.} Hệ thống camera giao thông xử lý hình ảnh tập trung
+trên máy chủ, nên mô hình phải chạy kịp thời gian thực trên GPU; mô hình càng nhanh thì một GPU càng phục vụ được nhiều
+camera. Đề tài chỉ có GPU Tesla T4 của Kaggle với hạn mức giờ dùng mỗi tuần, còn máy để phát triển và chạy demo là
+laptop không có GPU rời. Mô hình chính xác nhất trong các thí nghiệm (RT-DETRv2-S) chỉ đạt 16 frame/s cho riêng phần
+phát hiện trên T4, và mất 1.53 giây mỗi frame trên CPU của laptop.
 
 \section{Kết chương}
 

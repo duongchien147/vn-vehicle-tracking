@@ -15,7 +15,7 @@
                 font=\small, fill=tableheader!12},
     arrow/.style={-{Stealth[length=2.2mm]}, thick}]
   \node[box] (video) {Video\\1080p};
-  \node[box, right=of video] (det) {Phát hiện\\YOLO26n v6\\(ảnh 960, conf 0.1)\\+ lọc box trùng};
+  \node[box, right=of video] (det) {Phát hiện\\YOLO26s-v6\\(ảnh 960, conf 0.1)\\+ lọc box trùng};
   \node[box, right=of det] (track) {Theo dõi\\BoT-SORT\\(gán ID)};
   \node[box, right=of track] (vote) {Bỏ phiếu lớp\\theo track};
   \node[box, below=1.0cm of vote] (line) {Đếm qua vạch\\(LineZone)};

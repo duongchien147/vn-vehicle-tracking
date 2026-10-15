@@ -8,9 +8,9 @@ from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
 
-# Mô hình chính (từ 16/10/2026): YOLO26s-v6 = YOLO26s học dữ liệu v6 (v5 + 288 frame đêm), seed 42; nhận theo tiêu chí
+# Mô hình chính (từ 15/10/2026): YOLO26s-v6 = YOLO26s học dữ liệu v6 (v5 + 288 frame đêm), seed 42; nhận theo tiêu chí
 # chốt trước configs/accept_yolo26s_v6.yaml. Bối cảnh triển khai là máy chủ có GPU, nơi YOLO26s nhanh ngang YOLO26n mà
-# chính xác hơn. Trước đó: v6 (YOLO26n, 13–16/10/2026), v5 (YOLO26n, tới 13/10/2026).
+# chính xác hơn. Trước đó: v6 (YOLO26n, 13–15/10/2026), v5 (YOLO26n, tới 13/10/2026).
 DEFAULT_WEIGHTS = "weights/yolo26s_vn_v6_best.pt"
 # Bản nhẹ cho máy không có GPU rời (laptop, thiết bị đặt tại camera): YOLO26n học cùng dữ liệu v6; web demo chạy trực
 # tiếp trên laptop dùng bản OpenVINO của nó

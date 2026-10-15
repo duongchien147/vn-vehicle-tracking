@@ -53,15 +53,19 @@ def download_source(arxiv_id: str) -> Path:
     request = urllib.request.Request(f"https://arxiv.org/e-print/{arxiv_id}", headers={"User-Agent": "Mozilla/5.0"})
     data = gzip.decompress(urllib.request.urlopen(request, timeout=120).read())
     time.sleep(2)  # tránh gửi dồn yêu cầu tới arXiv
+    root = folder.resolve()
     with tarfile.open(fileobj=io.BytesIO(data)) as archive:
         for member in archive.getmembers():
             name = PurePosixPath(member.name)
-            if not member.isfile() or name.is_absolute() or ".." in name.parts:
+            # Trên Windows, "\" và "C:" trong tên cũng là dấu tách / ổ đĩa -> loại cả hai, rồi kiểm lại đường dẫn thật
+            if not member.isfile() or name.is_absolute() or ".." in name.parts or "\\" in member.name or ":" in member.name:
+                continue
+            target = folder.joinpath(*name.parts)
+            if not target.resolve().is_relative_to(root):
                 continue
             content = archive.extractfile(member)
             if content is None:
                 continue
-            target = folder.joinpath(*name.parts)
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(content.read())
     return folder

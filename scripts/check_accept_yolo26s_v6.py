@@ -52,7 +52,10 @@ def main() -> None:
         ]
     for model, name, value, passed, rule in checks:
         print(f"{model:32s} {name:14s} {value:.4f} ({rule}): {'ĐẠT' if passed else 'KHÔNG ĐẠT'}")
-    accepted = len(night) == len(load_seeds(args.config)) and all(passed for *_, passed, _ in checks)
+    if len(night) < len(load_seeds(args.config)):
+        print("\nChưa kết luận: thiếu kết quả của seed còn lại")
+        return
+    accepted = all(passed for *_, passed, _ in checks)
     print(f"\nYOLO26s-v6 {'ĐƯỢC NHẬN' if accepted else 'KHÔNG được nhận'} theo {args.config}")
 
 

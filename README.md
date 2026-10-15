@@ -26,12 +26,13 @@ mới đọc ở ba dòng đầu. v6 = v5 + 288 frame đêm (hai camera TP.HCM k
 ba tiêu chí viết trước khi train, chấm trên một tập dev đêm riêng (camera thứ ba, nhãn người).
 
 **Theo dõi** (clip test PVD 20 s, nhãn tracking gán tay, chấm theo chuẩn MOTChallenge bằng TrackEval):
-v6: HOTA **0.732**, MOTA **0.835**, IDF1 **0.884**, 49 lần đổi ID trên 183 xe (v5: 0.718 / 0.813 / 0.880, 26 lần —
-v6 bỏ sót ít hơn nhưng đổi ID nhiều hơn).
+v6 + bộ lọc box trùng: HOTA **0.744**, MOTA **0.847**, IDF1 **0.905**, 26 lần đổi ID trên 183 xe (v5: 0.718 / 0.813 /
+0.880, 26 lần). Bộ lọc box trùng (NMS không phân lớp, IoU 0.6, trước tracker) được chọn trên hai tập dev — VnTraffic và
+một clip PVD khác gán nhãn tay có đủ xe nhỏ ở xa; không có nó, v6 đổi ID 49 lần.
 
 **Đếm xe qua vạch** (sai số tính riêng từng hướng): ban ngày (cùng clip, 73 lượt thật) v6 đếm đúng 71 lượt "ra", sai số
 2.7% (v5: 4.1%); lỗi thật duy nhất là 1 xe Ford Transit (nhãn buýt) bị đếm thành ô tô. Ban đêm (hai clip hầm chui 60
-giây, 176 lượt người đếm tay): sai số **2.3%** với v6, 8.5% với v5, 4.5% với YOLO26s; lỗi gần như toàn bộ ở xe máy.
+giây, 176 lượt người đếm tay): sai số **1.7%** với v6, 8.5% với v5, 4.5% với YOLO26s; lỗi gần như toàn bộ ở xe máy.
 
 **Tốc độ** (video 1080p, cả pipeline phát hiện + theo dõi):
 
@@ -60,7 +61,8 @@ Video ──► YOLO26n v6 (phát hiện 4 lớp, imgsz 960) ──► BoT-SORT 
 
 - **Phát hiện:** YOLO26n fine-tune từ trọng số COCO trên dữ liệu xe Việt Nam, camera giao thông và cảnh đêm (`v6`).
 - **Theo dõi:** BoT-SORT (ultralytics) đã chỉnh trên tập dev, tắt bù chuyển động camera vì camera đứng yên
-  (`configs/botsort_tuned_nogmc.yaml`).
+  (`configs/botsort_tuned_nogmc.yaml`); trước tracker bỏ box trùng bất kể lớp (NMS IoU 0.6, `vtrack/box_filter.py`) vì
+  YOLO26 là mô hình end-to-end, không chạy NMS.
 - **Bỏ phiếu lớp:** một xe có thể bị gọi lúc "car" lúc "truck" giữa các frame; lớp cuối cùng của mỗi track được chọn
   bằng bỏ phiếu theo độ tin cậy, trước khi đếm.
 

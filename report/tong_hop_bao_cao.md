@@ -423,8 +423,9 @@ Hà Nội nhãn tự động → v4 thử imgsz 1280 (không hơn, chậm hơn �
 ### 4.8 Tốc độ (E2)
 
 **CPU** i5-8250U, video 1080p clip PVD, 5 đợt × 30 frame xen kẽ, trung vị [IQR]
-(`outputs/benchmark_speed/e2_arch_nogmc/results.csv`, đo lại 9/10/2026 với tracker mặc định hiện tại
-`botsort_tuned_nogmc`; thay bảng cũ `e2_arch` đo khi còn bật GMC):
+(`outputs/benchmark_speed/e2_arch_nogmc/results.csv`, đo lại 9/10/2026 với tracker
+`botsort_tuned_nogmc`, khi chưa có bộ lọc box trùng thêm từ 15/10/2026 — chưa đo lại tốc độ với bộ lọc; thay bảng cũ
+`e2_arch` đo khi còn bật GMC):
 
 | Mô hình | Đầu vào | Tham số (M) | GFLOPs | Detector ms/frame [IQR] | Detector frame/s | Pipeline ms/frame | Pipeline frame/s |
 |---|---|---|---|---|---|---|---|
@@ -661,19 +662,41 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
   Mô hình triển khai = seed 42.
 - Test (chấm một lần, `scripts/rerun_v6.sh`, seed 42 / seed 1): xem bảng seeds trong báo cáo (`tab:seeds`). Đêm 0.755 /
   0.747 (v5 0.510–0.638), mAP50-95 đêm 0.495 (v5 0.404); recall đêm ≥ 64 px 0.91 (v5 0.74). Ngày ngang v5.
-- Tracking test PVD: HOTA 0.732, MOTA 0.835, IDF1 0.884, IDR 0.845, đổi ID 49 (v5 26), FN 1.689 (v5 2.157); seed 1 HOTA
-  0.722, đổi ID 38. Dev VnTraffic: IDR 0.841, AssA 0.698, đổi ID 93 (v5 61; seeds v5 61–97), FN 717 (v5 1.058).
-- Đếm xe: ngày 71/71 lượt ra, sai số 2 (2.7%); đêm sót 3, thừa 3, sai số 4 (2.3%) (seed 1: 7 = 4.0%; v5 15 = 8.5%; YOLO26s
-  8 = 4.5%). `outputs/eval_manual_counts/night_human_v6/`.
+- Tracking test PVD với tracker MẶC ĐỊNH HIỆN TẠI (BoT-SORT đã chỉnh, không GMC, lọc box trùng IoU 0.6, từ 15/10/2026;
+  `outputs/eval_tracking/nms06_v6_test/`): HOTA 0.744, DetA 0.701, AssA 0.806, MOTA 0.847, IDF1 0.905, IDR 0.859, IDP 0.955,
+  đổi ID 26 (= v5), FN 1.704, FP 341; lọc track < 3 frame 0.734 / đổi ID 21; seed 1 HOTA 0.728, IDR 0.852, đổi ID 34.
+  Chưa lọc box trùng (mặc định cũ, `v6_test`): HOTA 0.732, MOTA 0.835, IDF1 0.884, IDR 0.845, đổi ID 49 (v5 26), FN 1.689
+  (v5 2.157), FP 505; seed 1 0.722 / đổi ID 38. Dev VnTraffic chưa lọc: IDR 0.841, AssA 0.698, đổi ID 93 (v5 61; seeds v5
+  61–97), FN 717 (v5 1.058).
+- Đếm xe (mặc định hiện tại): ngày 71/71 lượt ra, sai số 2 (2.7%) — bật/tắt bộ lọc như nhau; đêm sót 3, thừa 2, sai số 3
+  (1.7%) (`outputs/eval_manual_counts/night_human_nms06/`; chưa lọc: thừa 3, sai số 4 = 2.3%). Seed 1: 8 = 4.5% (chưa lọc
+  7 = 4.0%); v5 15 = 8.5%; YOLO26s 8 = 4.5%.
 - OpenVINO v6 (demo): FP32 GPU 544×960 val 0.914, dev đêm 0.609, IDR 0.825 (PyTorch 0.841 -> đánh đổi); INT8 CPU 0.918 /
   0.597 / 0.825. Tốc độ như v5 (cùng kiến trúc, không đo lại).
-- Thử giảm đổi ID cho v6 (14/10/2026, báo cáo bảng `tab:giam-doi-id`), cả hai không được nhận, tracker mặc định giữ
-  `botsort_tuned_nogmc`: (a) ngưỡng mở track 0.6 + ghép lần một 0.4 (`configs/botsort_v6.yaml`): dev đổi ID 93.5 -> 62.5,
-  IDR 0.833 -> 0.836, FN 714 -> 833; test đổi ID 49 -> 7 nhưng FN 1.689 -> 3.291, HOTA 0.732 -> 0.687, IDF1 0.884 ->
-  0.853, đếm đêm 2.3% -> 3.4% -> loại DỰA VÀO TEST (VnTraffic thiếu nhãn xe nhỏ ở xa); (b) bộ lọc box trùng không phân
-  lớp trước tracker (`vtrack/box_filter.py`, YOLO26 end-to-end không có NMS): IoU 0.6 dev đổi ID 63, FN +1.4% nhưng
-  mAP50 dev đêm −0.006 (giới hạn 0.005) -> không đạt tiêu chí chốt trước (`configs/tracker_tuning_v6_nms.yaml`), không
-  chấm test. Hướng tiếp: ReID riêng cho xe; clip dev tracking có xe nhỏ ở xa.
+- Giảm đổi ID cho v6 — ba lần thử (báo cáo mục `sec:giam-doi-id`, bảng `tab:giam-doi-id`):
+  (a) 14/10: ngưỡng mở track 0.6 + ghép lần một 0.4 (`configs/botsort_v6.yaml`): dev VnTraffic đổi ID 93.5 -> 62.5, IDR
+  0.833 -> 0.836, FN 714 -> 833; test đổi ID 49 -> 7 nhưng FN 1.689 -> 3.291, HOTA 0.732 -> 0.687, IDF1 0.884 -> 0.853,
+  đếm đêm 2.3% -> 3.4% -> loại DỰA VÀO TEST (VnTraffic thiếu nhãn xe nhỏ ở xa); giữ làm tuỳ chọn "ít đổi ID" trong app.
+  (b) 14/10: bộ lọc box trùng không phân lớp trước tracker (`vtrack/box_filter.py`, YOLO26 end-to-end không có NMS):
+  IoU 0.6 dev đổi ID 63, FN +1.4% nhưng mAP50 dev đêm −0.006 (điều kiện thay thế, giới hạn 0.005) -> không đạt
+  (`configs/tracker_tuning_v6_nms.yaml`), không chấm test.
+  (c) 15/10 — ĐƯỢC NHẬN: chọn lại trên HAI tập dev (VnTraffic + clip dev mới `pvd_goc_c_dev`, nhãn đầy đủ xe nhỏ ở xa),
+  16 ứng viên (12 tổ hợp ngưỡng + lọc box trùng IoU 0.7/0.6/0.5 + mốc), tiêu chí commit trước khi chạy (`bce7ea7`,
+  `configs/tracker_tuning_v6_dev2.yaml`): so với mốc, trung bình 2 seed, FN dev mới ≤ +2%, HOTA dev mới ≥ −0.005, IDR
+  VnTraffic ≥ −0.005; chọn tổng đổi ID ít nhất, đổi chỉ khi giảm ≥ 10%. Bỏ điều kiện mAP thay thế của (b) vì bỏ sót giờ
+  đo trực tiếp (quyết định khi đã biết kết quả mAP của (b) -> ghi rõ trong báo cáo). Kết quả
+  (`outputs/eval_tracking/tuning_v6_dev2/selection.csv`): ngưỡng mở track 0.6 -> FN +39–43% (dev mới thấy cái giá test
+  từng thấy); ngưỡng 0.4 -> +9–16%; IoU 0.5 -> +2.5%; IoU 0.7 trượt IDR; ĐẠT: mốc, match 0.9 (đổi ID −1%), IoU 0.6 (tổng
+  đổi ID 130 -> 90.5 = −30%, FN +0.9%, HOTA dev mới 0.689 -> 0.695, IDR VnT 0.833 -> 0.841) -> mặc định mới
+  (`vtrack.tracking.DEFAULT_AGNOSTIC_NMS_IOU = 0.6`). Test chấm một lần (lần thứ ba test dùng cho tracker v6,
+  `scripts/rerun_tracker_v6_dev2_test.sh`): xem dòng tracking/đếm ở trên. Cái giá phát hiện: mAP50 dev đêm −0.006, val
+  Hà Nội không đổi; các bảng mAP trong báo cáo là mô hình KHÔNG có bộ lọc. OpenVINO demo + bộ lọc: VnTraffic IDR 0.825 ->
+  0.840, đổi ID 85 -> 72; dev mới HOTA 0.694 -> 0.698, đổi ID 30 -> 27.
+- Clip dev tracking `pvd_goc_c_dev` (14–15/10/2026): PVD góc C 1:48:00–1:48:20 (cùng góc với nửa `vn_extra` ngày, khác
+  góc clip test), 600 frame, 96 track (80 ngoài vùng ignore y < 637), 11.071 box xe máy / 5.649 ô tô. Nhãn sơ bộ YOLO26s
+  v5; người gán trên CVAT; trợ lý AI soát/sửa qua API CVAT (lấp chỗ hở, gộp/tách track, khôi phục 2 track bị xoá nhầm, tách
+  box hai xe chạy song song bằng mắt, 8 xe đường bên trái từ box YOLO26x COCO đã duyệt) — nhật ký
+  `data/tracking_gt/pvd_goc_c_dev/cvat_backup/edit_log.json`. Báo cáo ghi rõ có trợ lý AI hỗ trợ rà soát.
 - Lưu ý khi bảo vệ: hướng làm v6 và việc chọn mô hình thầy xuất phát từ kết quả trên test đêm `vn_extra`; quyết định nhận
   dựa trên dev đêm ở camera thứ ba, test chấm sau. Đã ghi trong mục "Những lần tập test được dùng lại".
 

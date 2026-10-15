@@ -134,6 +134,8 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
     20 frame PVD & 1 frame mỗi giây của clip theo dõi & 375 / 238 / 12 / 0 & Test phát hiện \\ \hline
     Clip theo dõi PVD & 20 giây (600 frame, 30 fps), nhãn quỹ đạo bằng CVAT & 183 quỹ đạo & Test theo dõi, đếm xe
       ban ngày \\ \hline
+    Clip dev theo dõi PVD & 20 giây (600 frame, 30 fps) ở góc máy khác clip test, nhãn quỹ đạo bằng CVAT & 80 quỹ đạo
+      ngoài vùng bỏ qua & Dev: chọn tracker cho v6 \\ \hline
     Đếm xe hầm chui & Hai clip đêm 60 giây, người đếm tay từng lượt qua vạch & 176 lượt: 149 / 25 / 1 / 1 & Test đếm xe
       ban đêm \\ \hline
     VnTraffic~\cite{le2026vntraffic} & Video giao thông Việt Nam (nguồn kênh HTV), nhìn chéo từ trên cao, 17 giây & 501
@@ -147,7 +149,7 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
   \end{tabularx}
 \end{table}
 
-Ba tập dev được dùng để ra quyết định; mọi tập còn lại chỉ dùng để báo cáo. Một số lưu ý khi đọc các tập này:
+Bốn tập dev được dùng để ra quyết định; mọi tập còn lại chỉ dùng để báo cáo. Một số lưu ý khi đọc các tập này:
 \begin{itemize}
   \item \textbf{Val UVH-26.} UVH-26 chia train/val theo ảnh chứ không theo camera, nên đề tài lấy 800 ảnh val ngẫu
         nhiên rồi bỏ 291 ảnh có camera trùng với ảnh train đã dùng (so bằng dHash 256 bit, ngưỡng chọn bằng mắt), còn
@@ -161,6 +163,16 @@ Ba tập dev được dùng để ra quyết định; mọi tập còn lại ch�
   \item \textbf{Dev đêm} được xây khi làm v6, vì hai tập dev cũ đều là cảnh ban ngày. Frame lấy 15 giây một lần từ bốn
         đoạn hai phút ở phút 40, 50, 58 và 64 của một video liền mạch, đều sau khi trời tối hẳn. Người gán thêm 248 box so với nhãn sơ bộ, phần lớn là
         xe máy nhỏ ở xa; 200 trong 524 xe cao dưới 32 điểm ảnh.
+  \item \textbf{Clip dev theo dõi} được thêm sau hai lần chỉnh tracker cho v6 (mục~\ref{sec:giam-doi-id}): VnTraffic gần
+        như không có nhãn xe nhỏ ở xa, nên một cấu hình làm bỏ sót các xe này vẫn trông tốt trên dev. Clip dài 20 giây,
+        cắt từ góc C của video đại lộ Phạm Văn Đồng: cùng góc máy với nửa tập \texttt{vn\_extra} ngày (cách đoạn lấy
+        frame hai phút) và khác góc máy của clip test theo dõi. Vì vậy clip này chỉ dùng để chọn tracker, không dùng cho
+        quyết định nào về mô hình phát hiện. Nhãn sơ bộ lấy từ YOLO26s bản v5, không phải từ v6 là mô hình đang được chỉnh
+        tracker. Người gán sửa trên CVAT theo đúng quy tắc của clip test; vùng bỏ qua là dải phía trên y = 637, nơi xe máy
+        cao dưới 25 điểm ảnh. Sau đó nhãn được rà soát thêm với sự hỗ trợ của trợ lý AI qua API của CVAT: tìm
+        chỗ box bị hở, track trùng và track nhảy sang xe khác. Mô hình YOLO26x gốc COCO, không phải mô hình của đề tài,
+        chỉ được dùng để dò chỗ có thể sót xe và đề xuất box cho 8 xe ở làn bên kia dải phân cách; mọi box đều được duyệt
+        bằng mắt, mọi chỉnh sửa được ghi lại kèm bản sao lưu.
   \item \textbf{Video hầm chui.} Ba clip đêm được cắt ở ba thời điểm khác nhau của một video dài khoảng ba giờ, nhưng
         khi đếm xe từng frame mới thấy video gốc có đoạn lặp: frame 0--1387 của clip thứ nhất trùng frame 412--1799 của
         clip thứ hai (so chênh lệch điểm ảnh giữa các cặp frame), và clip thứ nhất có một chỗ cắt cảnh ở giây 48.3. Clip
@@ -426,11 +438,12 @@ cách mô hình chạy khi triển khai và áp dụng như nhau cho mọi mô h
 \section{Theo dõi đối tượng và chọn tracker}
 \label{sec:chon-tracker}
 
-Đánh giá theo dõi dùng hai tập tách biệt: VnTraffic là tập dev để chọn tracker và chỉnh tham số; clip Phạm Văn Đồng
-gán nhãn tay là tập test, dùng để chấm cấu hình đã chọn. Việc chấm không phân lớp (mọi xe là một lớp), vì tracker của
+Đánh giá theo dõi dùng các tập tách biệt. VnTraffic, và từ khi chỉnh tracker cho v6 thêm clip dev Phạm Văn Đồng góc C,
+là tập dev để chọn tracker và chỉnh tham số; clip Phạm Văn Đồng góc A gán nhãn tay là tập test, dùng để chấm cấu hình
+đã chọn. Việc chấm không phân lớp (mọi xe là một lớp), vì tracker của
 Ultralytics ghép box chỉ theo vị trí, không xét lớp; chất lượng phân loại đã được đo bằng mAP.
 
-Quá trình chọn gồm bốn bước, kết quả chi tiết ở mục~\ref{sec:theo-doi}:
+Quá trình chọn gồm năm bước, kết quả chi tiết ở mục~\ref{sec:theo-doi}:
 \begin{enumerate}
   \item So ByteTrack, BoT-SORT và OC-SORT với tham số mặc định: BoT-SORT tốt nhất trên cả AssA, IDR và số lần đổi ID.
   \item Chỉnh lưới tham số BoT-SORT (thời gian giữ track mất 30, 60 hay 90 frame; bật hay tắt ReID): chọn giữ track 90
@@ -440,11 +453,14 @@ Quá trình chọn gồm bốn bước, kết quả chi tiết ở mục~\ref{se
         mà tốn thời gian; trên dev hai bản hoà nhau nên chọn bản nhanh hơn.
   \item Trong pipeline video, bỏ các track tồn tại dưới 3 frame (tương đương \texttt{min\_hits} của SORT) để giảm track
         rác; bộ chấm vẫn báo kết quả thô làm số chính.
+  \item Với v6, thêm bộ lọc box trùng không phân lớp (NMS, ngưỡng IoU 0.6) trước tracker. YOLO26 là mô hình end-to-end
+        nên Ultralytics không chạy NMS, và v6 sinh nhiều box phụ chồng lên cùng một xe. Bộ lọc được chọn trên hai tập
+        dev sau ba lần thử (mục~\ref{sec:giam-doi-id}).
 \end{enumerate}
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình tracker mặc định của hệ thống (BoT-SORT đã chỉnh, không GMC)}
+  \caption{Cấu hình tracker mặc định của hệ thống (BoT-SORT đã chỉnh, không GMC, lọc box trùng)}
   \label{tab:tracker-config}
   \small
   \begin{tabularx}{\linewidth}{|p{4.2cm}|c|L|}
@@ -457,6 +473,8 @@ Quá trình chọn gồm bốn bước, kết quả chi tiết ở mục~\ref{se
     \texttt{match\_thresh} & 0.8 & Ngưỡng chi phí ghép cặp \\ \hline
     \texttt{gmc\_method} & none & Tắt bù chuyển động camera \\ \hline
     \texttt{with\_reid} & false & Không dùng đặc trưng ngoại hình \\ \hline
+    Lọc box trùng & IoU 0.6 & NMS không phân lớp: bỏ box chồng lên một box điểm cao hơn trước khi đưa vào tracker
+      \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -477,7 +495,8 @@ web demo và bộ chấm theo dõi, nên số liệu đo được đúng là th�
 
 Các bước:
 \begin{enumerate}
-  \item \textbf{Phát hiện và theo dõi.} Mỗi frame được đưa qua mô hình phát hiện với ngưỡng tin cậy 0.1 rồi qua BoT-SORT.
+  \item \textbf{Phát hiện và theo dõi.} Mỗi frame được đưa qua mô hình phát hiện với ngưỡng tin cậy 0.1, bỏ các box
+        chồng lên một box điểm cao hơn với IoU từ 0.6 trở lên (bất kể lớp), rồi qua BoT-SORT.
         Ngưỡng 0.1 để tracker có box điểm thấp cho lần ghép thứ hai; việc tạo track mới do \texttt{new\_track\_thresh}
         (0.25) quyết định. Ở frame đầu của mỗi video tracker được tạo mới, để chạy nhiều video liên tiếp trong web demo
         không bị dính ID cũ.

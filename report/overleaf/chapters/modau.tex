@@ -54,7 +54,7 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 \textbf{Mục tiêu cụ thể:}
 \begin{itemize}
   \item Thu thập, gộp và chuẩn hoá dữ liệu huấn luyện từ nhiều nguồn; tự xây các tập test Việt Nam có người kiểm, gồm
-        cả cảnh ban đêm, và một clip có nhãn theo dõi.
+        cả cảnh ban đêm, và hai clip có nhãn theo dõi (một để chọn tracker, một để test).
   \item Tinh chỉnh YOLO26n qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
   \item So sánh kiến trúc CNN (YOLO26n, YOLO26s) với kiến trúc Transformer (RT-DETRv2-S) theo một giao thức công bằng,
         đo cả độ chính xác lẫn tốc độ.
@@ -92,8 +92,8 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
         video đường phố ban đêm.
   \item Huấn luyện: sáu phiên bản YOLO26n (v1 đến v6), một bản YOLO26s và một bản RT-DETRv2-S trên Kaggle;
         v5 và YOLO26s được huấn luyện thêm hai lần, v6 thêm một lần với seed khác.
-  \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên tập phát triển VnTraffic, chấm trên clip Phạm Văn
-        Đồng gán nhãn tay bằng CVAT.
+  \item Theo dõi: so sánh ba thuật toán theo dõi, chỉnh tham số trên hai tập phát triển (VnTraffic và một clip Phạm Văn
+        Đồng gán nhãn tay), chấm trên một clip Phạm Văn Đồng khác gán nhãn tay bằng CVAT.
   \item Ứng dụng: pipeline đếm xe qua vạch, web demo Streamlit, video demo xử lý trên GPU.
   \item Đánh giá qua bốn thí nghiệm: E1 (độ chính xác phát hiện), E2 (tốc độ), E3 (theo dõi và sai số đếm), E4 (phân
         tích lỗi).

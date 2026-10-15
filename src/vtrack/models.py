@@ -8,9 +8,13 @@ from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
 
-# Mô hình mặc định hiện tại (v6 = v5 + 288 frame đêm nhãn tự động, imgsz 960, seed 42; nhận theo tiêu chí chốt trước:
-# mAP50 dev đêm, mAP50 val Hà Nội, IDR VnTraffic — xem ghi chú dự án). Trước 13/10/2026 là v5 (weights/yolo26n_vn_v5_best.pt).
-DEFAULT_WEIGHTS = "weights/yolo26n_vn_v6_best.pt"
+# Mô hình chính (từ 16/10/2026): YOLO26s-v6 = YOLO26s học dữ liệu v6 (v5 + 288 frame đêm), seed 42; nhận theo tiêu chí
+# chốt trước configs/accept_yolo26s_v6.yaml. Bối cảnh triển khai là máy chủ có GPU, nơi YOLO26s nhanh ngang YOLO26n mà
+# chính xác hơn. Trước đó: v6 (YOLO26n, 13–16/10/2026), v5 (YOLO26n, tới 13/10/2026).
+DEFAULT_WEIGHTS = "weights/yolo26s_vn_v6_best.pt"
+# Bản nhẹ cho máy không có GPU rời (laptop, thiết bị đặt tại camera): YOLO26n học cùng dữ liệu v6; web demo chạy trực
+# tiếp trên laptop dùng bản OpenVINO của nó
+LIGHT_WEIGHTS = "weights/yolo26n_vn_v6_best.pt"
 
 # Dùng khi không đọc được imgsz lúc train từ file trọng số; 640 là mặc định của ultralytics
 FALLBACK_IMGSZ = 640
@@ -39,6 +43,18 @@ def split_device(weights: str) -> tuple[str, str | None]:
     if device not in OPENVINO_DEVICES:
         raise ValueError(f"Thiết bị không hợp lệ '{device}', chọn một trong {sorted(OPENVINO_DEVICES)}")
     return path, OPENVINO_DEVICES[device]
+
+
+def device_name(weights: str) -> str:
+    """Thiết bị sẽ chạy mô hình, để ghi kèm số frame/s: OpenVINO theo hậu tố '#', còn lại GPU NVIDIA nếu có, không thì CPU."""
+    _, device = split_device(weights)
+    if device == OPENVINO_DEVICES["gpu"]:
+        return "GPU Intel tích hợp (OpenVINO)"
+    if device == OPENVINO_DEVICES["cpu"]:
+        return "CPU (OpenVINO)"
+    import torch  # nạp muộn: chỉ cần khi chạy PyTorch
+
+    return f"GPU {torch.cuda.get_device_name(0)}" if torch.cuda.is_available() else "CPU"
 
 
 def load_model(weights: str) -> YOLO:

@@ -19,7 +19,7 @@ import argparse
 import json
 from pathlib import Path
 
-from vtrack.models import DEFAULT_WEIGHTS
+from vtrack.models import DEFAULT_WEIGHTS, device_name
 from vtrack.pipeline import process_video
 from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_MIN_TRACK_AGE, DEFAULT_TRACKER
 
@@ -67,7 +67,8 @@ def main() -> None:
     # imgsz thực tế đã dùng (kể cả khi đọc tự động), bộ lọc tuổi track mặc định của pipeline, và số frame/tốc độ để
     # web demo nạp lại được kết quả (vtrack.saved_runs) mà không phải xử lý lại
     run_config = {**vars(args), "imgsz": result.imgsz, "min_track_age": DEFAULT_MIN_TRACK_AGE,
-                  "frames": result.frames, "processing_fps": round(result.processing_fps, 2)}
+                  "frames": result.frames, "processing_fps": round(result.processing_fps, 2),
+                  "device": device_name(args.weights)}
     config_path = out_dir / f"{source.stem}_run_config.json"
     config_path.write_text(json.dumps(run_config, indent=2, ensure_ascii=False), encoding="utf-8")
 

@@ -1,7 +1,7 @@
 """Web demo Streamlit: chọn clip có sẵn hoặc tải video lên -> phát hiện, theo dõi, đếm xe qua vạch -> xem video kết quả,
 bảng đếm theo lớp/hướng, biểu đồ theo thời gian, tải CSV. Chỉ là lớp giao diện: mọi xử lý nằm trong
-vtrack.pipeline.process_video() (giống hệt CLI scripts/infer_video.py). Chế độ "Kết quả GPU xử lý sẵn" chỉ nạp lại
-video + CSV mà notebooks/kaggle_demo_gpu đã tạo bằng cùng pipeline trên GPU T4 (trên CPU không chạy kịp thời gian thực).
+vtrack.pipeline.process_video() (giống hệt CLI scripts/infer_video.py). Chế độ "Kết quả xử lý sẵn" chỉ nạp lại video + CSV
+mà scripts/make_demo_videos.sh (hoặc kernel notebooks/kaggle_demo_gpu) đã tạo bằng cùng pipeline với mô hình chính.
 
 Chạy:  .venv\\Scripts\\streamlit.exe run app\\streamlit_app.py
 """
@@ -25,45 +25,34 @@ import supervision as sv
 from ultralytics import YOLO
 
 from vtrack import CLASS_NAMES
-from vtrack.models import DEFAULT_WEIGHTS, load_model, split_device
+from vtrack.models import DEFAULT_WEIGHTS, device_name, load_model, split_device
 from vtrack.pipeline import VideoResult, process_video
 from vtrack.saved_runs import find_saved_runs, load_saved_run
-from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
+from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
 from vtrack.video_io import read_frame, safe_upload_name
 
 VIDEO_DIR = Path("data/videos")
 OUTPUT_DIR = Path("outputs/streamlit")
-GPU_DEMO_DIR = Path("outputs/kaggle/vtrack-demo-gpu/demo")  # tải về bằng: scripts/kaggle_train.py download
+PRECOMPUTED_DIR = Path("outputs/demo_precomputed")  # tạo bằng scripts/make_demo_videos.sh
 # Clip mở sẵn: clip test PVD có nhãn tracking — video khớp bảng HOTA và sai số đếm trong báo cáo
-GPU_DEFAULT_CLIP = "pvd_goc_a"
-# Chế độ đầu tiên là mặc định: trình chiếu video GPU xử lý sẵn (mượt, có ngay); hai chế độ chạy trực tiếp trên laptop
-# giữ lại để chạy video mới khi được hỏi (phát hiện + theo dõi ~20 frame/s, nhưng vẽ và ghi video 1080p kéo cả quy
-# trình xuống ~7 frame/s)
-MODES = ("Kết quả GPU xử lý sẵn", "Clip có sẵn (chạy trên máy)", "Tải video lên (chạy trên máy)")
+PRECOMPUTED_DEFAULT_CLIP = "pvd_goc_a"
+# Chế độ đầu tiên là mặc định: trình chiếu video xử lý sẵn bằng mô hình chính (mượt, có ngay); hai chế độ chạy trực tiếp
+# trên laptop giữ lại để chạy video mới khi được hỏi (bản nhẹ: phát hiện + theo dõi ~20 frame/s, nhưng vẽ và ghi video
+# 1080p kéo cả quy trình xuống ~7 frame/s)
+MODES = ("Kết quả xử lý sẵn", "Clip có sẵn (chạy trên máy)", "Tải video lên (chạy trên máy)")
 UPLOAD_SUFFIXES = ("mp4", "avi", "mov")
-# Mô hình chọn sẵn trong demo: trọng số v6, OpenVINO đầu vào 544x960 (khung video 16:9) trên GPU Intel tích hợp.
-# Cùng kiến trúc và đầu vào với bản v5 đã đo tốc độ: cả pipeline 19.8 frame/s so với 7.5 của PyTorch trên CPU
-# (outputs/benchmark_speed/e2_igpu_openvino, e2_cpu_openvino). Trên dev (outputs/*/openvino_v6*): mAP50 val Hà Nội 0.914
-# = bản PyTorch, dev đêm 0.609 vs 0.599, nhưng IDR VnTraffic 0.825 vs 0.841 -> đánh đổi một ít độ ổn định ID lấy tốc độ
+# Mô hình chọn sẵn khi chạy trên laptop: bản nhẹ YOLO26n-v6, OpenVINO đầu vào 544x960 (khung video 16:9) trên GPU Intel
+# tích hợp — cả pipeline 19.8 frame/s so với 7.5 của PyTorch trên CPU (đo với v5 cùng kiến trúc, outputs/benchmark_speed/
+# e2_igpu_openvino, e2_cpu_openvino). Mô hình chính YOLO26s-v6 chính xác hơn nhưng trên laptop chỉ ~9 frame/s.
 DEMO_WEIGHTS = "weights/yolo26n_vn_v6_best_544x960_openvino_model#gpu"
-# Tên hiển thị theo thứ tự trong danh sách; mô hình chưa có trong weights/ thì không hiện
+# Chỉ mô hình của hệ thống (chính + bản nhẹ) và mô hình gốc COCO để so sánh trước/sau tinh chỉnh; mô hình chưa có trong
+# weights/ thì không hiện. Các phiên bản cũ (v2–v5) chỉ dùng trong thí nghiệm, không đưa vào demo.
 MODEL_LABELS = {
-    DEMO_WEIGHTS: "v6 — OpenVINO trên GPU Intel tích hợp (mặc định, nhanh nhất)",
-    "weights/yolo26n_vn_v6_best_int8_544x960_openvino_model#cpu": "v6 — OpenVINO INT8 trên CPU (máy không có GPU Intel)",
-    "weights/yolo26s_vn_v5_best_544x960_openvino_model#gpu": "YOLO26s — OpenVINO trên GPU Intel tích hợp (chính xác hơn, chậm hơn)",
-    DEFAULT_WEIGHTS: "v6 — PyTorch trên CPU",
-    "weights/yolo26n_vn_v5_best.pt": "v5 — trước khi thêm dữ liệu ban đêm",
-    "weights/yolo26n_vn_v3_best.pt": "v3 — trước khi thêm dữ liệu camera giao thông UVH-26",
-    "weights/yolo26n_vn_v4_best.pt": "v4 — v3 ở imgsz 1280",
-    "weights/yolo26n_vn_v2_best.pt": "v2",
-    "weights/yolo26n.pt": "COCO gốc — baseline chưa fine-tune",
-}
-TRACKER_LABELS = {
-    DEFAULT_TRACKER: "BoT-SORT đã chỉnh — mặc định (camera đứng yên)",
-    "configs/botsort_v6.yaml": "BoT-SORT ngưỡng mở track cao — ít đổi ID, nhưng bỏ sót xe nhỏ ở xa nhiều hơn",
-    "configs/botsort_tuned.yaml": "BoT-SORT đã chỉnh + bù rung camera (GMC) — video quay tay/rung, chậm hơn",
-    "configs/botsort.yaml": "BoT-SORT mặc định",
-    "configs/bytetrack.yaml": "ByteTrack mặc định",
+    DEMO_WEIGHTS: "YOLO26n-v6 (bản nhẹ) — OpenVINO trên GPU Intel tích hợp, nhanh nhất",
+    "weights/yolo26n_vn_v6_best_int8_544x960_openvino_model#cpu": "YOLO26n-v6 (bản nhẹ) — OpenVINO INT8 trên CPU",
+    "weights/yolo26s_vn_v6_best_544x960_openvino_model#gpu": "YOLO26s-v6 (mô hình chính) — OpenVINO trên GPU Intel tích hợp",
+    DEFAULT_WEIGHTS: "YOLO26s-v6 (mô hình chính) — PyTorch trên CPU, chậm",
+    "weights/yolo26n.pt": "COCO gốc — chưa tinh chỉnh, để so sánh",
 }
 DEFAULT_LINE = (0.0, 0.6, 1.0, 0.6)
 DEFAULT_CLIP = "nga_tu_hanoi_a"  # cảnh ban ngày, đông xe máy — đúng phạm vi đồ án
@@ -80,11 +69,6 @@ def cached_model(weights: str) -> YOLO:
 
 def available_models() -> list[str]:
     return [weights for weights in MODEL_LABELS if Path(split_device(weights)[0]).exists()]
-
-
-def hardware_label(weights: str) -> str:
-    """Thiết bị chạy mô hình, để ghi cạnh số frame/s."""
-    return "GPU Intel tích hợp" if split_device(weights)[1] == "intel:gpu" else "CPU"
 
 
 def choose_source(mode: str) -> Path | None:
@@ -158,21 +142,24 @@ def show_results(result: VideoResult, duration_s: float, settings: dict, events_
         st.code(json.dumps({**settings, "imgsz": result.imgsz}, indent=2, ensure_ascii=False), language="json")
 
 
-def show_gpu_demo() -> None:
-    clips = find_saved_runs(GPU_DEMO_DIR)
+def show_precomputed() -> None:
+    clips = find_saved_runs(PRECOMPUTED_DIR)
     if not clips:
-        st.info(f"Chưa có kết quả trong {GPU_DEMO_DIR}: chạy kernel notebooks/kaggle_demo_gpu rồi tải output về.")
+        st.info(f"Chưa có kết quả trong {PRECOMPUTED_DIR}: chạy scripts/make_demo_videos.sh.")
         return
-    default = clips.index(GPU_DEFAULT_CLIP) if GPU_DEFAULT_CLIP in clips else 0
+    default = clips.index(PRECOMPUTED_DEFAULT_CLIP) if PRECOMPUTED_DEFAULT_CLIP in clips else 0
     clip = st.sidebar.selectbox("Clip", clips, index=default)
-    run = load_saved_run(GPU_DEMO_DIR, clip)
+    run = load_saved_run(PRECOMPUTED_DIR, clip)
+    nms_iou = run.config.get("agnostic_nms_iou")
     st.markdown(
-        f"**{clip}** — xử lý sẵn trên GPU Tesla T4 (Kaggle) bằng đúng pipeline của dự án: "
-        f"`{Path(run.config['weights']).name}` + `{Path(run.config['tracker']).name}`, vạch đếm {run.config['line']}. "
-        "Tốc độ dưới đây gồm cả vẽ box và mã hoá video; riêng phát hiện + theo dõi đạt ~42 frame/s."
+        f"**{clip}** — xử lý sẵn bằng đúng pipeline của dự án: `{Path(run.config['weights']).name}` + "
+        f"`{Path(run.config['tracker']).name}`" + (f", lọc box trùng IoU {nms_iou}" if nms_iou else "")
+        + f", vạch đếm {run.config['line']}. Tốc độ dưới đây là của máy đã xử lý, gồm cả vẽ box và mã hoá video; "
+        "trên GPU T4, riêng phát hiện + theo dõi đạt ~42 frame/s."
     )
     video_fps = sv.VideoInfo.from_video_path(str(run.result.output_path)).fps
-    show_results(run.result, run.result.frames / video_fps, run.config, run.events_csv, hardware="GPU T4")
+    show_results(run.result, run.result.frames / video_fps, run.config, run.events_csv,
+                 hardware=run.config.get("device", "không rõ"))
 
 
 def main() -> None:
@@ -182,13 +169,14 @@ def main() -> None:
 
     mode = st.sidebar.radio("Video", MODES, horizontal=True)
     if mode == MODES[0]:
-        show_gpu_demo()
+        show_precomputed()
         return
 
     source = choose_source(mode)
     models = available_models()
     weights = st.sidebar.selectbox("Mô hình", models, format_func=lambda w: MODEL_LABELS[w])
-    tracker = st.sidebar.selectbox("Tracker", list(TRACKER_LABELS), format_func=lambda t: TRACKER_LABELS[t])
+    tracker = DEFAULT_TRACKER
+    st.sidebar.caption(f"Tracker: BoT-SORT đã chỉnh (`{Path(tracker).name}`), lọc box trùng IoU {DEFAULT_AGNOSTIC_NMS_IOU}")
     conf = st.sidebar.slider(
         "Ngưỡng tin cậy detection", 0.05, 0.5, DEFAULT_DETECTION_CONF, 0.05,
         help="Để thấp (0.1): tracker dùng cả detection điểm thấp để nối xe bị che; tạo track mới do cấu hình tracker quyết định.",
@@ -231,7 +219,7 @@ def main() -> None:
         )
         progress.empty()
         events_csv = result.write_events_csv(result.output_path.with_name(result.output_path.stem + "_events.csv"))
-        st.session_state["last_run"] = (result, max_seconds, settings, events_csv, hardware_label(weights))
+        st.session_state["last_run"] = (result, max_seconds, settings, events_csv, device_name(weights))
 
     if "last_run" in st.session_state:
         show_results(*st.session_state["last_run"])

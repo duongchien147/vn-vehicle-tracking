@@ -1,0 +1,13 @@
+# Clip của video demo xử lý sẵn và vạch đếm (x1, y1, x2, y2 tương đối 0–1) của từng clip, dùng chung cho
+# scripts/make_demo_videos.sh (chạy trên máy) và notebooks/kaggle_demo_gpu (chạy trên GPU Kaggle).
+# Vạch chọn bằng mắt trên frame mẫu: cắt ngang lòng đường ở chỗ xe đủ lớn. pvd_goc_c: vạch ở 0.6 nằm quá xa -> 0.7.
+# pvd_goc_a: vạch ngang 0.6 = vạch đã dùng khi chấm sai số đếm (video demo khớp bảng số liệu); vạch này chỉ cắt đường
+# chính, làn bên kia chạy chéo và ra khỏi khung hình quanh y = 0.6 nên chiều "vào" ~0 — người làm đồ án chọn giữ vạch
+# thẳng (8/10/2026; đã thử vạch chéo (0, 0.6) -> (1, 0.85): 14 ô tô vào).
+clips:
+  pvd_goc_a: [0.0, 0.6, 1.0, 0.6]
+  pvd_goc_b: [0.0, 0.6, 1.0, 0.6]
+  pvd_goc_c: [0.0, 0.7, 1.0, 0.7]
+  ham_chui_dem_1: [0.0, 0.6, 1.0, 0.6]
+  ham_chui_dem_2: [0.0, 0.6, 1.0, 0.6]
+  ham_chui_dem_3: [0.0, 0.6, 1.0, 0.6]

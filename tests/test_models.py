@@ -5,7 +5,7 @@ from typing import cast
 import pytest
 from ultralytics import YOLO
 
-from vtrack.models import class_mapping, split_device, training_imgsz
+from vtrack.models import class_mapping, device_name, split_device, training_imgsz
 
 
 def fake_model(overrides: dict, model_name: str = "") -> YOLO:
@@ -39,3 +39,8 @@ def test_split_device_suffix():
     assert split_device("weights/x.pt") == ("weights/x.pt", None)
     with pytest.raises(ValueError):
         split_device("weights/x_openvino_model#npu")
+
+
+def test_device_name_for_openvino_suffix():
+    assert device_name("weights/x_openvino_model#gpu") == "GPU Intel tích hợp (OpenVINO)"
+    assert device_name("weights/x_openvino_model#cpu") == "CPU (OpenVINO)"

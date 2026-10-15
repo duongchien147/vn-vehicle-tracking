@@ -259,11 +259,11 @@ người đếm bấm một phím theo lớp và hướng, công cụ ghi lại 
 chưa tới vạch khi clip kết thúc, không được tính. Bộ đếm của hệ thống cũng lấy điểm giữa đáy box làm điểm neo, nên
 người đếm và hệ thống đo cùng một sự kiện.
 
-Để kiểm tra độ tin cậy của nhãn, một trợ lý AI đếm độc lập trên cùng hai clip bằng cách xem ảnh gốc, không dùng mô hình
-của đề tài. Hai bộ đếm ghép được 174 trên 176 lượt (lệch thời điểm trung vị 0.2 giây); trong đó chỉ hai lượt khác lớp,
-đều là xe bán tải mà bộ đếm AI xếp vào xe tải theo COCO. Hai lượt còn lại là hai xe máy ở giây cuối của clip thứ ba mà
-bộ đếm AI chưa chốt; xem phóng to các frame cuối cho thấy cả hai đều qua vạch trước khi clip kết thúc, nên được giữ theo
-người đếm. Kết quả là 176 lượt, cùng một chiều: 149 xe máy, 25 ô tô, 1 xe buýt, 1 xe tải.
+Để kiểm tra độ tin cậy của nhãn, hai clip được đếm thêm một lần độc lập, xem trực tiếp ảnh gốc từng đoạn và không dùng
+mô hình của đề tài. Hai lần đếm ghép được 174 trên 176 lượt (lệch thời điểm trung vị 0.2 giây); trong đó chỉ hai lượt
+khác lớp, đều là xe bán tải mà lần đếm thứ hai xếp vào xe tải theo COCO. Hai lượt còn lại là hai xe máy ở giây cuối của
+clip thứ ba mà lần đếm thứ hai chưa chốt; xem phóng to các frame cuối cho thấy cả hai đều qua vạch trước khi clip kết
+thúc, nên được giữ theo lần đếm đầu. Kết quả là 176 lượt, cùng một chiều: 149 xe máy, 25 ô tô, 1 xe buýt, 1 xe tải.
 
 \section{Huấn luyện mô hình phát hiện}
 

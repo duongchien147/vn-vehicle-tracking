@@ -549,9 +549,10 @@ sai số theo hướng 2 (2.7%).
 `scripts/count_by_hand.py`; chấm: `outputs/eval_manual_counts/night_human/`; v5 chạy CPU ra `outputs/manual_count_runs/v5/`,
 YOLO26s = video demo GPU). Clip 1 bỏ vì trùng clip 2 và có cắt cảnh. 176 lượt, tất cả chiều "vào": 149 xe máy / 25 ô
 tô (gồm 2 xe bán tải — quy ước bán tải 5 chỗ = ô tô, người làm đồ án chốt 12/10/2026, lệch COCO) / 1 buýt / 1 tải.
-Kiểm độ tin cậy: một trợ lý AI đếm độc lập trên ảnh gốc (`data/count_gt/ai_review_2026-10-11/`) ghép được 174/176 lượt
-(lệch thời điểm trung vị 0.2 s), khác lớp đúng 2 xe bán tải; 2 xe máy cuối clip 3 AI chưa chốt — phóng to frame
-1782–1799 xác nhận đã qua vạch.
+Kiểm độ tin cậy: một lần đếm độc lập thứ hai trên ảnh gốc (`data/count_gt/ai_review_2026-10-11/`) ghép được 174/176
+lượt (lệch thời điểm trung vị 0.2 s), khác lớp đúng 2 xe bán tải; 2 xe máy cuối clip 3 lần đếm thứ hai chưa chốt — phóng
+to frame 1782–1799 xác nhận đã qua vạch. (Báo cáo gọi là "đếm thêm một lần độc lập", không nêu tên trợ lý AI — người làm
+đồ án chọn 15/10/2026.)
 
 | Clip | Thật | v5 đếm / sót / thừa | YOLO26s đếm / sót / thừa |
 |---|---|---|---|

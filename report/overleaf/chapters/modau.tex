@@ -48,8 +48,9 @@ các tập đánh giá có người kiểm, rồi kết hợp với thuật toá
 \addsec{Mục tiêu đề tài}
 
 \textbf{Mục tiêu tổng quát:} xây dựng hệ thống phát hiện, phân loại (4 lớp xe máy, ô tô, xe buýt, xe tải) và theo dõi
-phương tiện từ video camera giao thông Việt Nam; đánh giá phần phát hiện bằng mAP kiểu COCO và phần theo dõi bằng
-HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
+phương tiện từ video camera giao thông Việt Nam có khả năng triển khai thực tế, nghĩa là đủ chính xác trên camera chưa
+dùng khi huấn luyện, cả ban ngày lẫn ban đêm, và chạy kịp thời gian thực trên máy chủ có GPU xử lý camera tập trung.
+Phần phát hiện được đánh giá bằng mAP kiểu COCO, phần theo dõi bằng HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
 
 \textbf{Mục tiêu cụ thể:}
 \begin{itemize}
@@ -57,11 +58,12 @@ HOTA, MOTA, IDF1 theo chuẩn MOTChallenge.
         cả cảnh ban đêm, và hai clip có nhãn theo dõi (một để chọn tracker, một để test).
   \item Tinh chỉnh YOLO26 qua nhiều phiên bản dữ liệu và so sánh với mô hình gốc huấn luyện trên COCO.
   \item So sánh kiến trúc CNN (YOLO26n, YOLO26s) với kiến trúc Transformer (RT-DETRv2-S) theo một giao thức công bằng,
-        đo cả độ chính xác lẫn tốc độ, để chọn mô hình hợp với bối cảnh xử lý camera trên máy chủ có GPU.
+        đo cả độ chính xác lẫn tốc độ, để chọn mô hình có khả năng triển khai thực tế trên máy chủ có GPU.
   \item Chọn và tinh chỉnh thuật toán theo dõi (ByteTrack, BoT-SORT, OC-SORT) trên tập phát triển, rồi chấm cấu hình đã
         chọn trên tập test.
   \item Xây dựng ứng dụng đếm xe qua vạch theo lớp và hướng, đo sai số đếm cả ban ngày và ban đêm; làm web demo bằng
-        Streamlit; đo và tối ưu tốc độ trên laptop (CPU, GPU tích hợp, OpenVINO) và trên GPU.
+        Streamlit; đánh giá khả năng triển khai qua tốc độ trên GPU (Tesla T4) và trên laptop không có GPU rời (CPU, GPU
+        tích hợp, tối ưu bằng OpenVINO).
 \end{itemize}
 
 \addsec{Giới hạn và phạm vi đề tài}

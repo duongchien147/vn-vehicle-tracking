@@ -150,7 +150,7 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 **2.2. Transformer và họ DETR**
 - Cơ chế attention [17] (công thức Attention(Q,K,V) = softmax(QKᵀ/√d_k)V).
 - DETR [3]: phát hiện như dự đoán tập hợp, ghép cặp Hungarian giữa dự đoán và nhãn, không NMS; nhược điểm hội tụ chậm.
-- RT-DETR [4] và RT-DETRv2 [5]: bộ mã hoá lai (AIFI + CCFM), chọn truy vấn theo IoU, deformable attention;
+- RT-DETR [4] và RT-DETRv2 [5]: bộ mã hoá lai (AIFI + CCFF), chọn truy vấn có độ bất định nhỏ nhất (tên theo bản CVPR 2024), deformable attention;
   RT-DETRv2-S dùng backbone ResNet-18vd [18].
 - Loss: phân lớp Varifocal + box L1 + GIoU, denoising.
 - Ưu, nhược điểm (chính xác box, chậm trên CPU).
@@ -766,7 +766,7 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 |---|---|---|---|
 | H1.1 | Frame demo có box, ID, vạch đếm | trích từ `outputs/kaggle/vtrack-demo-gpu/demo/pvd_goc_a_tracked.mp4` | **cần trích** |
 | H1.2 | Ví dụ khó khăn: cụm xe máy dày, xe nhỏ ở xa, ban đêm | `outputs/error_analysis/2_…`, `1_…`, `3_…` (dùng lại) hoặc frame gốc | có sẵn |
-| H2.x | Sơ đồ YOLO (backbone–neck–head), DETR/RT-DETR, SORT/ByteTrack | — | **cần vẽ** (vẽ lại, không chép hình bài báo nếu không trích nguồn) |
+| H2.1–H2.8 | Hình gốc từ bài báo, ghi nguồn trong chú thích (chú thích ngắn cho danh mục hình không có `\cite` để không đảo thứ tự tài liệu IEEE): lưới S×S của YOLO (arXiv 1506.02640), kiến trúc / các khối / độ chính xác–độ trễ T4 của YOLO26 (2606.03748, CC BY 4.0), DETR (2005.12872, CC0), RT-DETR (2304.08069), ByteTrack (2110.06864), BoT-SORT (2206.14651); các bài không ghi CC dùng giấy phép mặc định arXiv → trích dẫn cho học tập, nghiên cứu | `report/overleaf/figures/paper_*`, tạo bằng `report/fetch_paper_figures.py` (cần `pypdfium2`; mã nguồn arXiv lưu ở `outputs/paper_sources/`) | có (15/10/2026) |
 | H3.1 | Sơ đồ pipeline hệ thống | — | **cần vẽ** |
 | H3.2 | Ví dụ ảnh từ mỗi nguồn dữ liệu | `data/raw/...`, `data/labeling/...` | **cần chọn** |
 | H3.3 | Giao diện gán nhãn X-AnyLabeling / CVAT | — | **cần chụp** |

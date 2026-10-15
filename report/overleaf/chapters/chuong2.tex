@@ -62,25 +62,62 @@ xoá nhầm một xe. Cả YOLO26 và họ DETR dùng trong đề tài đều kh
 \subsection{Ý tưởng phát hiện một giai đoạn}
 
 YOLO~\cite{redmon2016yolo} coi phát hiện đối tượng là một bài toán hồi quy: một lần truyền xuôi qua mạng cho ra trực
-tiếp toạ độ box và xác suất lớp tại mọi vị trí, thay cho cách hai giai đoạn (đề xuất vùng rồi phân loại từng vùng). Cách
-làm này nhanh, phù hợp xử lý video. Các phiên bản sau giữ ý tưởng đó và cải tiến dần backbone, neck đa tỉ lệ, cách gán
-nhãn và hàm mất mát.
+tiếp toạ độ box và xác suất lớp tại mọi vị trí, thay cho cách hai giai đoạn (đề xuất vùng rồi phân loại từng vùng). Ở
+bản đầu tiên (Hình~\ref{fig:yolo-grid}), ảnh được chia thành lưới $S \times S$; mỗi ô dự đoán một số box kèm độ tin cậy
+và một phân bố xác suất lớp, hai đầu ra này gộp lại thành kết quả cuối. Cách làm này nhanh, phù hợp xử lý video. Các
+phiên bản sau giữ ý tưởng đó và cải tiến dần backbone, neck đa tỉ lệ, cách gán nhãn và hàm mất mát.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.78\linewidth]{paper_yolo_grid.jpg}
+  \caption[Ý tưởng phát hiện một giai đoạn của YOLO]{Ý tưởng phát hiện một giai đoạn của YOLO: ảnh chia lưới
+           $S \times S$, mỗi ô dự đoán box kèm độ tin cậy và xác suất lớp, rồi gộp thành kết quả cuối
+           (nguồn:~\cite{redmon2016yolo})}
+  \label{fig:yolo-grid}
+\end{figure}
 
 \subsection{YOLO26}
 
 YOLO26~\cite{jocher2026yolo26} là thế hệ YOLO mới nhất của Ultralytics~\cite{ultralytics}, có năm cỡ n, s, m, l, x. Đề
 tài dùng cỡ s (10.0 triệu tham số) làm mô hình chính và cỡ n (2.5 triệu tham số) làm bản nhẹ cho máy không có GPU rời;
-hai cỡ cũng được so sánh với nhau trên cùng dữ liệu. Các điểm khác biệt
-chính so với thế hệ trước:
+hai cỡ cũng được so sánh với nhau trên cùng dữ liệu.
+
+Kiến trúc YOLO26 (Hình~\ref{fig:yolo26-arch}) gồm ba phần. Backbone giảm dần kích thước bản đồ đặc trưng từ 1/2 đến
+1/32 ảnh vào bằng các lớp tích chập bước 2 xen với khối C3k2, rồi qua SPPF (gộp đặc trưng ở nhiều kích thước vùng) và
+C2PSA (khối có attention). Neck trộn đặc trưng ba mức 1/8, 1/16 và 1/32 theo cả chiều lên và chiều xuống. Ba đầu phát
+hiện đặt ở ba mức này, lần lượt phụ trách vật nhỏ, vừa và lớn. Số kênh trong hình là của cấu hình gốc: cỡ n nhân số
+kênh với 0.25, cỡ s với 0.5, và cả hai chỉ lặp mỗi khối bằng một nửa số lần của cấu hình gốc. Hình vẽ với ảnh vào 640;
+đề tài dùng ảnh 960, vì mạng nhận được mọi kích thước chia hết cho 32.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\linewidth]{paper_yolo26_arch.png}
+  \caption[Kiến trúc YOLO26]{Kiến trúc YOLO26: backbone, neck và ba đầu phát hiện ở các mức 1/8, 1/16, 1/32 (số kênh
+           của cấu hình gốc, ảnh vào 640; nguồn:~\cite{jocher2026yolo26})}
+  \label{fig:yolo26-arch}
+\end{figure}
+
+Các điểm khác biệt chính so với thế hệ trước:
 \begin{itemize}
-  \item \textbf{Phát hiện đầu cuối, không cần NMS.} Theo hướng của YOLOv10~\cite{wang2024yolov10}, khi suy luận mô hình
-        dùng đầu ra gán nhãn một-một: mỗi xe chỉ ứng với một dự đoán, nên đầu ra dùng được ngay, không qua NMS.
+  \item \textbf{Phát hiện đầu cuối, không cần NMS.} Theo hướng của YOLOv10~\cite{wang2024yolov10}, đầu phát hiện có hai
+        nhánh (khối cuối của Hình~\ref{fig:yolo26-blocks}). Nhánh một-nhiều chỉ dùng khi huấn luyện, gán mỗi xe cho nhiều
+        dự đoán để có thêm tín hiệu học. Nhánh một-một gán mỗi xe cho đúng một dự đoán và là nhánh dùng khi suy luận,
+        nên đầu ra dùng được ngay, không qua NMS.
   \item \textbf{Bỏ Distribution Focal Loss (DFL).} Box được hồi quy trực tiếp, giúp mô hình gọn hơn khi xuất sang các
         định dạng triển khai như OpenVINO.
   \item \textbf{ProgLoss và STAL.} ProgLoss cân bằng dần các thành phần mất mát trong quá trình huấn luyện; STAL là cách
         gán nhãn chú ý tới vật nhỏ. Cả hai nhắm vào vật nhỏ, đúng với xe máy ở xa trong bài toán này.
   \item \textbf{Optimizer MuSGD}, kết hợp SGD với Muon, dùng cho các lần huấn luyện dài.
 \end{itemize}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{paper_yolo26_blocks.png}
+  \caption[Các khối chính của YOLO26]{Các khối chính của YOLO26: C3k2, C2PSA (có attention), SPPF và đầu phát hiện hai
+           nhánh; nhánh một-nhiều chỉ dùng khi huấn luyện, nhánh một-một dùng khi suy luận, không cần NMS
+           (nguồn:~\cite{jocher2026yolo26})}
+  \label{fig:yolo26-blocks}
+\end{figure}
 
 Nhật ký huấn luyện của đề tài ghi ba thành phần mất mát: mất mát box dựa trên IoU, mất mát phân lớp và mất mát L1 trên
 toạ độ box. Mất mát phân lớp là entropy chéo nhị phân (BCE) tính riêng cho từng lớp:
@@ -105,6 +142,21 @@ của thư viện.
 \textbf{Ưu điểm:} nhanh, nhẹ, có sẵn công cụ huấn luyện, xuất mô hình và theo dõi đối tượng trong cùng thư viện;
 không cần NMS. \textbf{Nhược điểm:} ảnh được thu nhỏ về 960 điểm ảnh cạnh dài (với cấu hình của đề tài), nên xe rất
 nhỏ ở xa mất chi tiết; cỡ n có ít tham số nên kém hơn cỡ lớn ở cảnh khó.
+
+Về khả năng triển khai, Hình~\ref{fig:yolo26-speed} là kết quả công bố của YOLO26 trên COCO: độ chính xác tăng theo cỡ
+mô hình, còn độ trễ trên GPU T4 (TensorRT, FP16) tăng chậm ở các cỡ nhỏ. Cỡ n đạt mAP50-95 40.9 với 1.7 ms mỗi ảnh, cỡ
+s đạt 48.6 với 2.5 ms~\cite{jocher2026yolo26}. Trên GPU, chuyển từ cỡ n lên cỡ s đổi được nhiều độ chính xác với ít
+thời gian; đây là cơ sở để đề tài cân nhắc cỡ s cho bối cảnh máy chủ có GPU, và mục~\ref{sec:toc-do} đo lại điều này
+trên dữ liệu của đề tài.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.92\linewidth]{paper_yolo26_speed.png}
+  \caption[Độ chính xác theo độ trễ của YOLO26 trên GPU T4]{Độ chính xác (mAP50-95 trên COCO val2017) theo độ trễ trên
+           GPU T4 với TensorRT FP16 của các cỡ YOLO26 và các mô hình thời gian thực khác
+           (nguồn:~\cite{jocher2026yolo26})}
+  \label{fig:yolo26-speed}
+\end{figure}
 
 \section{Transformer và họ mô hình DETR}
 
@@ -131,7 +183,8 @@ Khác với tích chập chỉ nhìn một vùng lân cận, attention nhìn to�
 \subsection{DETR: phát hiện như bài toán dự đoán tập hợp}
 
 DETR~\cite{carion2020detr} dùng CNN trích đặc trưng, đưa qua bộ mã hoá và bộ giải mã Transformer với $N$ truy vấn đối
-tượng (object query); mỗi truy vấn cho ra một box và một lớp, có thể là lớp ``không có đối tượng'' ($\varnothing$).
+tượng (object query); mỗi truy vấn cho ra một box và một lớp, có thể là lớp ``không có đối tượng'' ($\varnothing$)
+(Hình~\ref{fig:detr}).
 Khi huấn luyện, $N$ dự đoán được ghép một-một với các box nhãn bằng thuật toán Hungarian:
 \begin{equation}
   \begin{split}
@@ -162,14 +215,23 @@ Công thức (\ref{eq:giou}): IoU tổng quát, với $C$ là box nhỏ nhất b
 Vì ghép một-một, mỗi xe chỉ ứng với một dự đoán và DETR không cần NMS. Nhược điểm của DETR gốc là hội tụ chậm (hàng
 trăm epoch trên COCO) và chậm khi suy luận.
 
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{paper_detr.png}
+  \caption[Kiến trúc DETR]{Kiến trúc DETR: CNN trích đặc trưng, cộng mã hoá vị trí, qua bộ mã hoá và bộ giải mã
+           Transformer; mỗi truy vấn đối tượng cho ra một box và lớp, hoặc ``không có đối tượng''
+           (nguồn:~\cite{carion2020detr})}
+  \label{fig:detr}
+\end{figure}
+
 \subsection{RT-DETR và RT-DETRv2}
 
-RT-DETR~\cite{zhao2024rtdetr} đưa họ DETR về tốc độ thời gian thực trên GPU nhờ ba thay đổi:
+RT-DETR~\cite{zhao2024rtdetr} đưa họ DETR về tốc độ thời gian thực trên GPU nhờ ba thay đổi (Hình~\ref{fig:rtdetr}):
 \begin{itemize}
   \item \textbf{Bộ mã hoá lai.} Attention trong cùng một mức (AIFI) chỉ chạy trên bản đồ đặc trưng sâu nhất (1/32),
-        nơi số phần tử ít; việc trộn đặc trưng giữa các mức (CCFM) làm bằng tích chập.
-  \item \textbf{Chọn truy vấn theo IoU.} Truy vấn khởi tạo cho bộ giải mã được chọn từ các vị trí có điểm phân lớp và
-        IoU dự kiến cao, thay cho truy vấn học tự do.
+        nơi số phần tử ít; việc trộn đặc trưng giữa các mức (CCFF) làm bằng tích chập.
+  \item \textbf{Chọn truy vấn có độ bất định nhỏ nhất.} Truy vấn khởi tạo cho bộ giải mã được chọn từ các vị trí mà
+        điểm phân lớp và chất lượng định vị (IoU) cùng cao và khớp nhau, thay cho truy vấn học tự do.
   \item \textbf{Attention biến dạng trong bộ giải mã.} Mỗi truy vấn chỉ lấy mẫu một số ít điểm quanh điểm tham chiếu:
 \end{itemize}
 \begin{equation}
@@ -202,6 +264,15 @@ RT-DETRv2~\cite{lv2024rtdetrv2} giữ kiến trúc trên và thêm một số c�
 số điểm lấy mẫu khác nhau cho từng mức đặc trưng, toán tử lấy mẫu rời rạc thuận tiện khi triển khai, tăng cường dữ
 liệu động và siêu tham số điều chỉnh theo cỡ mô hình. Khi huấn luyện còn dùng thêm truy vấn nhiễu (denoising) để bộ giải
 mã hội tụ nhanh hơn. Bản RT-DETRv2-S dùng backbone ResNet-18 và có 20.1 triệu tham số.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{paper_rtdetr.png}
+  \caption[Tổng quan RT-DETR]{Tổng quan RT-DETR: backbone cho ba mức đặc trưng S3--S5; bộ mã hoá lai gồm AIFI (attention
+           trong một mức, chỉ trên S5) và CCFF (trộn giữa các mức bằng tích chập); chọn truy vấn có độ bất định nhỏ
+           nhất rồi đưa vào bộ giải mã. RT-DETRv2 giữ nguyên kiến trúc này (nguồn:~\cite{zhao2024rtdetr})}
+  \label{fig:rtdetr}
+\end{figure}
 
 \textbf{Ưu điểm:} box khít, không cần NMS, nhìn được ngữ cảnh toàn ảnh. \textbf{Nhược điểm:} nặng hơn YOLO cùng thế
 hệ; trên CPU chậm hơn nhiều lần (mục~\ref{sec:toc-do}).
@@ -265,15 +336,35 @@ Công thức (\ref{eq:hungarian}): bài toán gán. Các cặp có chi phí vư�
 \textbf{SORT}~\cite{bewley2016sort} là dạng cơ bản: Kalman để dự đoán, Hungarian theo IoU để ghép. Track mới chỉ được
 xác nhận sau vài frame liên tiếp có box (\texttt{min\_hits}) và bị xoá sau một số frame không được ghép.
 
-\textbf{ByteTrack}~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp. Box được chia hai nhóm theo điểm tin cậy: lần
-ghép thứ nhất chỉ dùng box điểm cao; các track còn lại được ghép lần hai với box điểm thấp. Xe bị che một phần thường
+\textbf{ByteTrack}~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp (Hình~\ref{fig:bytetrack}). Box được chia hai
+nhóm theo điểm tin cậy: lần ghép thứ nhất chỉ dùng box điểm cao; các track còn lại được ghép lần hai với box điểm thấp. Xe bị che một phần thường
 có điểm thấp, nên lần ghép thứ hai giúp track không bị đứt. Chỉ box điểm cao chưa ghép mới tạo track mới. Vì lý do
 này, ngưỡng tin cậy của mô hình phát hiện trong hệ thống được đặt ở 0.1 thay cho 0.25 thông thường: các box từ 0.1 đến
 0.25 không tạo track mới nhưng được dùng ở lần ghép thứ hai.
 
-\textbf{BoT-SORT}~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến: trạng thái Kalman dùng trực tiếp
-chiều rộng và chiều cao box; bù chuyển động camera (GMC) bằng cách ước lượng phép biến đổi giữa hai frame từ luồng
-quang học thưa rồi áp vào vị trí dự đoán; và tuỳ chọn kết hợp đặc trưng ngoại hình (ReID) với IoU khi ghép.
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.62\linewidth]{paper_bytetrack.jpg}
+  \caption[Ý tưởng ghép mọi box của ByteTrack]{Ý tưởng của ByteTrack, minh hoạ trên người đi bộ: (a) box phát hiện kèm
+           điểm tin cậy; (b) chỉ ghép box điểm cao thì người bị che (điểm 0.4 rồi 0.1) mất track; (c) ghép thêm box điểm
+           thấp giữ được track đó (nguồn:~\cite{zhang2022bytetrack})}
+  \label{fig:bytetrack}
+\end{figure}
+
+\textbf{BoT-SORT}~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến (Hình~\ref{fig:botsort}): trạng thái
+Kalman dùng trực tiếp chiều rộng và chiều cao box; bù chuyển động camera (GMC) bằng cách ước lượng phép biến đổi giữa
+hai frame từ luồng quang học thưa rồi áp vào vị trí dự đoán; và tuỳ chọn kết hợp đặc trưng ngoại hình (ReID) với IoU
+khi ghép. Cấu hình của đề tài tắt cả ReID lẫn bù chuyển động camera, vì camera đứng yên và đặc trưng ngoại hình lấy từ
+mô hình phát hiện làm số lần đổi ID tăng (mục~\ref{sec:chon-tracker}).
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\linewidth]{paper_botsort.png}
+  \caption[Luồng xử lý của BoT-SORT]{Luồng xử lý của BoT-SORT: ước lượng chuyển động camera, dự đoán vị trí bằng
+           Kalman, ghép lần một với box điểm cao theo IoU kết hợp ReID, ghép lần hai với box điểm thấp theo IoU, rồi cập
+           nhật danh sách track. Bộ phát hiện trong hình là YOLOX của bài báo gốc (nguồn:~\cite{aharon2022botsort})}
+  \label{fig:botsort}
+\end{figure}
 
 \textbf{OC-SORT}~\cite{cao2023ocsort} xử lý trường hợp xe bị che lâu: khi track được ghép lại sau thời gian mất, thuật
 toán dựng lại quỹ đạo ảo từ quan sát cuối để sửa sai số tích luỹ của Kalman, và dùng hướng chuyển động thực tế làm

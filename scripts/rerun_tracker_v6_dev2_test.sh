@@ -31,6 +31,7 @@ for weights in $V6 $V6S1; do
   done
 done
 $PY scripts/eval_manual_counts.py --runs outputs/manual_count_runs/v5 outputs/manual_count_runs/v6_yolo26n_vn_v6_best \
+  outputs/manual_count_runs/v6_yolo26n_vn_v6_seed1_best \
   outputs/manual_count_runs/nms06_yolo26n_vn_v6_best outputs/manual_count_runs/nms06_yolo26n_vn_v6_seed1_best \
   --name night_human_nms06
 echo "Xong"

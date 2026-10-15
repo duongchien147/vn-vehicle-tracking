@@ -24,16 +24,17 @@ DEFAULT_DETECTION_CONF = 0.1
 # Tracker đã chỉnh trên tập dev VnTraffic, tắt bù chuyển động camera (GMC): camera trong phạm vi đồ án đứng yên.
 # Trên dev, tắt GMC cho IDR như nhau (0.827) và đổi ID 61 vs 62, pipeline OpenVINO nhanh hơn 1.4 lần
 # (outputs/eval_tracking/gmc_dev/). Video camera rung/quay theo thì dùng configs/botsort_tuned.yaml (có GMC).
-# Hai lần thử giảm đổi ID cho v6 (14/10/2026) đều không được nhận: configs/botsort_v6.yaml (ngưỡng mở track 0.6) làm bỏ
-# sót gấp đôi trên clip test; bộ lọc box trùng (configs/tracker_tuning_v6_nms.yaml) không đạt tiêu chí trên dev.
+# configs/botsort_v6.yaml (ngưỡng mở track 0.6) không được nhận: bỏ sót xe nhỏ ở xa nhiều hơn hẳn (test PVD gấp đôi;
+# clip dev pvd_goc_c_dev +42%). Cách giảm đổi ID được nhận là bộ lọc box trùng bên dưới.
 DEFAULT_TRACKER = "configs/botsort_tuned_nogmc.yaml"
 # Track phải sống đủ 3 frame mới hiện/được đếm: bằng min_hits mặc định của SORT. Trên VnTraffic giảm đổi ID
 # 128 -> 118 và MOTA +0.04, đổi lại IDR -0.004 (mất 2 frame đầu của mỗi xe). Bộ chấm tracking vẫn báo kết quả thô.
 DEFAULT_MIN_TRACK_AGE = 3
-# Lọc box trùng bất kể lớp trước tracker (vtrack.box_filter): None = tắt. Thử trên dev 14/10/2026
-# (configs/tracker_tuning_v6_nms.yaml): ngưỡng 0.6 giảm đổi ID 93.5 -> 63 nhưng mAP50 dev đêm giảm 0.006, quá mức cho
-# phép 0.005 (mất một ít xe thật) -> không ngưỡng nào đạt tiêu chí, giữ tắt.
-DEFAULT_AGNOSTIC_NMS_IOU: float | None = None
+# Lọc box trùng bất kể lớp trước tracker (vtrack.box_filter; YOLO26 end-to-end nên ultralytics không chạy NMS, v6 sinh
+# box phụ chồng lên cùng một xe). IoU 0.6 chọn trên hai tập dev theo configs/tracker_tuning_v6_dev2.yaml (15/10/2026):
+# tổng đổi ID 130 -> 90.5, bỏ sót trên clip dev đầy đủ nhãn +0.9%, HOTA 0.689 -> 0.695 (outputs/eval_tracking/
+# tuning_v6_dev2/selection.csv). Test PVD chấm một lần sau đó: đổi ID 49 -> 26, HOTA 0.732 -> 0.744. None = tắt.
+DEFAULT_AGNOSTIC_NMS_IOU: float | None = 0.6
 
 
 class TrackAgeFilter:

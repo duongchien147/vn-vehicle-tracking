@@ -33,9 +33,9 @@ TEXT = "#0b0b0b"
 MUTED = "#52514e"
 GRID = "#e4e3df"
 FRAME_TIME_S = 30  # lấy frame giữa clip demo 60 s
-# Lỗi gặp trong video demo: xe cứu hộ chở ô tô ở ham_chui_dem_1 giây 47.5 (frame 1425); vùng cắt x1, y1, x2, y2 (px)
-# chọn bằng mắt cho đủ xe cứu hộ và nhãn của nó
-TOW_TRUCK_FRAME = ("ham_chui_dem_1", 1425, (0, 380, 880, 960))
+# Ảnh phân tích lỗi (outputs/error_analysis/<số>_*.jpg) có trong báo cáo: xe nhỏ ở xa, cụm xe máy, xe đêm chỉ thấy
+# đèn, đổi ID. Các loại lỗi còn lại chỉ mô tả bằng lời trong báo cáo.
+ERROR_CASES_IN_REPORT = ("1", "2", "3", "7")
 # Ảnh gốc (chưa qua mô hình) minh hoạ lý do chọn đề tài: tên file -> (video, giây), chọn bằng mắt.
 # Ban ngày: ngã tư Hà Nội lúc xe máy đi dày xen ô tô; ban đêm: đường phố TP.HCM nhiều xe, chỉ có đèn đường và đèn xe.
 INTRO_FRAMES = {
@@ -153,7 +153,7 @@ def save_jpeg(image, path: Path) -> None:
 
 
 def demo_frames() -> None:
-    for clip in ("pvd_goc_a", "ham_chui_dem_1"):
+    for clip in ("pvd_goc_a",):
         capture = cv2.VideoCapture(str(DEMO_DIR / f"{clip}_tracked.mp4"))
         capture.set(cv2.CAP_PROP_POS_MSEC, FRAME_TIME_S * 1000)
         ok, frame = capture.read()
@@ -174,17 +174,6 @@ def intro_frames() -> None:
         save_jpeg(frame, OUT / name)
 
 
-def demo_error_case() -> None:
-    clip, frame_index, (x1, y1, x2, y2) = TOW_TRUCK_FRAME
-    capture = cv2.VideoCapture(str(DEMO_DIR / f"{clip}_tracked.mp4"))
-    capture.set(cv2.CAP_PROP_POS_FRAMES, frame_index)
-    ok, frame = capture.read()
-    capture.release()
-    if not ok:
-        raise RuntimeError(f"Không đọc được frame {frame_index} của {clip}")
-    save_jpeg(frame[y1:y2, x1:x2], OUT / "demo_tow_truck.jpg")
-
-
 def data_source_examples() -> None:
     """Một ảnh mỗi nguồn train: ảnh thứ `index` theo thứ tự tên (chọn bằng mắt cho rõ cảnh)."""
     picks = {"vnvehicle": 5, "cantho": 0, "indo": 0, "visdrone": 250, "uvh26": 0, "hanoi": 0}
@@ -197,7 +186,9 @@ def data_source_examples() -> None:
 
 def copy_existing() -> None:
     for path in sorted(Path("outputs/error_analysis").glob("*.jpg")):
-        save_jpeg(cv2.imread(str(path)), OUT / f"error_{path.name.split('_')[0]}.jpg")
+        case = path.name.split("_")[0]
+        if case in ERROR_CASES_IN_REPORT:
+            save_jpeg(cv2.imread(str(path)), OUT / f"error_{case}.jpg")
     confusion = cv2.imread(str(KAGGLE_YOLO_MAIN / "runs/yolo26s_v6_e100_960/test/confusion_matrix_normalized.png"))
     save_jpeg(confusion, OUT / "confusion_matrix.jpg")
     # Ảnh chụp giao diện web demo (chụp bằng trình duyệt, lưu PNG vào OUT) -> JPEG
@@ -212,7 +203,6 @@ def main() -> None:
     learning_curves()
     demo_frames()
     intro_frames()
-    demo_error_case()
     data_source_examples()
     copy_existing()
     print("\n".join(sorted(p.name for p in OUT.iterdir())))

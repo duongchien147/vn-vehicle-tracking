@@ -237,23 +237,29 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 
 **4.1. Tiêu chí và tập đánh giá** — liệt kê các tập (Bảng 3.2), chỉ số, nguyên tắc dev/test, các thiên lệch nhãn (4.9).
 
-**4.2. Kết quả phát hiện (E1)** — Bảng 4.1–4.5 (mục 4.1 tài liệu này).
+**4.2. Kết quả phát hiện (E1)** — test Hà Nội; `vn_extra` ngày/đêm (recall theo chiều cao xe viết trong lời, bảng
+riêng đã bỏ); clip PVD gộp chung bảng với các tập ngoài; ma trận nhầm lẫn YOLO26s-v6.
 
-**4.3. So sánh kiến trúc CNN – Transformer** — Bảng 4.6, 4.7; đồ thị mAP – ms/frame (cần vẽ).
+**4.3. So sánh kiến trúc CNN – Transformer** — 2 bảng, 3 kết luận, đồ thị mAP – ms/frame.
 
-**4.4. Tốc độ (E2)** — Bảng 4.8 (CPU), 4.9 (GPU).
+**4.4. Tốc độ (E2)** — bảng CPU, bảng GPU T4; 4.4.1 OpenVINO: bảng chỉ còn v6 và YOLO26s-v6, các phát hiện với v5
+(chỉ định thiết bị, INT8, đầu vào 544×960) viết trong lời. Số đủ của mọi cấu hình v5/YOLO26s: mục "OpenVINO theo thiết
+bị" trong ghi chú dự án.
 
-**4.5. Kết quả theo dõi (E3)** — Bảng 4.10–4.13.
+**4.5. Kết quả theo dõi (E3)** — so 3 tracker; ảnh hưởng của detector (v3, v5, v6, YOLO26s-v6); giảm đổi ID của v6
+(rút gọn); test PVD (4 dòng) + ablation.
 
-**4.6. Sai số đếm xe qua vạch** — Bảng 4.14.
+**4.6. Ứng dụng: sai số đếm xe qua vạch** — một bảng gộp ngày + đêm, trình bày như phép kiểm tra đầu cuối của theo dõi
+(ban đêm là số đo duy nhất về theo dõi).
 
-**4.7. Phân tích lỗi (E4)** — 7 ảnh `outputs/error_analysis/`.
+**4.7. Phân tích lỗi (E4)** — 4 ảnh (xe nhỏ ở xa, cụm xe máy, xe đêm chỉ thấy đèn, đổi ID); xe máy chở hàng bị gọi ô
+tô, box chỉ khoanh đèn hậu, Ford Transit thành ô tô chỉ mô tả bằng lời.
 
-**4.8. Ứng dụng web và video demo** — ảnh chụp app, frame video demo, xe cứu hộ, khoá lớp hiển thị.
+**4.8. Ứng dụng web và video demo** — ảnh chụp app, tốc độ video demo, khoá lớp hiển thị (bỏ ảnh demo đêm và xe cứu hộ).
 
-**4.9. Nhận xét và thảo luận** — thiên lệch nhãn sơ bộ; test Hà Nội và tổng quát; các lần dùng lại tập test;
-bootstrap theo khối; các lần huấn luyện (seeds); lựa chọn cuối cùng và đánh đổi. Kết quả cảnh đêm nằm ở 4.2.2 (phát
-hiện) và 4.6.2 (đếm xe); mục "Kết quả ở cảnh ban đêm" riêng đã bỏ (16/10/2026) vì lặp số liệu.
+**4.9. Nhận xét và thảo luận** — thiên lệch nhãn sơ bộ; khoảng tin cậy theo khối và các lần dùng lại tập test (gộp một
+đoạn, bảng bootstrap theo khối đã bỏ); bảng seeds + 3 kết luận; lựa chọn cuối cùng và đánh đổi.
+Rút gọn chương 4 ngày 16/10/2026 (112 -> 100 trang): số liệu bỏ khỏi báo cáo vẫn còn ở các mục bên dưới tài liệu này.
 
 **4.10. Kết luận chương**
 - 4.10.1 Kết quả chính.
@@ -783,7 +789,7 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 | H3.5 | Đường học RT-DETRv2 | từ `rtdetrv2_r18_v5_e100_960_epochs.csv` | **cần vẽ** |
 | H4.1 | Ma trận nhầm lẫn YOLO26s-v6 trên test Roboflow (thay bản v5, 16/10/2026) | `outputs/kaggle/vn-vehicles-yolo26s-train-v6/runs/yolo26s_v6_e100_960/test/confusion_matrix_normalized.png` | đã đưa vào |
 | H4.2 | Đồ thị mAP – ms/frame các kiến trúc | từ bảng 4.5 + 4.8 | **cần vẽ** |
-| H4.3–H4.9 | 7 ảnh phân tích lỗi E4 | `outputs/error_analysis/1_xe_nho_o_xa_bi_sot.jpg` … `7_doi_id.jpg` | có sẵn |
+| H4.3–H4.6 | 4 ảnh phân tích lỗi E4 (số 1, 2, 3, 7) | `outputs/error_analysis/` | đã đưa vào |
 | H4.10 | Giao diện web demo (chế độ GPU xử lý sẵn) | — | **cần chụp** (`streamlit run app/streamlit_app.py`) |
 | H4.11 | Frame video demo ban đêm | trích từ `ham_chui_dem_*_tracked.mp4` | **cần trích** |
 

@@ -59,13 +59,13 @@ Bảng~\ref{tab:e1-hanoi} cho thấy tinh chỉnh trên dữ liệu phù hợp n
 ảnh 1280) lên 0.920--0.923. Bước nhảy lớn nhất ở xe máy: AP50 từ 0.530 lên 0.864. Phiên bản v1, dù tốt trên
 test Roboflow, kém cả mô hình gốc ở đây vì gần như không bắt được xe máy nhỏ. Các bản từ v3 đến v6 và YOLO26s-v6 có
 khoảng tin cậy chồng nhau, tức tập test Hà Nội không phân biệt được chúng; khác biệt giữa chúng thể hiện ở cảnh khó hơn
-và ở chất lượng theo dõi. Thêm frame đêm ở v6 không làm giảm độ chính xác trên cảnh ban ngày này.
+và ở chất lượng theo dõi.
 
 Phần tăng từ v2 lên v3 cần đọc thận trọng. v3 khác v2 ở chỗ được học thêm frame của chính camera Hà Nội này, và mAP50
 chính trên test Hà Nội tăng từ 0.890 lên 0.921. Nhưng trên các cảnh mới (Bảng~\ref{tab:vn-extra}), mức tăng tương ứng
 chỉ từ 0.736 lên 0.757 ban ngày, còn ban đêm giảm từ 0.496 xuống 0.437. Phần lớn mức tăng ở Hà Nội vì thế là do mô hình
-đã quen cảnh này, không phải do mô hình tổng quát tốt hơn. Con số 0.921--0.923 của v5 và v6 nên được hiểu là độ chính
-xác khi tinh chỉnh cho đúng camera triển khai.
+đã quen cảnh này, không phải do mô hình tổng quát tốt hơn. Con số 0.920--0.923 nên được hiểu là độ chính xác khi tinh
+chỉnh cho đúng camera triển khai; kết luận về khả năng tổng quát dựa trên các tập camera mới ở hai mục sau.
 
 \subsection{Cảnh mới ban ngày và ban đêm}
 
@@ -92,93 +92,41 @@ Nhãn sơ bộ từ YOLO26x nên dùng được cả mAP50-95.
   \end{tabularx}
 \end{table}
 
-Kết quả ban ngày và ban đêm khác nhau (Bảng~\ref{tab:vn-extra}):
+Recall theo chiều cao xe dưới đây tính ở ngưỡng tin cậy 0.25, ghép IoU 0.5. Kết quả ban ngày và ban đêm khác nhau
+(Bảng~\ref{tab:vn-extra}):
 \begin{itemize}
   \item \textbf{Ban ngày}, v4 (ảnh 1280) có điểm cao nhất trong các bản YOLO26n chạy ở kích thước ảnh lúc huấn luyện,
-        nhưng khoảng tin cậy còn chồng nhẹ với v5 (0.808 [0.770--0.843] so với 0.745 [0.699--0.787]). Phân tích theo
-        chiều cao xe (Bảng~\ref{tab:size-recall}) cho thấy với xe cao dưới 20 điểm ảnh, recall của v3 là 0.29, v5 là
-        0.31, v4 là 0.45; với xe cao từ 32 điểm ảnh trở lên, ba bản này đạt 0.82--0.88. Khoảng cách ban ngày đến từ xe
-        rất nhỏ ở xa, và ở cảnh này độ phân giải đầu vào có tác dụng rõ: chính v5 chạy ở ảnh 1280 đạt 0.834.
-  \item \textbf{Ban đêm}, v5 tốt hơn hẳn các bản trước (0.628 so với 0.437 của v3). Với xe cao từ 64 điểm ảnh, recall của
-        v5 là 0.74, của v3 là 0.43, của v4 là 0.45; v3 nhầm xe máy thành ô tô 36 lần do đèn pha. Nới ngưỡng IoU xuống
-        0.3 chỉ tăng recall 2--8 điểm, nghĩa là phần lớn là sót thật chứ không phải box lệch.
+        nhưng khoảng tin cậy còn chồng nhẹ với v5 (0.808 [0.770--0.843] so với 0.745 [0.699--0.787]). Với xe cao dưới
+        20 điểm ảnh, recall của v3 là 0.29, v5 là 0.31, v4 là 0.45; với xe cao từ 32 điểm ảnh trở lên, ba bản này đạt
+        0.82--0.88. Khoảng cách ban ngày đến từ xe rất nhỏ ở xa, và ở cảnh này độ phân giải đầu vào có tác dụng rõ:
+        chính v5 chạy ở ảnh 1280 đạt 0.834. Kết quả này chỉ để phân tích, không dùng để chọn: trên hai tập dev, ảnh
+        1280 không tốt hơn ảnh 960 (mục~\ref{sec:cac-phien-ban}), nhưng hai tập dev không có cảnh xe rất nhỏ ở xa. Vì
+        vậy kích thước ảnh nên chọn theo cảnh: camera nhìn đoạn đường dài nên dùng 1280, đổi lại chậm hơn khoảng 1.5 lần.
+  \item \textbf{Ban đêm}, v5 tốt hơn hẳn các bản trước (0.628 so với 0.437 của v3). Với xe cao từ 64 điểm ảnh, recall
+        của v5 là 0.74, của v3 là 0.43; v3 nhầm xe máy thành ô tô 36 lần do đèn pha.
   \item \textbf{v6} (v5 cộng 288 frame đêm nhãn tự động) tăng mAP50 ban đêm từ 0.628 lên 0.755, khoảng tin cậy hai
         bản không chồng nhau; mAP50-95 tăng từ 0.404 lên 0.495. Camera hầm chui không có trong frame đêm huấn luyện, nên
-        đây là cải thiện trên camera mới. Phần tăng đến từ xe cỡ vừa và lớn: recall xe cao 32--64 điểm ảnh từ 0.53 lên
-        0.67, xe từ 64 điểm ảnh trở lên từ 0.74 lên 0.91, ngang RT-DETRv2-S. Ban ngày v6 và v5 ngang nhau (0.760 so
-        với 0.745, khoảng tin cậy chồng nhau).
+        đây là cải thiện trên camera mới. Recall xe cao từ 64 điểm ảnh tăng từ 0.74 lên 0.91. Ban ngày v6 và v5 ngang
+        nhau (0.760 so với 0.745, khoảng tin cậy chồng nhau).
   \item \textbf{YOLO26s-v6} (YOLO26s học dữ liệu v6, mô hình chính) cao nhất bảng ở cả hai cảnh trong các mô hình chạy
         ở kích thước ảnh lúc huấn luyện: 0.830 ban ngày và 0.887 ban đêm; lần huấn luyện thứ hai đạt 0.841 và 0.847.
-        Ban đêm, khoảng tin cậy của nó không chồng với v6 (0.887 [0.861--0.913] so với 0.755 [0.708--0.795]) và
-        mAP50-95 tăng từ 0.495 lên 0.614. So với RT-DETRv2-S học dữ liệu v5 (mục~\ref{sec:ket-qua-kien-truc}), nó thấp
-        hơn ban ngày (0.830 so với 0.886) và cao hơn ban đêm (0.887 so với 0.816). Recall theo chiều cao xe
-        (Bảng~\ref{tab:size-recall}) cao hơn v6 ở mọi nhóm; chênh lệch lớn nhất ở xe 20--32 điểm ảnh ban đêm (0.62 so
-        với 0.22, nhóm này chỉ có 37 xe) và xe dưới 20 điểm ảnh ban ngày (0.51 so với 0.38).
+        Ban đêm, khoảng tin cậy của nó không chồng với v6 và mAP50-95 tăng từ 0.495 lên 0.614. Ban ngày, recall xe cao
+        dưới 20 điểm ảnh là 0.51 so với 0.38 của v6. So với RT-DETRv2-S học dữ liệu v5 (mục~\ref{sec:ket-qua-kien-truc}),
+        nó thấp hơn ban ngày (0.830 so với 0.886) và cao hơn ban đêm (0.887 so với 0.816).
 \end{itemize}
 
-\begin{table}[H]
-  \centering
-  \caption{Recall theo chiều cao xe trên \texttt{vn\_extra} (ngưỡng tin cậy 0.25, IoU 0.5; trong ngoặc là số xe)}
-  \label{tab:size-recall}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|p{3.0cm}|C|C|C|C|C|C|C|}
-    \hline
-    \cellcolor{tableheader} & \multicolumn{4}{c|}{\thead{Ngày, chiều cao (điểm ảnh)}} &
-      \multicolumn{3}{c|}{\thead{Đêm, chiều cao (điểm ảnh)}} \\ \cline{2-8}
-    \multirow{-2}{*}{\cellcolor{tableheader}\textbf{Mô hình}} & \thead{$<$20 (192)} & \thead{20--32 (175)} &
-      \thead{32--64 (203)} & \thead{$\ge$64 (140)} & \thead{20--32 (37)} & \thead{32--64 (316)} & \thead{$\ge$64 (286)}
-      \\ \hline
-    v3 & 0.29 & 0.52 & 0.84 & 0.86 & 0.11 & 0.34 & 0.43 \\ \hline
-    v4 @1280 & 0.45 & 0.59 & 0.82 & 0.84 & 0.19 & 0.37 & 0.45 \\ \hline
-    v5 & 0.31 & 0.49 & 0.88 & 0.84 & 0.05 & 0.53 & 0.74 \\ \hline
-    v5 @1280 & 0.50 & 0.66 & 0.87 & 0.90 & 0.16 & 0.56 & 0.72 \\ \hline
-    v6 & 0.38 & 0.58 & 0.88 & 0.89 & 0.22 & 0.67 & 0.91 \\ \hline
-    YOLO26s-v6 & 0.51 & 0.68 & 0.89 & 0.93 & \textbf{0.62} & \textbf{0.79} & \textbf{0.94} \\ \hline
-    YOLO26s & 0.46 & 0.66 & 0.87 & 0.89 & 0.49 & 0.62 & 0.75 \\ \hline
-    YOLO26s @1280 & 0.72 & 0.78 & 0.92 & 0.88 & 0.57 & 0.70 & 0.79 \\ \hline
-    RT-DETRv2-S & \textbf{0.80} & \textbf{0.85} & \textbf{0.96} & \textbf{0.94} & 0.51 & 0.77 & 0.91 \\ \hline
-  \end{tabularx}
-\end{table}
-
-Kết quả v5 ở ảnh 1280 chỉ để phân tích, không dùng để chọn: trên hai tập dev, ảnh 1280 không tốt hơn ảnh 960
-(mục~\ref{sec:cac-phien-ban}). Hai tập dev không có cảnh xe rất nhỏ ở xa như \texttt{vn\_extra} ngày, nên lựa chọn kích
-thước ảnh thực tế phụ thuộc cảnh: camera nhìn đoạn đường dài nên dùng 1280, đổi lại chậm hơn khoảng 1.5 lần.
-
-\subsection{Clip Phạm Văn Đồng}
+\subsection{Clip Phạm Văn Đồng và các tập dữ liệu ngoài}
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả phát hiện trên 20 frame clip Phạm Văn Đồng (375 xe máy, 238 ô tô, 12 xe buýt)}
-  \label{tab:pvd}
-  \small
-  \begin{tabular}{|l|c|c|}
-    \hline
-    \thead{Mô hình} & \thead{Ảnh} & \thead{mAP50 chính [CI 95\%]} \\ \hline
-    YOLO26n gốc COCO & 1280 & 0.664 [0.638--0.693] \\ \hline
-    v2 & 960 & 0.860 [0.833--0.890] \\ \hline
-    v3 & 960 & 0.891 [0.865--0.915] \\ \hline
-    v4 & 1280 & 0.907 [0.883--0.929] \\ \hline
-    v5 & 960 & 0.892 [0.866--0.923] \\ \hline
-    v6 & 960 & 0.907 [0.886--0.930] \\ \hline
-    \textbf{YOLO26s-v6} & 960 & 0.901 [0.877--0.928] \\ \hline
-  \end{tabular}
-\end{table}
-
-Trên clip TP.HCM, các bản từ v3 đến v6 và YOLO26s-v6 ngang nhau (Bảng~\ref{tab:pvd}). AP50 xe buýt của v5 trên clip
-này bằng 0 (v6: 0.089): cả 12 box xe buýt là xe Ford Transit, mô hình gọi là ô tô vì phần lớn dữ liệu huấn luyện
-(VisDrone) xếp xe van vào ô tô. Đây là vấn đề định nghĩa lớp, không phải mô hình không nhận được xe buýt
-(mục~\ref{sec:phan-tich-loi}).
-
-\subsection{Các tập dữ liệu ngoài}
-
-\begin{table}[H]
-  \centering
-  \caption{mAP50 trên các tập dữ liệu ngoài}
+  \caption{mAP50 trên clip Phạm Văn Đồng (20 frame) và các tập dữ liệu ngoài}
   \label{tab:tap-ngoai}
   \footnotesize
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|C|C|C|C|C|}
     \hline
     \thead{Tập} & \thead{COCO @1280} & \thead{v3} & \thead{v5} & \thead{v6} & \thead{YOLO26s-v6} \\ \hline
+    Clip Phạm Văn Đồng & 0.664 [0.638--0.693] & 0.891 [0.865--0.915] & 0.892 [0.866--0.923] & 0.907 [0.886--0.930] &
+      0.901 [0.877--0.928] \\ \hline
     Val UVH-26 (4 lớp) & 0.594 [0.573--0.619] & 0.335 [0.314--0.361] & 0.850 [0.832--0.868] & 0.849 [0.829--0.867] &
       0.871 [0.854--0.888] \\ \hline
     UA-DETRAC đêm & 0.689 [0.654--0.739] & 0.722 [0.668--0.774] & 0.845 [0.797--0.890] & 0.857 [0.811--0.898] &
@@ -189,13 +137,16 @@ này bằng 0 (v6: 0.089): cả 12 box xe buýt là xe Ford Transit, mô hình g
   \end{tabularx}
 \end{table}
 
-Trên val UVH-26 (Bảng~\ref{tab:tap-ngoai}), v3 còn thấp hơn mô hình gốc COCO (0.335 so với 0.594) vì chưa thấy cảnh
-giao thông Ấn Độ; v5 đạt 0.850 với AP50 từng lớp xe máy 0.898, ô tô 0.921, buýt 0.774, tải 0.806. Cần đọc con số này
-đúng mức: v5 đã học 2.000 ảnh khác camera của cùng bộ dữ liệu, nên đây là khả năng tổng quát sang camera mới trong cùng
-miền. Trên UA-DETRAC, thứ tự v5 > v3 > COCO giữ nguyên ở cả đêm và ngày, và với cả ba mô hình này mAP50 ban đêm không
-thấp hơn ban ngày. Đêm của UA-DETRAC là đường phố có đèn, chủ yếu ô tô, nên dễ hơn đường tối ở hầm chui. v6 ngang v5
-trên cả ba tập này (khoảng tin cậy chồng nhau): frame đêm thêm vào không làm mô hình kém đi ở camera Ấn Độ hay Trung
-Quốc. YOLO26s-v6 cao hơn v6 ở cả ba tập (0.871, 0.867 và 0.881) và ngang YOLO26s học dữ liệu v5 (Bảng~\ref{tab:seeds}).
+Trên clip Phạm Văn Đồng (Bảng~\ref{tab:tap-ngoai}), các bản từ v3 đến v6 và YOLO26s-v6 ngang nhau. AP50 xe buýt của v5
+trên clip này bằng 0: cả 12 box xe buýt là xe Ford Transit, mô hình gọi là ô tô vì phần lớn dữ liệu huấn luyện
+(VisDrone) xếp xe van vào ô tô. Đây là vấn đề định nghĩa lớp, không phải mô hình không nhận được xe buýt.
+
+Trên val UVH-26, v3 còn thấp hơn mô hình gốc COCO (0.335 so với 0.594) vì chưa thấy cảnh giao thông Ấn Độ, còn v5 đạt
+0.850. Cần đọc con số này đúng mức: v5 đã học 2.000 ảnh khác camera của cùng bộ dữ liệu, nên đây là khả năng tổng quát
+sang camera mới trong cùng miền. Trên UA-DETRAC, thứ tự v5 > v3 > COCO giữ nguyên ở cả đêm và ngày, và với cả ba mô hình
+này mAP50 ban đêm không thấp hơn ban ngày; đêm của UA-DETRAC là đường phố có đèn, chủ yếu ô tô, nên dễ hơn đường tối ở
+hầm chui. v6 ngang v5 trên các tập ngoài: frame đêm thêm vào không làm mô hình kém đi ở camera Ấn Độ hay Trung Quốc.
+YOLO26s-v6 cao hơn v6 ở cả ba tập UVH-26 và UA-DETRAC (0.871, 0.867 và 0.881).
 
 Hình~\ref{fig:confusion} là ma trận nhầm lẫn của mô hình chính YOLO26s-v6 trên tập test Roboflow, chuẩn hoá theo cột
 (lớp thật). Nhầm lẫn giữa các lớp xe rất ít: ô lớn nhất ngoài đường chéo là 0.07, xe buýt bị gọi là ô tô. Lỗi chủ yếu
@@ -256,23 +207,18 @@ Từ Bảng~\ref{tab:kien-truc} và~\ref{tab:kien-truc-5095} rút ra ba kết lu
   \item Khi cho YOLO26s nhìn cùng số điểm ảnh (ảnh 1280), hai họ \textbf{hoà nhau} trên dữ liệu Việt Nam 1080p: khoảng tin
         cậy chồng nhau (ngày 0.875 [0.844--0.902] so với 0.886 [0.855--0.914]; đêm 0.800 [0.765--0.832] so với 0.816
         [0.777--0.854]), mAP50-95 ngày 0.588 so với 0.578, đêm 0.548 so với 0.547. Phần lớn lợi thế của RT-DETRv2 ở
-        \texttt{vn\_extra} đến từ độ phân giải đầu vào chứ không phải từ kiến trúc.
+        \texttt{vn\_extra} đến từ độ phân giải đầu vào chứ không phải từ kiến trúc. Ban ngày lợi thế đó nằm chủ yếu ở
+        xe nhỏ: với xe cao dưới 20 điểm ảnh, recall là 0.80 so với 0.46 của YOLO26s ở ảnh 960 và 0.72 ở ảnh 1280.
+        RT-DETRv2 nhận ảnh 960×960 nên chiều dọc của frame 1080p được giữ 960 điểm ảnh, gấp gần hai lần YOLO ở ảnh 960
+        (544×960).
   \item Trên hai tập có nhãn độc lập, RT-DETRv2-S có mAP50-95 cao hơn YOLO26s đều khoảng 0.03, tức box khít hơn. Ảnh
         UA-DETRAC chỉ 960×540 nên tăng ảnh lên 1280 không giúp YOLO (0.862 thấp hơn 0.876).
 \end{enumerate}
 
-Bảng~\ref{tab:size-recall} cho thấy lợi thế của RT-DETRv2 ban ngày nằm chủ yếu ở xe nhỏ: với xe cao dưới 20 điểm ảnh,
-recall là 0.80 so với 0.46 của YOLO26s ở ảnh 960 và 0.72 ở ảnh 1280, còn với xe từ 32 điểm ảnh trở lên các mô hình gần
-nhau hơn. RT-DETRv2 nhận ảnh 960×960 nên chiều dọc của frame 1080p được giữ 960 điểm ảnh, gấp gần hai lần YOLO ở ảnh
-960 (544×960), phù hợp với kết luận thứ hai ở trên. Ban đêm RT-DETRv2 bắt được nhiều xe lớn hơn ở ngưỡng 0.25 (0.91 so
-với 0.79 của YOLO26s ở ảnh 1280) dù mAP50 của hai mô hình hoà; recall ở một ngưỡng cố định và mAP50 (tính trên mọi
-ngưỡng) đo hai điều khác nhau, nên hai số này không mâu thuẫn.
-
-Trong họ YOLO, bản s hơn bản n rõ nhất ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]),
-dù với bootstrap theo khối hai khoảng chỉ còn tách nhau sát nút (Bảng~\ref{tab:block-ci}). Ở \texttt{vn\_extra} ngày,
-val UVH-26 và UA-DETRAC bản s cũng cao hơn nhưng khoảng tin cậy chồng nhau; ở Hà Nội và PVD hai bản ngang nhau. Ưu thế
-của bản s qua nhiều lần huấn luyện, và tác dụng của dữ liệu đêm (v6, YOLO26s-v6) so với tác dụng của cỡ mô hình, được
-phân tích cùng bảng các lần huấn luyện ở mục~\ref{sec:thao-luan}.
+Trong họ YOLO, bản s hơn bản n rõ nhất ở \texttt{vn\_extra} đêm (0.713 [0.685--0.744] so với 0.628 [0.575--0.681]); ở
+\texttt{vn\_extra} ngày, val UVH-26 và UA-DETRAC bản s cũng cao hơn nhưng khoảng tin cậy chồng nhau, ở Hà Nội và PVD
+hai bản ngang nhau. Ưu thế của bản s qua nhiều lần huấn luyện, và tác dụng của dữ liệu đêm so với tác dụng của cỡ mô
+hình, được phân tích ở mục~\ref{sec:thao-luan}.
 
 Hình~\ref{fig:acc-speed} đặt độ chính xác cạnh tốc độ CPU: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
 lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
@@ -346,13 +292,25 @@ cho riêng phần phát hiện, chưa đủ cho một camera 30 frame/s.
 
 Laptop của đề tài không có GPU rời nhưng có GPU Intel UHD 620 tích hợp trong chip. Mô hình xuất sang OpenVINO có thể
 chạy trên CPU hoặc trên GPU tích hợp này, ở độ chính xác số FP32 hoặc INT8 (lượng tử hoá sau huấn luyện bằng
-NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Bảng~\ref{tab:openvino} so các cấu hình của v5, v6, YOLO26s và
-YOLO26s-v6, kèm độ chính xác trên hai tập dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đề tài (mAP50 val Hà Nội và IDR VnTraffic chênh không quá
-0.005 thì coi là hoà, hoà thì chọn bản nhanh hơn).
+NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Cấu hình được chọn trên tập dev theo tiêu chí chung của đề tài (mAP50
+val Hà Nội và IDR VnTraffic chênh không quá 0.005 thì coi là hoà, hoà thì chọn bản nhanh hơn). Các cấu hình đã thử với
+v5 cho thấy ba điều:
+\begin{itemize}
+  \item \textbf{Phải chỉ định thiết bị.} Nếu không, OpenVINO tự đưa mô hình FP32 lên GPU tích hợp còn mô hình INT8 có
+        thể chạy trên CPU, và so sánh tốc độ mất ý nghĩa. Ngoài ra luồng OpenMP của PyTorch (dùng cho vài bước tiền xử
+        lý) mặc định chiếm lõi CPU mà OpenVINO cần; tắt cơ chế chờ của nó (\texttt{KMP\_BLOCKTIME=0},
+        \texttt{OMP\_WAIT\_POLICY=PASSIVE}) làm v5 INT8 trên CPU giảm từ khoảng 90 xuống 34 ms mỗi frame, đổi lại
+        PyTorch trên CPU chậm đi 15--20\%. Web demo, chương trình dòng lệnh và các phép đo dưới đây đều tắt cơ chế này.
+  \item \textbf{INT8} không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần (72.1 so với
+        112.4 ms với v5), trên GPU tích hợp UHD 620 thì không nhanh hơn (60.6 so với 54.1 ms).
+  \item \textbf{Đầu vào 544×960.} Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
+        544×960, ít hơn 43\% điểm ảnh. Xuất OpenVINO đúng khung 544×960 nhanh hơn bản vuông 1.6--2.1 lần và độ chính xác
+        gần PyTorch hơn. Bản này chỉ dùng cho video 16:9, đúng phạm vi đề tài.
+\end{itemize}
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (pipeline và IDR trên VnTraffic
+  \caption{Cấu hình chạy trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (pipeline và IDR trên VnTraffic
     đều chưa lọc box trùng)}
   \label{tab:openvino}
   \footnotesize
@@ -360,63 +318,25 @@ YOLO26s-v6, kèm độ chính xác trên hai tập dev; cấu hình được ch�
     \hline
     \thead{Cấu hình} & \thead{Thiết bị} & \thead{Đầu vào} & \thead{Phát hiện (ms)} & \thead{Pipeline (frame/s)} &
       \thead{mAP50 val} & \thead{IDR dev} \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26n v5}} \\ \hline
-    PyTorch FP32 & CPU & 544×960 & 117.9 & 7.5 & 0.919 & 0.827 \\ \hline
-    OpenVINO FP32 & CPU & 960×960 & 112.4 & 7.9 & 0.916 & 0.813 \\ \hline
-    OpenVINO INT8 & CPU & 960×960 & 72.1 & 11.4 & 0.917 & 0.813 \\ \hline
-    OpenVINO INT8 & CPU & 544×960 & 33.7 & 18.8 & 0.920 & 0.816 \\ \hline
-    OpenVINO FP32 & GPU tích hợp & 960×960 & 54.1 & 12.5 & 0.915 & 0.819 \\ \hline
-    OpenVINO INT8 & GPU tích hợp & 960×960 & 60.6 & 12.0 & 0.916 & 0.814 \\ \hline
-    OpenVINO FP32 & GPU tích hợp & 544×960 & 32.8 & 19.8 & 0.918 & 0.825 \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26n v6} (tốc độ đo lại trong một lần chạy riêng)} \\ \hline
+    \multicolumn{7}{|l|}{\textbf{v6 (bản nhẹ, YOLO26n)}} \\ \hline
     PyTorch FP32 & CPU & 544×960 & 130.0 & 6.6 & 0.914 & 0.841 \\ \hline
     OpenVINO INT8 & CPU & 544×960 & 39.9 & 18.2 & 0.918 & 0.825 \\ \hline
     \textbf{OpenVINO FP32} & GPU tích hợp & \textbf{544×960} & 34.7 & 19.5 & 0.914 & 0.825 \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26s}} \\ \hline
-    PyTorch FP32 & CPU & 544×960 & 284.3 & 3.3 & 0.915 & 0.845 \\ \hline
-    OpenVINO INT8 & CPU & 544×960 & 103.8 & 8.2 & 0.914 & 0.851 \\ \hline
-    OpenVINO FP32 & GPU tích hợp & 544×960 & 84.5 & 9.4 & 0.915 & 0.848 \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26s-v6} (tốc độ đo lại trong một lần chạy riêng)} \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26s-v6 (mô hình chính)}} \\ \hline
     PyTorch FP32 & CPU & 544×960 & 338.0 & 3.2 & 0.911 & 0.866 \\ \hline
     OpenVINO FP32 & GPU tích hợp & 544×960 & 80.1 & 9.8 & 0.912 & 0.875 \\ \hline
   \end{tabularx}
 \end{table}
 
-Bốn yếu tố quyết định tốc độ trong Bảng~\ref{tab:openvino}:
-\begin{itemize}
-  \item \textbf{Thiết bị.} Nếu không chỉ định, OpenVINO tự chọn thiết bị và đưa mô hình FP32 lên GPU tích hợp, còn mô
-        hình INT8 có thể chạy trên CPU. Hai bản chạy trên hai thiết bị khác nhau thì so sánh tốc độ không còn ý nghĩa,
-        nên mọi phép đo ở đây đều chỉ định thiết bị.
-  \item \textbf{Tranh chấp luồng CPU.} Ultralytics dùng PyTorch cho vài bước tiền xử lý; theo mặc định các luồng OpenMP
-        của PyTorch chờ quay vòng một lúc sau mỗi lần dùng và chiếm lõi CPU mà OpenVINO cần. Tắt cơ chế này (biến môi
-        trường \texttt{KMP\_BLOCKTIME=0}, \texttt{OMP\_WAIT\_POLICY=PASSIVE}) làm v5 INT8 544×960 trên CPU giảm từ
-        khoảng 90 xuống 34 ms mỗi frame; đổi lại PyTorch trên CPU chậm đi 15--20\% (117.9 ms trong
-        Bảng~\ref{tab:openvino} so với 100.5 ms trong Bảng~\ref{tab:toc-do-cpu}). Bảng~\ref{tab:openvino} đo với cơ chế
-        này đã tắt, nhóm CPU và nhóm GPU tích hợp ở hai lần chạy riêng; web demo và chương trình dòng lệnh cũng tắt nó.
-  \item \textbf{INT8} không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần; trên GPU tích hợp
-        UHD 620 thì không nhanh hơn (60.6 so với 54.1 ms).
-  \item \textbf{Đầu vào 544×960.} Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
-        544×960, ít hơn 43\% điểm ảnh. Xuất OpenVINO đúng khung 544×960 nhanh hơn bản vuông 1.6--2.1 lần tuỳ cấu hình,
-        và độ chính xác gần PyTorch hơn (mAP50 val 0.918 so với 0.919). Bản này chỉ dùng cho video 16:9, đúng phạm vi đề
-        tài.
-\end{itemize}
-
-Với v5, cấu hình được chọn cho web demo là \textbf{OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp}: phát hiện và
-theo dõi đạt 19.8 frame/s với video 1080p, nhanh gấp 2.6 lần PyTorch trên CPU, trong khi mAP50 val và IDR dev hoà với
-PyTorch. Số lần đổi ID trên dev thì cao hơn: mọi bản OpenVINO của v5 đổi ID 68--82 lần so với 61 của PyTorch (bản
-được chọn: 71). Máy không có GPU Intel thì dùng bản INT8 544×960 trên CPU (18.8 frame/s); IDR của bản này kém PyTorch
-quá ngưỡng hoà (0.816 so với 0.827), tức đổi một chút độ chính xác theo dõi lấy tốc độ gấp 2.5 lần.
-
-Với v6 và YOLO26s-v6, bản OpenVINO 544×960 trên GPU tích hợp hoà PyTorch về phát hiện: mAP50 val Hà Nội 0.914 so với
-0.914 và 0.912 so với 0.911, dev đêm 0.609 so với 0.599 và 0.710 so với 0.711. Về theo dõi, cả hai kém PyTorch trên
-VnTraffic quá ngưỡng hoà: IDR của v6 thấp hơn 0.016 (0.825 so với 0.841, bằng bản OpenVINO của v5); IDR của YOLO26s-v6
-với bộ lọc box trùng mặc định thấp hơn 0.010 (0.860 so với 0.870, đổi ID 66 so với 62), dù khi không lọc thì bản
-OpenVINO lại cao hơn (0.875 so với 0.866). Trên clip dev Phạm Văn Đồng góc C, YOLO26s-v6 với bộ lọc có HOTA 0.754 so
-với 0.760 và đổi ID 15 so với 18. Như vậy chạy OpenVINO là đổi một ít độ ổn định ID lấy tốc độ, gấp khoảng 3 lần với
-v6 (19.5 so với 6.6 frame/s cho cả pipeline). Web demo dùng cấu hình đã chọn cho v5 với bản nhẹ v6; YOLO26s-v6 trên GPU
-tích hợp chỉ đạt 9.8 frame/s, khoảng một nửa bản nhẹ, nên chỉ có trong danh sách để chọn. Ở các dòng đo lại của v6 và
-YOLO26s-v6, phần phát hiện được đo xen kẽ giữa các mô hình còn pipeline đo liền một mạch, nên với YOLO26s-v6 trên CPU,
-thời gian mỗi frame của pipeline có thể thấp hơn của riêng phần phát hiện.
+Cấu hình mặc định khi chạy trên laptop là bản nhẹ v6 qua OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp
+(Bảng~\ref{tab:openvino}): phát hiện và theo dõi đạt 19.5 frame/s với video 1080p, gấp khoảng 3 lần PyTorch trên CPU
+(6.6 frame/s). mAP50 hoà PyTorch (val Hà Nội 0.914 so với 0.914, dev đêm 0.609 so với 0.599), nhưng IDR trên VnTraffic
+thấp hơn 0.016 (0.825 so với 0.841), quá ngưỡng hoà: đây là đánh đổi một ít độ ổn định ID lấy tốc độ. Máy không có GPU
+Intel thì dùng bản INT8 trên CPU (18.2 frame/s). YOLO26s-v6 qua OpenVINO cũng hoà PyTorch về phát hiện (0.912 so với
+0.911, dev đêm 0.710 so với 0.711); với bộ lọc box trùng mặc định, IDR trên VnTraffic thấp hơn 0.010 (0.860 so với
+0.870). Nó chỉ đạt 9.8 frame/s trên GPU tích hợp, khoảng một nửa bản nhẹ, nên chỉ có trong danh sách để chọn. Ở bảng
+này phần phát hiện được đo xen kẽ giữa các mô hình còn pipeline đo liền một mạch, nên với YOLO26s-v6 trên CPU, thời
+gian mỗi frame của pipeline có thể thấp hơn của riêng phần phát hiện.
 
 Khi tính cả khâu vẽ kết quả và ghi video 1080p, cả quy trình của web demo chỉ còn khoảng 7 frame/s. Phần phát hiện đã
 nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm nhất, giống điều đã thấy với video demo trên GPU T4
@@ -443,11 +363,9 @@ nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm n
 
 BoT-SORT tốt nhất trên cả ba chỉ số không phụ thuộc phát hiện thừa (Bảng~\ref{tab:tracker}). MOTA ở đây rất thấp và
 không dùng để kết luận: khoảng 21 box mỗi frame của tracker không khớp nhãn, phần lớn là xe máy thật trong cụm dày mà
-nhãn bỏ sót. OC-SORT có MOTA cao hơn chỉ vì xuất ít box hơn.
-
-Chỉnh lưới 18 cấu hình BoT-SORT và ByteTrack: giữ track mất 90 frame, không ReID cho IDR 0.744 và AssA 0.668 (mặc định:
-0.738 và 0.659), số lần đổi ID không đổi (128). Bật ReID làm số lần đổi ID tăng lên 207--211. Lọc track dưới 3 frame giảm
-đổi ID từ 128 xuống 118, IDR giảm 0.004.
+nhãn bỏ sót. OC-SORT có MOTA cao hơn chỉ vì xuất ít box hơn. Chỉnh lưới 18 cấu hình BoT-SORT và ByteTrack chọn giữ
+track mất 90 frame, không ReID (IDR 0.744, AssA 0.668; mặc định 0.738 và 0.659); bật ReID làm số lần đổi ID tăng từ
+128 lên 207--211.
 
 \begin{table}[H]
   \centering
@@ -458,35 +376,27 @@ Chỉnh lưới 18 cấu hình BoT-SORT và ByteTrack: giữ track mất 90 fram
     \hline
     \thead{Detector} & \thead{HOTA} & \thead{AssA} & \thead{IDR} & \thead{Đổi ID} & \thead{FN} & \thead{Số track} \\ \hline
     v3 & 0.507 & 0.668 & 0.744 & 128 & 2.550 & 467 \\ \hline
-    v4 @1280 & 0.555 & 0.684 & 0.738 & 91 & 2.697 & 344 \\ \hline
     v5 & 0.554 & 0.709 & 0.827 & \textbf{62} & 1.058 & 334 \\ \hline
-    v5 @1280 & 0.549 & 0.713 & 0.820 & 85 & 1.183 & 341 \\ \hline
     v6 & 0.532 & 0.698 & 0.841 & 93 & 717 & 352 \\ \hline
     \textbf{YOLO26s-v6} & 0.565 & 0.714 & \textbf{0.866} & 63 & \textbf{632} & 327 \\ \hline
   \end{tabular}
 \end{table}
 
-Đổi từ v3 sang v5 là cải tiến lớn nhất cho theo dõi (Bảng~\ref{tab:detector-tracking}): số box bỏ sót giảm hơn một nửa
-(2.550 xuống 1.058), IDR tăng từ 0.744 lên 0.827, số lần đổi ID giảm từ 128 xuống 62. Soi từng xe, các xe v3 bỏ sót
-như một xe buýt (điểm tin cậy 0 lên 0.84--0.87 với v5), một xe tải (dưới 0.14 lên 0.93--0.94) và một xe máy đang dừng
-(0.01--0.12 lên 0.52--0.82) đều được v5 nhận ra. Phát hiện ổn định thì quỹ đạo ít bị đứt. Hai lần huấn luyện lại v5
-với seed khác cho cùng hướng, dù mức giảm đổi ID nhỏ hơn: 95 và 97 lần (mục~\ref{sec:thao-luan}). Tắt GMC cho kết quả
-gần như y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62).
-
-v6 bỏ sót ít hơn v5 nữa (717 so với 1.058 box) và có IDR cao hơn (0.841; lần huấn luyện thứ hai 0.824), nhưng đổi ID
-93 lần, nhiều hơn con số 62 của lần huấn luyện v5 đầu tiên và ngang hai lần sau (95, 97). AssA của v6 thấp hơn v5 một
-chút (0.698 so với 0.709). HOTA cũng thấp hơn (0.532 so với 0.554), nhưng trên VnTraffic HOTA bị phạt khi mô hình phát
-hiện thêm các xe thiếu nhãn, nên không dùng để so. Phần đổi ID này được giảm bằng bộ lọc box trùng ở
-mục~\ref{sec:giam-doi-id}. YOLO26s-v6 có IDR cao nhất (0.866), bỏ sót ít nhất (632 box) và đổi ID 63 lần, ít hơn v6
-(lần huấn luyện thứ hai: IDR 0.870, đổi ID 75).
+Mô hình phát hiện ảnh hưởng lên theo dõi nhiều hơn cấu hình tracker (Bảng~\ref{tab:detector-tracking}). Từ v3 sang v5,
+số box bỏ sót giảm hơn một nửa (2.550 xuống 1.058), IDR tăng từ 0.744 lên 0.827 và số lần đổi ID giảm từ 128 xuống 62:
+các xe v3 bỏ sót như một xe buýt bị che một phần, một xe tải nhìn xiên, một xe máy đang dừng đều được v5 nhận ra, nên
+quỹ đạo ít bị đứt. Tắt GMC cho kết quả gần như y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62). v6 bỏ sót ít hơn
+nữa (717 box) và có IDR cao hơn (0.841) nhưng đổi ID 93 lần; phần đổi ID này được giảm ở mục~\ref{sec:giam-doi-id}.
+HOTA trên VnTraffic bị phạt khi mô hình phát hiện thêm các xe thiếu nhãn, nên không dùng để so. YOLO26s-v6 có IDR cao
+nhất (0.866), bỏ sót ít nhất (632 box) và đổi ID 63 lần.
 
 \subsection{Giảm số lần đổi ID của v6}
 \label{sec:giam-doi-id}
 
-Với tracker mặc định lúc nhận v6 (BoT-SORT đã chỉnh, chưa lọc box trùng), v6 đổi ID nhiều hơn v5: 93--94 lần trên
-VnTraffic (v5: 61--97) và 38--49 lần trên clip test (v5: 23--37). Đề tài thử ba lần để giảm con số này, mỗi lần có tiêu
-chí viết ra trước khi chạy (Bảng~\ref{tab:giam-doi-id}). Số trên dev là trung bình hai lần huấn luyện v6; số trên test
-là của v6 với seed 42.
+Với tracker lúc nhận v6, v6 đổi ID nhiều hơn v5: 93--94 lần trên VnTraffic (v5: 61--97) và 38--49 lần trên clip test
+(v5: 23--37). Nguyên nhân chính là box trùng: YOLO26 là mô hình end-to-end nên Ultralytics bỏ qua bước NMS, và trên
+VnTraffic khoảng 20 trong 82 box mỗi frame của v6 là box phụ chồng lên box khác của cùng một xe. Bảng~\ref{tab:giam-doi-id}
+tóm tắt các cách đã thử, mỗi cách có tiêu chí viết ra trước khi chạy (số trên dev là trung bình hai lần huấn luyện v6).
 
 \begin{table}[H]
   \centering
@@ -507,87 +417,49 @@ là của v6 với seed 42.
   \end{tabularx}
 \end{table}
 
-Lần thứ nhất nâng ngưỡng điểm để mở track mới từ 0.25 lên 0.6. Trên VnTraffic, số lần đổi ID giảm 33\% mà IDR giữ
-nguyên nên cấu hình này được chọn, nhưng trên clip test số box bỏ sót tăng gần gấp đôi (1.689 lên 3.291), HOTA giảm từ
-0.732 xuống 0.687 và sai số đếm ban đêm tăng từ 2.3\% lên 3.4\%. Xe nhỏ ở xa có điểm tin cậy thấp nên không được mở
-track, mà VnTraffic gần như không gán nhãn các xe này. Cấu hình bị loại dựa vào kết quả test (mục~\ref{sec:thao-luan})
-và chỉ còn là một tuỳ chọn ``ít đổi ID'' trong web demo.
+Cách đầu tiên, nâng ngưỡng mở track mới lên 0.6, được chọn trên VnTraffic (đổi ID giảm 33\%, IDR giữ nguyên) nhưng
+trên clip test làm bỏ sót tăng gần gấp đôi (1.689 lên 3.291 box) và HOTA giảm từ 0.732 xuống 0.687: xe nhỏ ở xa có điểm
+tin cậy thấp nên không được mở track, mà VnTraffic gần như không gán nhãn các xe này. Cấu hình bị loại dựa vào kết quả
+test (mục~\ref{sec:thao-luan}). Vì vậy đề tài gán nhãn thêm clip dev Phạm Văn Đồng góc C, có đủ xe nhỏ ở xa
+(mục~\ref{sec:tap-danh-gia}), và chọn lại trên cả hai tập dev trong 16 ứng viên (12 tổ hợp ngưỡng của BoT-SORT, bộ lọc
+box trùng không phân lớp ở IoU 0.7, 0.6, 0.5, và cấu hình cũ). Tiêu chí được lưu vào kho mã nguồn trước khi chạy: bỏ sót
+trên clip dev mới không tăng quá 2\%, HOTA trên clip đó và IDR trên VnTraffic không giảm quá 0.005, rồi chọn ứng viên có
+tổng số lần đổi ID ít nhất nếu tổng này giảm ít nhất 10\%.
 
-Lần thứ hai nhắm vào nguyên nhân: YOLO26 là mô hình end-to-end nên Ultralytics bỏ qua bước NMS, và trên VnTraffic
-khoảng 20 trong 82 box mỗi frame của v6 là box phụ chồng lên box khác của cùng một xe. Một bộ lọc NMS không phân lớp
-được đặt trước tracker. Vì VnTraffic không đo được việc bỏ sót xe nhỏ, tiêu chí dùng điều kiện thay thế: mAP50 trên val
-Hà Nội và dev đêm không giảm quá 0.005. Ở IoU 0.6, đổi ID giảm từ 93.5 xuống 63, bỏ sót trên VnTraffic tăng 1.4\%,
-nhưng mAP50 dev đêm giảm 0.006; không ngưỡng nào đạt.
-
-Lần thứ ba dùng thêm một tập dev đo trực tiếp được việc bỏ sót xe nhỏ ở xa: clip dev Phạm Văn Đồng góc C, gán nhãn quỹ
-đạo cho mục đích này (mục~\ref{sec:tap-danh-gia}). Có 16 ứng viên: 12 tổ hợp ngưỡng của BoT-SORT (ngưỡng mở track
-0.25, 0.4 hoặc 0.6; ngưỡng ghép lần một 0.25 hoặc 0.4; ngưỡng chi phí ghép 0.8 hoặc 0.9), bộ lọc box trùng ở IoU 0.7,
-0.6 và 0.5, và cấu hình cũ làm mốc. Tiêu chí được lưu vào kho mã nguồn trước khi chạy ứng viên nào trên clip mới: so với
-mốc, tính trung bình hai lần huấn luyện v6, số box bỏ sót trên clip dev mới không tăng quá 2\%, HOTA trên clip đó không
-giảm quá 0.005, IDR trên VnTraffic không giảm quá 0.005; trong các ứng viên đạt, chọn ứng viên có tổng số lần đổi ID
-trên hai tập dev ít nhất, và chỉ đổi mặc định nếu tổng này giảm ít nhất 10\%. Điều kiện mAP50 thay thế của lần thứ hai
-được bỏ vì bỏ sót giờ đo được trực tiếp; thay đổi này được quyết định khi đã biết kết quả mAP của bộ lọc.
-
-Clip dev mới thấy đúng cái giá mà VnTraffic bỏ qua: mọi tổ hợp có ngưỡng mở track 0.6 làm bỏ sót tăng 39--43\%, các tổ
-hợp có ngưỡng mở track hoặc ngưỡng ghép lần một 0.4 tăng 9--16\%, bộ lọc IoU 0.5 tăng 2.5\%; bộ lọc IoU 0.7 bị loại vì
-IDR. Ngoài mốc chỉ còn ngưỡng chi phí ghép 0.9 (tổng đổi ID chỉ giảm 1\%) và bộ lọc IoU 0.6. Bộ lọc IoU 0.6 giảm tổng
-số lần đổi ID từ 130 xuống 90.5 (30\%), bỏ sót chỉ tăng 0.9\%, HOTA trên clip dev tăng từ 0.689 lên 0.695, và trở thành
-mặc định mới. Cái giá nằm ở phát hiện: khi có bộ lọc, mAP50 dev đêm giảm 0.006, val Hà Nội không đổi; các bảng ở
-mục~\ref{sec:ket-qua-phat-hien} là của mô hình không có bộ lọc.
-
-Chấm một lần trên test sau khi chọn, số lần đổi ID giảm từ 49 xuống 26, bằng v5, bỏ sót chỉ tăng 0.9\% (1.689 lên
-1.704), box thừa giảm từ 505 xuống 341 và HOTA tăng từ 0.732 lên 0.744; lần huấn luyện v6 thứ hai cho cùng hướng (đổi
-ID 38 xuống 34, HOTA 0.722 lên 0.728). Với bản OpenVINO của web demo, IDR trên VnTraffic tăng từ 0.825 lên 0.840 và số
-lần đổi ID giảm từ 85 xuống 72. Các lần đổi ID còn lại, như khi xe bị cây che rồi hiện lại, cần thêm thông tin ngoài
-vị trí box, chẳng hạn đặc trưng ngoại hình từ một mô hình ReID riêng cho xe.
-
-Với YOLO26s-v6, bộ lọc được chọn lại theo đúng luật trên hai tập dev, với ứng viên là không lọc và IoU 0.7, 0.6, 0.5.
-Kết quả vẫn là IoU 0.6: tổng số lần đổi ID giảm từ 88.5 xuống 70.5 (20\%), bỏ sót trên clip dev mới tăng 1.2\%, HOTA
-trên clip đó tăng từ 0.748 lên 0.751; IoU 0.5 bị loại vì IDR trên VnTraffic. Lưới ngưỡng BoT-SORT không được chạy lại,
-vì hai lý do ghi cùng tiêu chí trước khi huấn luyện: với v6, mọi thay đổi ngưỡng mở track hay ngưỡng ghép lần một đều
-làm bỏ sót tăng 9--43\% trên clip dev mới, và lưới gồm 48 lần chạy, quá tốn khi YOLO26s chạy trên CPU.
+Clip dev mới thấy đúng cái giá mà VnTraffic bỏ qua: mọi tổ hợp có ngưỡng mở track 0.6 làm bỏ sót tăng 39--43\%. Bộ lọc
+box trùng IoU 0.6 là ứng viên được chọn: tổng số lần đổi ID trên hai tập dev giảm từ 130 xuống 90.5 (30\%), bỏ sót chỉ
+tăng 0.9\%. Chấm một lần trên test, số lần đổi ID giảm từ 49 xuống 26, bằng v5, bỏ sót tăng 0.9\% và HOTA tăng từ 0.732
+lên 0.744. Cái giá nằm ở phát hiện: khi có bộ lọc, mAP50 dev đêm giảm 0.006; các bảng ở
+mục~\ref{sec:ket-qua-phat-hien} là của mô hình không có bộ lọc. Chọn lại theo đúng luật cho YOLO26s-v6 cũng ra bộ lọc
+IoU 0.6 (tổng đổi ID trên hai tập dev giảm từ 88.5 xuống 70.5, bỏ sót tăng 1.2\%). Các lần đổi ID còn lại, như khi xe
+bị cây che rồi hiện lại, cần thêm thông tin ngoài vị trí box, chẳng hạn đặc trưng ngoại hình từ một mô hình ReID riêng
+cho xe.
 
 \subsection{Tập test clip Phạm Văn Đồng}
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả theo dõi trên tập test (clip Phạm Văn Đồng 20 giây, 183 quỹ đạo nhãn)}
+  \caption{Kết quả theo dõi trên tập test (clip Phạm Văn Đồng 20 giây, 183 quỹ đạo nhãn; BoT-SORT đã chỉnh, không GMC)}
   \label{tab:tracking-test}
   \footnotesize
   \begin{tabularx}{\linewidth}{|L|c|c|c|c|c|c|c|c|}
     \hline
     \thead{Cấu hình} & \thead{HOTA} & \thead{DetA} & \thead{AssA} & \thead{MOTA} & \thead{IDF1} & \thead{IDR} & \thead{IDP} &
       \thead{Đổi ID} \\ \hline
-    \textbf{YOLO26s-v6} + BoT-SORT đã chỉnh, không GMC, lọc box trùng (mặc định) & 0.755 & 0.717 & 0.811 & 0.874 &
-      0.916 & 0.882 & 0.953 & 22 \\ \hline
+    \textbf{YOLO26s-v6}, lọc box trùng (mặc định) & 0.755 & 0.717 & 0.811 & 0.874 & 0.916 & 0.882 & 0.953 & 22 \\ \hline
     YOLO26s-v6, mặc định, lọc track dưới 3 frame & 0.745 & 0.703 & 0.807 & 0.855 & 0.907 & 0.860 & 0.959 & 17 \\ \hline
-    v6 (bản nhẹ), cùng tracker và bộ lọc & 0.744 & 0.701 & 0.806 & 0.847 & 0.905 & 0.859 & 0.955 & 26 \\ \hline
-    v6, lọc box trùng, lọc track dưới 3 frame & 0.734 & 0.686 & 0.801 & 0.827 & 0.895 & 0.838 & 0.961 & 21 \\ \hline
-    v6, chưa lọc box trùng & 0.732 & 0.695 & 0.789 & 0.835 & 0.884 & 0.845 & 0.926 & 49 \\ \hline
-    v5 + BoT-SORT đã chỉnh, không GMC, chưa lọc box trùng & 0.718 & 0.670 & 0.784 & 0.813 & 0.880 & 0.822 & 0.947 & 26
-      \\ \hline
-    v5, chưa lọc box trùng, lọc track dưới 3 frame & 0.708 & 0.656 & 0.778 & 0.795 & 0.871 & 0.801 & 0.955 & 21 \\ \hline
-    YOLO26s (dữ liệu v5), chưa lọc box trùng & 0.758 & 0.713 & 0.819 & 0.841 & 0.904 & 0.878 & 0.930 & 31 \\ \hline
-    YOLO26s (dữ liệu v5), chưa lọc box trùng, lọc track dưới 3 frame & 0.751 & 0.702 & 0.816 & 0.827 & 0.897 &
-      0.859 & 0.938 & 22 \\ \hline
+    v6 (bản nhẹ), lọc box trùng & 0.744 & 0.701 & 0.806 & 0.847 & 0.905 & 0.859 & 0.955 & 26 \\ \hline
+    v5, chưa lọc box trùng & 0.718 & 0.670 & 0.784 & 0.813 & 0.880 & 0.822 & 0.947 & 26 \\ \hline
   \end{tabularx}
 \end{table}
 
 Trên tập test có nhãn đầy đủ, mô hình chính YOLO26s-v6 với cấu hình mặc định đạt HOTA 0.755, MOTA 0.874, IDF1 0.916
 và đổi ID 22 lần trên 183 xe (Bảng~\ref{tab:tracking-test}). IDP 0.953 cao hơn IDR 0.882: hệ thống ít khi gán nhầm danh
-tính, phần mất chủ yếu do bỏ sót (1.353 box bỏ sót so với 340 box thừa). Lần huấn luyện thứ hai đạt HOTA 0.769, IDF1
-0.918 nhưng đổi ID 39 lần, tức số lần đổi ID còn dao động nhiều giữa các lần huấn luyện. Bản nhẹ v6 đạt HOTA 0.744,
-MOTA 0.847, IDF1 0.905 và đổi ID 26 lần (lần thứ hai: HOTA 0.728, đổi ID 34). So với v5, v6 bỏ sót ít hơn (1.704 so
-với 2.157 box) nên HOTA, MOTA, IDF1 và IDR đều cao hơn, còn số lần đổi ID bằng nhau. Ở ứng dụng đếm xe, mỗi lần đổi ID
-trên một xe chưa qua vạch không gây lỗi, nhưng nếu xảy ra đúng lúc xe cắt vạch thì xe có thể bị đếm hai lần;
-mục~\ref{sec:dem-xe} cho thấy điều này có xảy ra hay không.
-
-Bảng cũng có các cấu hình đúng như lúc chạy ứng dụng. Pipeline video bỏ các track tồn tại dưới 3 frame: số lần đổi ID
-giảm (YOLO26s-v6: 22 xuống 17; v6: 26 xuống 21; v5: 26 xuống 21) nhưng HOTA giảm nhẹ vì mất vài frame đầu của mỗi xe.
-Hai dòng YOLO26s cuối bảng là bản học dữ liệu v5 của thí nghiệm kiến trúc, chấm sau khi đã chọn cấu hình: nó theo dõi
-tốt hơn v5 ở mọi chỉ số tổng hợp (HOTA 0.758 so với 0.718), chủ yếu nhờ bỏ sót ít hơn (1.445 so với 2.157 box), đổi lại
-phát hiện thừa nhiều hơn (683 so với 357). Khi học thêm frame đêm và có bộ lọc box trùng, YOLO26s-v6 bỏ sót còn ít hơn
-(1.353 box) với số box thừa ngang v6 (340 so với 341).
+tính, phần mất chủ yếu do bỏ sót (1.353 box bỏ sót so với 340 box thừa). Lần huấn luyện thứ hai đạt HOTA 0.769 nhưng
+đổi ID 39 lần, tức số lần đổi ID còn dao động nhiều giữa các lần huấn luyện. Bản nhẹ v6 đạt HOTA 0.744 và đổi ID 26
+lần; so với v5, nó bỏ sót ít hơn (1.704 so với 2.157 box) nên HOTA, MOTA, IDF1 và IDR đều cao hơn, còn số lần đổi ID
+bằng nhau. Pipeline video bỏ các track tồn tại dưới 3 frame: số lần đổi ID giảm (YOLO26s-v6: 22 xuống 17) nhưng HOTA
+giảm nhẹ vì mất vài frame đầu của mỗi xe.
 
 \begin{table}[H]
   \centering
@@ -604,110 +476,52 @@ phát hiện thừa nhiều hơn (683 so với 357). Khi học thêm frame đêm
   \end{tabular}
 \end{table}
 
-Bảng~\ref{tab:ablation} xác nhận lựa chọn trên dev: với cùng v5, BoT-SORT tốt nhất trên test. Các dòng BoT-SORT trong bảng
-này có bật GMC; tắt GMC cho kết quả gần như y hệt (HOTA 0.718 ở cả hai bản, đổi ID 26 so với 28). So v5 với v3, v5 hơn
-rõ ở MOTA (0.815 so với 0.763), IDF1 (0.880 so với 0.845) và số lần đổi ID (28 so với 44). HOTA trung bình của v3 cao
-hơn (0.741 so với 0.718) nhưng đây là thiên lệch do nhãn sơ bộ, phân tích ở mục~\ref{sec:thao-luan}.
+Bảng~\ref{tab:ablation} xác nhận lựa chọn trên dev: với cùng v5, BoT-SORT tốt nhất trên test. Các dòng BoT-SORT trong
+bảng này có bật GMC; tắt GMC cho kết quả gần như y hệt (HOTA 0.718 ở cả hai bản, đổi ID 26 so với 28). So v5 với v3,
+v5 hơn rõ ở MOTA (0.815 so với 0.763), IDF1 (0.880 so với 0.845) và số lần đổi ID (28 so với 44). HOTA trung bình của v3
+cao hơn (0.741 so với 0.718) nhưng đây là thiên lệch do nhãn sơ bộ, phân tích ở mục~\ref{sec:thao-luan}.
 
-\section{Sai số đếm xe qua vạch}
+\section{Ứng dụng: sai số đếm xe qua vạch}
 \label{sec:dem-xe}
 
-Đếm xe được đánh giá ở hai điều kiện: ban ngày trên clip test Phạm Văn Đồng và ban đêm trên hai clip hầm chui. Ở cả
-hai nơi, vạch đếm là vạch mặc định của hệ thống (nằm ngang ở 60\% chiều cao ảnh), không chọn theo kết quả.
-
-\subsection{Ban ngày: clip Phạm Văn Đồng}
-
-Số lượt xe thật được tính bằng cách cho các quỹ đạo nhãn tay của clip test đi qua đúng bộ đếm của hệ thống, nên chênh
-lệch chỉ do phát hiện và theo dõi.
+Đếm xe qua vạch là ứng dụng trực tiếp của kết quả theo dõi: mỗi lần đổi ID đúng lúc xe cắt vạch có thể làm một xe bị
+đếm hai lần, mỗi xe bị bỏ sót thì không được đếm. Sai số đếm vì vậy là một phép kiểm tra đầu cuối của cả hệ thống, và
+ban đêm, khi chưa có nhãn quỹ đạo, đây là số đo duy nhất về theo dõi. Vạch đếm là vạch mặc định của hệ thống (nằm ngang
+ở 60\% chiều cao ảnh), không chọn theo kết quả. Ban ngày, số lượt thật có được bằng cách cho quỹ đạo nhãn tay của clip
+test đi qua đúng bộ đếm của hệ thống; ban đêm, mỗi lượt của hệ thống được ghép với một lượt của người đếm tay nếu cùng
+hướng và lệch nhau không quá một giây (ghép tối ưu bằng thuật toán Hungarian).
 
 \begin{table}[H]
   \centering
-  \caption{Số lượt xe qua vạch trên clip test 20 giây ban ngày: nhãn tay và hệ thống (số lượt vào / ra; v6 và
-    YOLO26s-v6 với cấu hình mặc định, có lọc box trùng)}
+  \caption{Sai số đếm xe qua vạch: clip test ban ngày 20 giây (73 lượt thật: 2 vào / 71 ra) và hai clip hầm chui ban đêm
+    60 giây (176 lượt thật, người đếm tay); v6 và YOLO26s-v6 với cấu hình mặc định, có lọc box trùng}
   \label{tab:dem-xe}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|l|C|C|C|C|C|C|C|}
+  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|C|C|C|C|C|}
     \hline
-    \thead{Lớp} & \thead{Thật} & \thead{v5 đếm} & \thead{v5 sai số} & \thead{v6 đếm} & \thead{v6 sai số} &
-      \thead{YOLO26s-v6 đếm} & \thead{YOLO26s-v6 sai số} \\ \hline
-    Xe máy & 1 / 52 & 0 / 53 & 2 & 0 / 52 & 1 & 0 / 51 & 2 \\ \hline
-    Ô tô & 1 / 18 & 0 / 19 & 2 & 0 / 19 & 2 & 0 / 19 & 2 \\ \hline
-    Xe buýt & 0 / 1 & 0 / 0 & 1 & 0 / 0 & 1 & 0 / 0 & 1 \\ \hline
-    Xe tải & 0 / 0 & 0 / 0 & 0 & 0 / 0 & 0 & 0 / 0 & 0 \\ \hline
-    \textbf{Tổng} & 2 / 71 & 0 / 72 & 3 (4.1\%) & 0 / 71 & 2 (2.7\%) & 0 / 70 & 3 (4.1\%) \\ \hline
+    & \multicolumn{2}{c|}{\thead{Ban ngày}} & \multicolumn{3}{c|}{\thead{Ban đêm}} \\ \cline{2-6}
+    \thead{Mô hình} & \thead{Đếm (vào / ra)} & \thead{Sai số} & \thead{Sót} & \thead{Thừa} & \thead{Sai số} \\ \hline
+    v5 & 0 / 72 & 3 (4.1\%) & 15 & 0 & 15 (8.5\%) \\ \hline
+    YOLO26s (dữ liệu v5) & 0 / 71 & 2 (2.7\%) & 7 & 5 & 8 (4.5\%) \\ \hline
+    v6 (bản nhẹ) & 0 / 71 & 2 (2.7\%) & 3 & 2 & 3 (1.7\%) \\ \hline
+    \textbf{YOLO26s-v6} & 0 / 70 & 3 (4.1\%) & 3 & 2 & 3 (1.7\%) \\ \hline
   \end{tabularx}
 \end{table}
 
-Với v5, hệ thống đếm 72 lượt so với 73 lượt thật (Bảng~\ref{tab:dem-xe}); tổng theo lớp khớp hoàn toàn ở xe máy (53)
-và ô tô (19). Sai số tính theo từng hướng là 3 lượt, và khi xem lại từng lượt thì chỉ một lượt là lỗi của hệ thống:
-\begin{itemize}
-  \item Hai lượt ``vào'' của nhãn (một ô tô, một xe máy) là hiện tượng của nhãn ở tán cây: xe khuất dần sau cây, box nhãn
-        chỉ ôm phần nhìn thấy nên cạnh đáy box đi ngược lên qua vạch, dù xe không đi ngược chiều. Vạch y = 0.6 đi qua mép
-        tán cây bên phải.
-  \item Lượt xe buýt là một chiếc Ford Transit bị đếm thành ô tô, đúng vấn đề định nghĩa lớp van đã nêu.
-\end{itemize}
-Với v6 và với YOLO26s học dữ liệu v5, hệ thống đếm 71 lượt ``ra'', đúng bằng số lượt ``ra'' thật; lỗi lớp duy nhất
-cũng là chiếc Ford Transit, và sai số theo hướng là 2 lượt (2.7\%), đều ở hai lượt ``vào'' của nhãn nói trên. Bật hay
-tắt bộ lọc box trùng, v6 cho cùng số đếm trên clip này; cả hai lần huấn luyện v6 đều có sai số 2 lượt. YOLO26s-v6 đếm
-70 lượt ``ra'', sót thêm một xe máy, nên sai số là 3 lượt (4.1\%); lần huấn luyện thứ hai của nó đếm đúng 71 lượt, sai
-số 2 lượt (2.7\%). Trên 73 lượt, chênh lệch một lượt giữa các mô hình không lớn hơn chênh lệch giữa hai lần huấn luyện
-của cùng một mô hình.
+Ban ngày (Bảng~\ref{tab:dem-xe}), xem lại từng lượt thì phần lớn sai số không phải lỗi của hệ thống. Hai lượt ``vào''
+của nhãn là hiện tượng ở tán cây: xe khuất dần sau cây, box nhãn chỉ ôm phần nhìn thấy nên cạnh đáy box đi ngược lên
+qua vạch, dù xe không đi ngược chiều. Lỗi thật là một chiếc Ford Transit bị đếm thành ô tô (vấn đề định nghĩa lớp xe
+van) và, với YOLO26s-v6, một xe máy bị sót; lần huấn luyện thứ hai của YOLO26s-v6 đếm đúng 71 lượt ``ra'' (2.7\%).
+Trên 73 lượt, chênh lệch một lượt giữa các mô hình không lớn hơn chênh lệch giữa hai lần huấn luyện của cùng một mô hình.
 
-\subsection{Ban đêm: hai clip hầm chui}
-
-Ban đêm, số lượt thật là số người đếm tay trên video gốc (mục~\ref{sec:nhan-dem}): 176 lượt trong hai phút video, tất
-cả đi cùng một chiều. Mỗi lượt của hệ thống được ghép với một lượt của người đếm nếu cùng hướng và lệch nhau không quá
-một giây (ghép tối ưu bằng thuật toán Hungarian, ưu tiên số cặp ghép được, rồi đến cặp cùng lớp), để biết lượt nào bị
-sót, lượt nào thừa.
-
-\begin{table}[H]
-  \centering
-  \caption{Đếm xe ban đêm trên hai clip hầm chui 60 giây (người đếm tay làm số thật; v6 và YOLO26s-v6 với cấu hình
-    mặc định, có lọc box trùng; v5 và YOLO26s học dữ liệu v5 chưa lọc)}
-  \label{tab:dem-xe-dem}
-  \footnotesize
-  \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|l|C|C|C|C|C|C|>{\centering\arraybackslash}p{2.2cm}|}
-    \hline
-    & \multicolumn{3}{c|}{\thead{Hầm chui 2 (79 lượt thật)}} & \multicolumn{3}{c|}{\thead{Hầm chui 3 (97 lượt thật)}} &
-      \\ \cline{2-7}
-    \thead{Mô hình} & \thead{Đếm} & \thead{Sót} & \thead{Thừa} & \thead{Đếm} & \thead{Sót} & \thead{Thừa} &
-      \thead{Sai số theo hướng} \\ \hline
-    v5 & 72 & 7 & 0 & 89 & 8 & 0 & 15 (8.5\%) \\ \hline
-    YOLO26s (dữ liệu v5) & 76 & 3 & 0 & 98 & 4 & 5 & 8 (4.5\%) \\ \hline
-    v6 (bản nhẹ) & 79 & 0 & 0 & 96 & 3 & 2 & 3 (1.7\%) \\ \hline
-    \textbf{YOLO26s-v6} & 79 & 0 & 0 & 96 & 3 & 2 & 3 (1.7\%) \\ \hline
-  \end{tabularx}
-\end{table}
-
-Mọi lượt sót và thừa ban đêm đều ở xe máy; số lượt ô tô, xe buýt và xe tải đúng với cả bốn mô hình
-(Bảng~\ref{tab:dem-xe-dem}). v5 không đếm thừa lượt nào nhưng bỏ sót 15 trên 149 lượt xe máy. Các lượt sót tập trung
-ở cụm xe máy đi sát nhau: 14 trong 15 lượt sót của v5 và cả 7 lượt sót của YOLO26s học dữ liệu v5 xảy ra khi có một
-xe máy khác qua vạch cách đó không quá 0.3 giây, trong khi tỉ lệ này ở toàn bộ 176 lượt chỉ là 55\%; ví dụ ba xe qua
-vạch trong 0.4 giây ở đầu clip thứ hai đều bị v5 bỏ sót. YOLO26s học dữ liệu v5 chỉ sót 7 lượt, đúng với việc nó phát
-hiện tốt hơn v5 ở \texttt{vn\_extra} đêm (Bảng~\ref{tab:kien-truc}). Năm lượt thừa của mô hình này là một kiểu lỗi
-khác: box của hai xe dao động quanh vạch nên mỗi xe bị đếm ``vào'', rồi ``ra'', rồi ``vào'' lần nữa; thêm một xe ở
-frame cuối clip bị đếm ``ra''.
-
-v6 với cấu hình mặc định đếm 175 lượt, với 3 lượt sót và 2 lượt thừa; sai số theo hướng 3 lượt (1.7\%), thấp nhất cùng
-YOLO26s-v6. Clip thứ hai đếm đúng cả 79 lượt. Hai lượt thừa ở clip thứ ba là đúng kiểu dao động quanh vạch đã
-thấy ở YOLO26s: một xe bị đếm ``vào'' rồi ``ra''. Ngoài ra có hai lượt bị ghép sai lớp: một ô tô và một xe máy qua vạch
-cách nhau khoảng một giây, mỗi xe mang lớp của xe kia; tổng theo lớp vẫn đúng. Khi chưa lọc box trùng, v6 có thêm một
-lượt thừa ở clip thứ hai, sai số 4 lượt (2.3\%). Với lần huấn luyện v6 thứ hai, sai số là 8 lượt (4.5\%) khi có bộ lọc
-và 7 lượt (4.0\%) khi chưa lọc, đều thấp hơn v5; khác biệt một lượt nằm ở một xe máy bị đếm ``ra'' thêm do box dao động.
-
-YOLO26s-v6 cho cùng số đếm với v6: clip thứ hai đúng cả 79 lượt, clip thứ ba sót 3 và thừa 2 (một xe bị đếm ``vào'' rồi
-``ra''), sai số 3 lượt (1.7\%). Hai trong ba lượt sót là hai xe máy mà v6 và lần huấn luyện thứ hai của YOLO26s-v6 cũng
-sót; lượt còn lại là một xe máy qua vạch ở frame cuối clip (giây 59.97). Lần huấn luyện thứ hai có sai số 2 lượt (1.1\%).
-
-So với ban ngày, sai số đếm ban đêm của v5 tăng từ 4.1\% lên 8.5\%, khớp với việc mAP50 của v5 giảm từ 0.745 ban ngày
-xuống 0.628 ban đêm trên \texttt{vn\_extra}: cảnh tối làm mô hình bỏ sót nhiều xe máy hơn, và bộ đếm không thể đếm xe
-mà bộ phát hiện không thấy. v6, được học thêm cảnh đêm, đưa sai số đêm về 1.7\%, ngang ban ngày (2.7\%). YOLO26s học dữ
-liệu v5 có sai số 2.7\% ban ngày và 4.5\% ban đêm; YOLO26s-v6 có 4.1\% ban ngày và 1.7\% ban đêm (lần huấn luyện thứ
-hai: 2.7\% và 1.1\%). Các lỗi trên chỉ ra hai cách giảm sai số: dùng mô hình phát hiện mạnh hơn khi có GPU, và chỉ tính
-một lượt khi xe đã ở hẳn bên kia vạch trong vài frame liên tiếp để chặn kiểu đếm lặp do box dao động. Khi triển khai,
-nên đặt vạch ở vùng không bị cây hay lan can che.
+Ban đêm, mọi lượt sót và thừa đều ở xe máy; số lượt ô tô, xe buýt và xe tải đúng với cả bốn mô hình. Lượt sót tập trung
+ở cụm xe máy đi sát nhau: 14 trong 15 lượt sót của v5 xảy ra khi có một xe máy khác qua vạch cách đó không quá 0.3 giây,
+trong khi tỉ lệ này ở toàn bộ 176 lượt chỉ là 55\%. Lượt thừa là kiểu lỗi khác: box dao động quanh vạch nên một xe bị
+đếm ``vào'' rồi ``ra''. Sai số đêm của v5 (8.5\%) gấp đôi ban ngày, khớp với việc mAP50 đêm của nó thấp hơn ngày trên
+\texttt{vn\_extra}; được học thêm cảnh đêm, v6 và YOLO26s-v6 đưa sai số đêm về 1.7\% (lần huấn luyện thứ hai: 4.5\% và
+1.1\%). Hai cách giảm sai số tiếp theo là chỉ tính một lượt khi xe đã ở hẳn bên kia vạch trong vài frame liên tiếp, và
+đặt vạch ở vùng không bị cây hay lan can che.
 
 \section{Phân tích lỗi}
 \label{sec:phan-tich-loi}
@@ -719,67 +533,45 @@ nhiều lỗi loại đó nhất. Màu box: xanh lá là đúng, đỏ là bỏ 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_1.jpg}
-  \caption{Lỗi 1: xe máy rất nhỏ ở xa bị bỏ sót (\texttt{vn\_extra} ngày, góc máy B)}
+  \caption{Xe máy rất nhỏ ở xa bị bỏ sót (\texttt{vn\_extra} ngày, góc máy B)}
   \label{fig:error-1}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_2.jpg}
-  \caption{Lỗi 2: cụm xe máy chờ đèn đỏ dày đặc bị bỏ sót (test Hà Nội)}
+  \caption{Cụm xe máy chờ đèn đỏ dày đặc bị bỏ sót (test Hà Nội)}
   \label{fig:error-2}
 \end{figure}
 
-Lỗi 1 và 2 (Hình~\ref{fig:error-1}, \ref{fig:error-2}) là hai dạng bỏ sót chính ban ngày: xe quá nhỏ sau khi ảnh bị thu
-về 960 điểm ảnh, và xe máy dừng sát nhau che khuất lẫn nhau.
+Hình~\ref{fig:error-1} và~\ref{fig:error-2} là hai dạng bỏ sót chính ban ngày: xe quá nhỏ sau khi ảnh bị thu về 960
+điểm ảnh, và xe máy dừng sát nhau che khuất lẫn nhau.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_3.jpg}
-  \caption{Lỗi 3: ô tô ban đêm ở đường ngang phía xa bị rào chắn che, chỉ thấy đèn (\texttt{vn\_extra} đêm)}
+  \caption{Ô tô ban đêm ở đường ngang phía xa bị rào chắn che, chỉ thấy đèn (\texttt{vn\_extra} đêm)}
   \label{fig:error-3}
 \end{figure}
 
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\linewidth]{error_4.jpg}
-  \caption{Lỗi 4: xe máy ban đêm bị gọi là ô tô do đèn hậu chói, xe chở thùng hàng (\texttt{vn\_extra} đêm)}
-  \label{fig:error-4}
-\end{figure}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\linewidth]{error_5.jpg}
-  \caption{Lỗi 5: box lệch ban đêm, mô hình chỉ khoanh phần đèn hậu sáng nên một xe bị tính cả bỏ sót (đỏ) lẫn thừa
-           (tím) (\texttt{vn\_extra} đêm)}
-  \label{fig:error-5}
-\end{figure}
-
-Ở cảnh đêm (Hình~\ref{fig:error-3}--\ref{fig:error-5}), ngoài xe chỉ thấy đèn bị sót, có hai lỗi đặc trưng. Xe máy chở
-hàng có đèn chói bị gọi là ô tô. Và mô hình hay chỉ khoanh phần đèn hậu sáng: box này có IoU dưới 0.5 với box nhãn (bao
-cả người và xe), nên một xe vừa bị tính là bỏ sót vừa sinh một phát hiện thừa. Phần lớn ``phát hiện thừa'' ban đêm thuộc
-loại này chứ không phải vệt đèn hay bóng phản chiếu.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.9\linewidth]{error_6.jpg}
-  \caption{Lỗi 6: xe Ford Transit (nhãn xe buýt) bị gọi là ô tô (clip Phạm Văn Đồng)}
-  \label{fig:error-6}
-\end{figure}
+Ban đêm, ngoài xe chỉ thấy đèn bị sót (Hình~\ref{fig:error-3}), có hai lỗi đặc trưng. Xe máy chở thùng hàng, đèn hậu
+chói, bị gọi là ô tô. Và mô hình hay chỉ khoanh phần đèn hậu sáng: box này có IoU dưới 0.5 với box nhãn (bao cả người và
+xe), nên một xe vừa bị tính là bỏ sót vừa sinh một phát hiện thừa. Phần lớn ``phát hiện thừa'' ban đêm thuộc loại này
+chứ không phải vệt đèn hay bóng phản chiếu. Lỗi phân loại đáng kể còn lại ban ngày là xe Ford Transit, nhãn xe buýt,
+bị gọi là ô tô, hệ quả của định nghĩa lớp xe van.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{error_7.jpg}
-  \caption{Lỗi 7: đổi ID khi xe bị cây cảnh phía trước che; box đổi dạng, tracker tạo track mới song song rồi bỏ track
-           cũ (clip Phạm Văn Đồng)}
+  \caption{Đổi ID khi xe bị cây cảnh phía trước che; box đổi dạng, tracker tạo track mới song song rồi bỏ track cũ
+           (clip Phạm Văn Đồng)}
   \label{fig:error-7}
 \end{figure}
 
-Lỗi 6 (Hình~\ref{fig:error-6}) là hệ quả của định nghĩa lớp xe van. Lỗi 7 (Hình~\ref{fig:error-7}) là dạng đổi ID điển
-hình: khi xe đi sau cây, box co lại theo phần nhìn thấy, tracker không ghép được với track cũ nên tạo track mới. Bộ dò
-đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm điều kiện ``ID cũ đã biến mất ở frame đổi''
-còn 25 lần, gần với 26 lần đổi ID của TrackEval. Phần chênh lệch là box của tracker nhảy qua lại giữa hai track trùng
-trên cùng một xe.
+Hình~\ref{fig:error-7} là dạng đổi ID điển hình: khi xe đi sau cây, box co lại theo phần nhìn thấy, tracker không ghép
+được với track cũ nên tạo track mới. Bộ dò đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm
+điều kiện ``ID cũ đã biến mất ở frame đổi'' còn 25 lần, gần với 26 lần đổi ID của TrackEval. Phần chênh lệch là box của
+tracker nhảy qua lại giữa hai track trùng trên cùng một xe.
 
 \section{Ứng dụng web và video demo}
 \label{sec:ung-dung}
@@ -804,44 +596,12 @@ qua OpenVINO trên GPU tích hợp, mục~\ref{sec:openvino}) dùng khi cần x�
 \end{figure}
 
 Sáu clip demo dài 60 giây (ba góc máy đại lộ Phạm Văn Đồng và ba clip hầm chui ban đêm) được xử lý sẵn bằng YOLO26s-v6
-ở ảnh 960, BoT-SORT đã chỉnh và bộ lọc box trùng, đúng chương trình dòng lệnh của hệ thống; vạch đếm của từng clip ghi
-trong một file cấu hình. Các video này được xử lý trên CPU của laptop, đạt 2.6--2.8 frame/s tính cả vẽ kết quả và mã
-hoá video 1080p, tức khoảng 11--12 phút mỗi clip. Cùng chương trình chạy trên GPU T4 với YOLO26s học dữ liệu v5 (cùng
-kiến trúc) đạt 15.4--20.9 frame/s. Con số đó thấp hơn khoảng 43 frame/s của riêng phát hiện và theo dõi, vì khi có GPU
-thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất.
-
-Clip hầm chui thứ nhất trùng phần lớn nội dung với clip thứ hai và có một chỗ cắt cảnh (mục~\ref{sec:tap-danh-gia}),
-nên chỉ dùng để minh hoạ; Hình~\ref{fig:demo-dem} là một frame của clip này.
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.92\linewidth]{demo_ham_chui_dem_1.jpg}
-  \caption{Frame video demo ban đêm ở lối vào hầm chui TP.HCM (nguồn video: kênh YouTube Midnight Soundscape)}
-  \label{fig:demo-dem}
-\end{figure}
-
-Xem lại video demo thấy một lỗi mà các tập test có nhãn không có, và một trường hợp dẫn tới cách hiển thị lớp của video:
-\begin{itemize}
-  \item \textbf{Xe cứu hộ chở ô tô} (Hình~\ref{fig:demo-tow}, khoảng giây 47.6 của clip hầm chui thứ nhất). Box của mô
-        hình chỉ ôm cabin và gọi cabin là buýt; chiếc ô tô trên sàn được nhận thành một xe riêng. Vì box chỉ ôm cabin,
-        đáy box qua vạch ở giây 47.6 trong khi bánh xe thật vẫn còn dưới vạch tới chỗ cắt cảnh ở giây 48.3, nên hệ thống
-        đếm thừa một lượt, lại sai lớp (buýt thay vì tải); chiếc ô tô trên sàn không bị đếm thêm. YOLO26s học dữ liệu v5
-        cũng mắc đúng lỗi này. Xe cứu hộ hiếm gặp trong dữ liệu huấn luyện, nên đây là lỗi phát hiện, không sửa được
-        bằng cấu hình tracker hay bộ đếm.
-  \item \textbf{Đổi nhãn sau khi đã đếm.} Bỏ phiếu lớp cộng dồn có thể đổi lớp của một xe sau khi xe đã được đếm. Với
-        YOLO26s học dữ liệu v5, một xe buýt ở clip hầm chui thứ ba được đếm đúng là buýt khi cắt vạch, rồi khi đi xa
-        chỉ còn thấy đuôi xe thì bị gọi chắc chắn là tải, nên nhãn trên video đổi sang tải dù số đếm vẫn đúng. Video
-        demo vì vậy khoá lớp hiển thị của mỗi xe tại thời điểm xe được đếm, để nhãn trên video khớp với bảng đếm; lớp
-        dùng để đếm và để chấm điểm không đổi. YOLO26s-v6 gọi xe này là buýt 405 trong 427 lần phát hiện nên lớp bỏ
-        phiếu giữ là buýt suốt thời gian xe ở trong khung hình.
-\end{itemize}
-
-\begin{figure}[H]
-  \centering
-  \includegraphics[width=0.7\linewidth]{demo_tow_truck.jpg}
-  \caption{Xe cứu hộ chở ô tô trong video demo: cabin bị gọi là buýt, ô tô trên sàn được nhận riêng}
-  \label{fig:demo-tow}
-\end{figure}
+ở ảnh 960, BoT-SORT đã chỉnh và bộ lọc box trùng, đúng chương trình dòng lệnh của hệ thống. Trên CPU của laptop, cả quy
+trình đạt 2.6--2.8 frame/s tính cả vẽ kết quả và mã hoá video 1080p, tức khoảng 11--12 phút mỗi clip. Cùng chương trình
+chạy trên GPU T4 với YOLO26s học dữ liệu v5 (cùng kiến trúc) đạt 15.4--20.9 frame/s, thấp hơn khoảng 43 frame/s của
+riêng phát hiện và theo dõi, vì khi có GPU thì việc vẽ và ghi video trên CPU trở thành phần chậm nhất. Video demo khoá
+lớp hiển thị của mỗi xe tại thời điểm xe được đếm, vì bỏ phiếu lớp cộng dồn có thể đổi lớp của xe sau khi xe đã cắt
+vạch; nhờ vậy nhãn trên video khớp với bảng đếm.
 
 \section{Nhận xét và thảo luận}
 \label{sec:thao-luan}
@@ -854,91 +614,25 @@ HOTA của v3 cao hơn v5 chỉ ở các ngưỡng IoU chặt: ở IoU 0.5 HOTA 
 tập này đề tài chỉ dùng mAP50 và các chỉ số theo dõi ở ngưỡng mặc định; so box khít (mAP50-95) chỉ trên tập có nhãn độc
 lập. Tập \texttt{vn\_extra} được làm sau khi nhận ra vấn đề này, với nhãn sơ bộ từ một mô hình không tham gia so sánh.
 
-\textbf{Tập test Hà Nội và khả năng tổng quát.} Frame test, val và train Hà Nội lấy từ cùng một camera, chỉ khác thời
-điểm. Đề tài tránh lỗi ``test cùng cảnh với train'' cho các bộ dữ liệu một camera (cantho, vehicle-detection) nhưng với
-video Hà Nội thì chỉ tách được theo thời gian, vì đây là video duy nhất của cảnh mục tiêu có thể dùng để huấn luyện.
-Vì vậy số liệu trên test Hà Nội (v6: 0.921) cao hơn rõ số liệu trên camera mới: 0.907 trên clip Phạm Văn Đồng, 0.760
-trên \texttt{vn\_extra} ngày, 0.755 trên \texttt{vn\_extra} đêm. Kết luận về khả năng tổng quát của đề tài dựa trên các tập
-camera mới; test Hà Nội cho biết mức có thể đạt khi tinh chỉnh bằng video của đúng camera triển khai.
-
-\textbf{Những lần tập test được dùng lại.} Mọi lựa chọn được chốt trên tập dev, nhưng tập test không chỉ được chấm đúng
-một lần. Các lần dùng lại được ghi đủ dưới đây để người đọc tự đánh giá:
-\begin{itemize}
-  \item Clip test theo dõi được chấm lại sau khi tắt bù chuyển động camera (đã chọn trên dev; kết quả gần như không
-        đổi) và dùng cho các so sánh phụ (Bảng~\ref{tab:ablation}). Với tracker của v6, nó được dùng ba lần
-        (mục~\ref{sec:giam-doi-id}). Lần thứ nhất loại cấu hình ngưỡng mở track cao đã chọn trên dev, vì nó làm bỏ sót
-        gần gấp đôi; đây là lần duy nhất kết quả test làm đổi một lựa chọn, và cũng là lý do đề tài gán nhãn thêm clip
-        dev Phạm Văn Đồng góc C. Lần thứ hai chấm lại mặc định cũ khi nhận v6. Lần thứ ba chấm cấu hình cuối cùng, chọn
-        hoàn toàn trên hai tập dev theo tiêu chí lưu trước, và kết quả đi cùng hướng với dev. Clip dev mới cùng góc máy
-        với nửa tập \texttt{vn\_extra} ngày nhưng chỉ được dùng để chọn tracker.
-  \item Nhãn của một ảnh \texttt{vn\_extra} đêm được sửa sau khi xem ảnh phân tích lỗi (đổi lớp 3 box, thêm 1 box,
-        chỉnh 2 box); mọi mô hình thay đổi không quá 0.005 điểm, thứ hạng không đổi.
-  \item Tập test ảnh hưởng tới \emph{hướng} làm v6 và YOLO26s-v6, dù không ảnh hưởng tới quyết định nhận. Ý tưởng thêm
-        dữ liệu đêm đến từ kết quả kém và dao động của v5 trên \texttt{vn\_extra} đêm, các mô hình thầy để gán nhãn
-        frame đêm được chọn theo thứ hạng ban đêm trên tập này, và YOLO26s-v6 được làm sau khi thấy YOLO26s học dữ liệu
-        v5 tốt hơn ban ngày, v6 tốt hơn ban đêm. Để kết quả test vẫn có ý nghĩa, frame đêm huấn luyện lấy từ hai camera
-        khác hầm chui, tiêu chí nhận được viết và lưu trước khi huấn luyện, quyết định nhận và chọn tracker dựa trên
-        tập dev (gồm một tập dev đêm ở camera thứ ba), và các tập test chỉ được chấm sau khi nhận. Dù vậy, mức tăng của
-        v6 và YOLO26s-v6 trên test có thể hơi lạc quan hơn mức tăng trên một cảnh hoàn toàn mới.
-\end{itemize}
-
-\textbf{Frame tương quan và khoảng tin cậy theo khối.} Bảng~\ref{tab:block-ci} đặt khoảng tin cậy lấy mẫu theo ảnh cạnh
-khoảng lấy mẫu theo khối 10 giây (UA-DETRAC: theo video, mục~\ref{sec:bootstrap}) cho các so sánh mà kết luận
-của đề tài dựa vào. Khoảng theo khối rộng hơn, nhiều nhất ở UA-DETRAC ngày, nơi 545 frame chỉ đến từ 39 video (khoảng của
-v3 rộng từ 0.115 lên 0.235). Các kết luận chính giữ nguyên: v5 hơn mô hình gốc ở mọi tập Việt Nam và hơn v3 ban đêm;
-v6 hơn v5 ban đêm ([0.687--0.802] so với [0.555--0.684]), và YOLO26s-v6 hơn v6 ban đêm ([0.851--0.915]);
-RT-DETRv2-S hơn YOLO26s ở ảnh 960 trên \texttt{vn\_extra} và hoà khi YOLO26s nhìn ảnh 1280. Hai chỗ yếu đi: ở
-\texttt{vn\_extra} đêm YOLO26s chỉ còn tách v5 sát nút (khi huấn luyện mỗi mô hình ba lần thì lần kém nhất của
-YOLO26s vẫn hơn lần tốt nhất của v5, Bảng~\ref{tab:seeds}), và ở UA-DETRAC ngày khoảng của v5 chạm khoảng của mô hình gốc
-([0.738--0.893] so với [0.653--0.744]). Clip Phạm Văn Đồng (20 giây, chỉ 2 khối) và val UVH-26 (không biết ảnh nào cùng
-camera) không tính được khoảng theo khối.
-
-\begin{table}[H]
-  \centering
-  \caption{Khoảng tin cậy 95\% của mAP50 chính: lấy mẫu theo ảnh và theo khối}
-  \label{tab:block-ci}
-  \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|>{\raggedright\arraybackslash}p{3.1cm}|>{\centering\arraybackslash}p{1.3cm}|C|C|}
-    \hline
-    \thead{Tập (số khối)} & \thead{Mô hình} & \thead{mAP50} & \thead{Theo ảnh} & \thead{Theo khối} \\ \hline
-    \multirow{5}{=}{Test Hà Nội (6 khối)} & v2 & 0.890 & [0.877--0.901] & [0.871--0.905] \\ \cline{2-5}
-     & v3 & 0.921 & [0.911--0.933] & [0.905--0.938] \\ \cline{2-5}
-     & v5 & 0.923 & [0.913--0.932] & [0.906--0.938] \\ \cline{2-5}
-     & v6 & 0.921 & [0.909--0.932] & [0.902--0.937] \\ \cline{2-5}
-     & YOLO26s-v6 & 0.920 & [0.911--0.931] & [0.905--0.936] \\ \hline
-    \multirow{6}{=}{\texttt{vn\_extra} ngày (10 khối)} & v5 & 0.745 & [0.699--0.787] & [0.697--0.790] \\ \cline{2-5}
-     & v6 & 0.760 & [0.724--0.795] & [0.718--0.798] \\ \cline{2-5}
-     & YOLO26s & 0.798 & [0.765--0.828] & [0.757--0.832] \\ \cline{2-5}
-     & YOLO26s @1280 & 0.875 & [0.844--0.902] & [0.828--0.914] \\ \cline{2-5}
-     & RT-DETRv2-S & 0.886 & [0.855--0.914] & [0.849--0.914] \\ \cline{2-5}
-     & YOLO26s-v6 & 0.830 & [0.801--0.858] & [0.791--0.864] \\ \hline
-    \multirow{7}{=}{\texttt{vn\_extra} đêm (10 khối)} & v3 & 0.437 & [0.384--0.489] & [0.369--0.496] \\ \cline{2-5}
-     & v5 & 0.628 & [0.575--0.681] & [0.555--0.684] \\ \cline{2-5}
-     & v6 & 0.755 & [0.708--0.795] & [0.687--0.802] \\ \cline{2-5}
-     & YOLO26s & 0.713 & [0.685--0.744] & [0.685--0.744] \\ \cline{2-5}
-     & YOLO26s @1280 & 0.800 & [0.765--0.832] & [0.762--0.838] \\ \cline{2-5}
-     & RT-DETRv2-S & 0.816 & [0.777--0.854] & [0.766--0.858] \\ \cline{2-5}
-     & YOLO26s-v6 & 0.887 & [0.861--0.913] & [0.851--0.915] \\ \hline
-    \multirow{4}{=}{UA-DETRAC đêm (21 video)} & Gốc COCO @1280 & 0.689 & [0.654--0.739] & [0.647--0.726] \\ \cline{2-5}
-     & v3 & 0.722 & [0.668--0.774] & [0.646--0.776] \\ \cline{2-5}
-     & v5 & 0.845 & [0.797--0.890] & [0.785--0.886] \\ \cline{2-5}
-     & YOLO26s-v6 & 0.867 & [0.824--0.912] & [0.837--0.922] \\ \hline
-    \multirow{4}{=}{UA-DETRAC ngày (39 video)} & Gốc COCO @1280 & 0.690 & [0.661--0.753] & [0.653--0.744] \\ \cline{2-5}
-     & v3 & 0.709 & [0.649--0.764] & [0.601--0.836] \\ \cline{2-5}
-     & v5 & 0.812 & [0.755--0.870] & [0.738--0.893] \\ \cline{2-5}
-     & YOLO26s-v6 & 0.881 & [0.833--0.924] & [0.819--0.944] \\ \hline
-  \end{tabularx}
-\end{table}
+\textbf{Độ tin cậy của khoảng tin cậy và của tập test.} Frame cắt từ cùng một video tương quan với nhau, nên đề tài tính
+thêm khoảng tin cậy lấy mẫu theo khối 10 giây (UA-DETRAC: theo video, mục~\ref{sec:bootstrap}). Khoảng theo khối rộng hơn
+nhưng các kết luận chính giữ nguyên; hai chỗ yếu đi là YOLO26s so với v5 ở \texttt{vn\_extra} đêm chỉ còn tách nhau sát
+nút ([0.685--0.744] so với [0.555--0.684]), và ở UA-DETRAC ngày khoảng của v5 chạm khoảng của mô hình gốc. Về tập test,
+mọi lựa chọn được chốt trên tập dev, nhưng tập test không chỉ được chấm đúng một lần. Clip test theo dõi được chấm lại
+sau khi tắt GMC, dùng cho các so sánh phụ (Bảng~\ref{tab:ablation}) và dùng ba lần cho tracker của v6; trong đó có một
+lần kết quả test làm loại cấu hình đã chọn trên dev (mục~\ref{sec:giam-doi-id}), lần duy nhất test làm đổi một lựa chọn.
+Nhãn của một ảnh \texttt{vn\_extra} đêm được sửa sau khi xem ảnh phân tích lỗi (mọi mô hình thay đổi không quá 0.005,
+thứ hạng không đổi). Hướng làm v6 và YOLO26s-v6 xuất phát từ kết quả test của v5 ban đêm và của YOLO26s ban ngày; để
+giảm ảnh hưởng, frame đêm huấn luyện lấy từ camera khác hầm chui, tiêu chí nhận được lưu trước khi huấn luyện, quyết
+định nhận dựa trên tập dev (gồm một tập dev đêm ở camera thứ ba) và tập test chỉ được chấm sau khi nhận. Dù vậy, mức
+tăng của v6 và YOLO26s-v6 trên test có thể hơi lạc quan hơn trên một cảnh hoàn toàn mới.
 
 \textbf{Độ dao động giữa các lần huấn luyện.} Khoảng tin cậy bootstrap chỉ đo dao động do mẫu ảnh test. Để biết một
-chênh lệch có lớn hơn mức dao động do khởi tạo ngẫu nhiên hay không, v5 (YOLO26n) và YOLO26s được huấn luyện thêm hai
+chênh lệch có lớn hơn dao động do khởi tạo ngẫu nhiên hay không, v5 (YOLO26n) và YOLO26s được huấn luyện thêm hai
 lần với seed 1 và 2, v6 và YOLO26s-v6 thêm một lần với seed 1, giữ nguyên dữ liệu và cấu hình (Bảng~\ref{tab:seeds}).
-Trên phần lớn các tập, ba lần huấn luyện của
-cùng một mô hình cho kết quả sát nhau. Với YOLO26n, mAP50 trên test Hà Nội là 0.918--0.923, trên clip Phạm Văn Đồng
-0.892--0.905, trên val UVH-26 0.838--0.850; với YOLO26s, ba khoảng tương ứng là 0.914--0.919, 0.903--0.904 và
-0.859--0.871. Ngoại lệ là \texttt{vn\_extra} đêm: mAP50 trải từ 0.510 đến 0.638 với YOLO26n và từ 0.713 đến 0.821 với
-YOLO26s. Số lần đổi ID trên dev cũng dao động, từ 61 đến 97 với YOLO26n, nên con số 61 của lần huấn luyện đầu là kết
-quả thuận lợi.
+Trên phần lớn các tập, các lần huấn luyện của cùng một mô hình cho kết quả sát nhau; ngoại lệ là \texttt{vn\_extra} đêm,
+nơi mAP50 trải từ 0.510 đến 0.638 với YOLO26n và từ 0.713 đến 0.821 với YOLO26s. Số lần đổi ID trên dev cũng dao động,
+từ 61 đến 97 với YOLO26n, nên con số 61 của lần huấn luyện đầu là kết quả thuận lợi.
 
 \begin{table}[H]
   \centering
@@ -968,35 +662,23 @@ quả thuận lợi.
   \end{tabularx}
 \end{table}
 
-Từ Bảng~\ref{tab:seeds} rút ra năm điểm:
+Từ Bảng~\ref{tab:seeds} rút ra ba điểm:
 \begin{enumerate}
-  \item Các ưu thế lớn của v5 so với v3 đứng vững ở cả ba seed: val UVH-26, UA-DETRAC, IDR trên VnTraffic (0.827--0.861
-        so với 0.731) và \texttt{vn\_extra} đêm (seed kém nhất 0.510 vẫn hơn 0.437); ban ngày và ở Hà Nội, v5 và v3
-        ngang nhau.
-  \item YOLO26s hơn YOLO26n ở mọi seed trên \texttt{vn\_extra} ngày (lần kém nhất của YOLO26s 0.798, lần tốt nhất của
-        YOLO26n 0.757) và đêm (0.713 so với 0.638), trên UA-DETRAC ngày, val UVH-26, test Roboflow và HOTA của clip test
-        Phạm Văn Đồng (0.758--0.767 so với 0.714--0.728). Ở test Hà Nội, 20 frame Phạm Văn Đồng, UA-DETRAC đêm và IDR
-        trên dev, giá trị của hai mô hình xen kẽ nhau.
+  \item Các ưu thế lớn đứng vững ở mọi seed. v5 hơn v3 ở val UVH-26, UA-DETRAC, IDR trên VnTraffic (0.827--0.861 so với
+        0.731) và \texttt{vn\_extra} đêm (seed kém nhất 0.510 vẫn hơn 0.437). YOLO26s hơn YOLO26n ở \texttt{vn\_extra}
+        ngày (lần kém nhất của YOLO26s 0.798, lần tốt nhất của YOLO26n 0.757) và đêm (0.713 so với 0.638), UA-DETRAC
+        ngày, val UVH-26, test Roboflow và HOTA của clip test (0.758--0.767 so với 0.714--0.728); ở các tập còn lại giá
+        trị của hai mô hình xen kẽ nhau.
   \item RT-DETRv2-S chỉ được huấn luyện một lần nên chỉ so được với khoảng dao động của YOLO26s. Ban ngày (0.886 so với
         0.798--0.828) và trên val UVH-26 (0.894 so với 0.859--0.871), nó cao hơn mọi lần huấn luyện YOLO26s; ban đêm thì
         không, lần tốt nhất của YOLO26s (0.821) đã ngang nó (0.816). Kết luận RT-DETRv2-S chính xác hơn YOLO26s ở cùng
-        ảnh 960 vì vậy chỉ khẳng định được cho cảnh ban ngày và val UVH-26; ở cảnh đêm, nơi một mô hình dao động
-        0.11--0.13 điểm mAP50 giữa các lần huấn luyện, cần huấn luyện RT-DETRv2-S thêm vài lần mới so được.
-  \item Ưu thế ban đêm của v6 so với v5 lớn hơn dao động giữa các lần huấn luyện: lần kém hơn của v6 (0.747) vẫn hơn
-        lần tốt nhất của v5 (0.638). mAP50 đêm của v6 (0.747--0.755) còn nằm trong khoảng 0.713--0.821 của ba lần
-        YOLO26s học dữ liệu v5, tức ở cảnh đêm, thêm dữ liệu đúng cảnh bù được phần lớn khoảng cách do cỡ mô hình. Trên
-        các tập ban ngày, v6 và v5 xen kẽ nhau. Về theo dõi, khi cùng chưa lọc box trùng, HOTA trên clip test của hai
-        mô hình xen kẽ (v6 0.722--0.732, v5 0.714--0.728), còn v6 đổi ID nhiều hơn: 93--94 lần trên dev (v5: 61--97) và
-        38--49 lần trên clip test (v5: 23--37); với bộ lọc box trùng, v6 còn 26 và 34 lần (mục~\ref{sec:giam-doi-id}).
-  \item Khi YOLO26s cũng học frame đêm, tác dụng của dữ liệu đúng cảnh và của cỡ mô hình cộng vào nhau: ở
-        \texttt{vn\_extra} đêm, lần kém hơn của YOLO26s-v6 (0.847) vẫn cao hơn lần tốt nhất của YOLO26s học dữ liệu v5
-        (0.821) và của v6 (0.755). Con số này cũng cao hơn RT-DETRv2-S học dữ liệu v5 (0.816), nhưng hai mô hình không
-        cùng dữ liệu nên so sánh đó không dùng để kết luận về kiến trúc. Ở \texttt{vn\_extra} ngày, YOLO26s-v6
-        (0.830--0.841) hơn rõ v6 (0.752--0.760) nhưng chỉ ngang lần tốt nhất của YOLO26s học dữ liệu v5 (0.828); ở các
-        tập còn lại nó ngang YOLO26s học dữ liệu v5, riêng test Roboflow thấp hơn một chút (0.848--0.857 so với
-        0.862--0.865). Ban đêm hai lần huấn luyện YOLO26s-v6 vẫn chênh nhau 0.040 (0.887 và 0.847). Clip test theo dõi
-        chỉ được chấm cho YOLO26s-v6 với bộ lọc box trùng nên không có trong bảng: HOTA 0.755 và 0.769 ở hai lần
-        (Bảng~\ref{tab:tracking-test}).
+        ảnh 960 vì vậy chỉ khẳng định được cho cảnh ban ngày và val UVH-26.
+  \item Ở cảnh đêm, dữ liệu đúng cảnh có tác dụng lớn hơn dao động giữa các lần huấn luyện và cộng vào tác dụng của cỡ
+        mô hình. Lần kém hơn của v6 (0.747) vẫn hơn lần tốt nhất của v5 (0.638) và đã nằm trong khoảng 0.713--0.821 của
+        YOLO26s học dữ liệu v5; lần kém hơn của YOLO26s-v6 (0.847) cao hơn lần tốt nhất của cả YOLO26s học dữ liệu v5
+        (0.821) và v6 (0.755). Con số này cũng cao hơn RT-DETRv2-S học dữ liệu v5 (0.816), nhưng hai mô hình không cùng
+        dữ liệu nên so sánh đó không dùng để kết luận về kiến trúc. Ban ngày, YOLO26s-v6 hơn rõ v6 và ngang YOLO26s học
+        dữ liệu v5. Hai lần huấn luyện YOLO26s-v6 vẫn chênh nhau 0.040 ban đêm (0.887 và 0.847).
 \end{enumerate}
 
 \textbf{Lựa chọn cuối cùng và đánh đổi.} Trên test Hà Nội, các bản từ v3 đến v6 và YOLO26s-v6 hoà nhau, nên các lựa

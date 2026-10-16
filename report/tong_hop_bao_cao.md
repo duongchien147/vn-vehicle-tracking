@@ -229,7 +229,7 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 - Vì sao conf 0.1: ByteTrack/BoT-SORT cần box điểm thấp cho bước ghép thứ hai; tạo track mới do `new_track_thresh`.
 - Vì sao bỏ phiếu lớp: một xe có thể bị gọi lúc car lúc truck; supervision đếm theo lớp tại lúc cắt vạch.
 - ID hiển thị đánh lại #1, #2… theo thứ tự xuất hiện (ID gốc của tracker lên tới hàng nghìn).
-- Web demo Streamlit; xuất OpenVINO đầu vào 544×960 chạy trên GPU Intel tích hợp (hoặc INT8 trên CPU), mục 4.8.
+- Web demo Streamlit; xuất OpenVINO đầu vào 544×960 chạy trên GPU Intel tích hợp (hoặc INT8 trên CPU), mục 4.4.1.
 
 **3.7. Kết luận chương**
 
@@ -247,18 +247,18 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 
 **4.6. Sai số đếm xe qua vạch** — Bảng 4.14.
 
-**4.7. Cảnh đêm** — `vn_extra` đêm, UA-DETRAC đêm/ngày, phân tích clip đêm không nhãn.
+**4.7. Phân tích lỗi (E4)** — 7 ảnh `outputs/error_analysis/`.
 
-**4.8. Phân tích lỗi (E4)** — 7 ảnh `outputs/error_analysis/`.
+**4.8. Ứng dụng web và video demo** — ảnh chụp app, frame video demo, xe cứu hộ, khoá lớp hiển thị.
 
-**4.9. Ứng dụng web và video demo** — ảnh chụp app, frame video demo GPU, số lượt qua vạch.
+**4.9. Nhận xét và thảo luận** — thiên lệch nhãn sơ bộ; test Hà Nội và tổng quát; các lần dùng lại tập test;
+bootstrap theo khối; các lần huấn luyện (seeds); lựa chọn cuối cùng và đánh đổi. Kết quả cảnh đêm nằm ở 4.2.2 (phát
+hiện) và 4.6.2 (đếm xe); mục "Kết quả ở cảnh ban đêm" riêng đã bỏ (16/10/2026) vì lặp số liệu.
 
-**4.10. Nhận xét và thảo luận** — thiên lệch nhãn sơ bộ; vì sao chọn v5 + BoT-SORT; đánh đổi độ chính xác/tốc độ.
-
-**4.11. Kết luận chương**
-- 4.11.1 Kết quả chính.
-- 4.11.2 Hạn chế (mục 10).
-- 4.11.3 Hướng phát triển: thêm dữ liệu đúng góc camera giao thông, gán nhãn tracking cảnh
+**4.10. Kết luận chương**
+- 4.10.1 Kết quả chính.
+- 4.10.2 Hạn chế (mục 10).
+- 4.10.3 Hướng phát triển: thêm dữ liệu đúng góc camera giao thông, gán nhãn tracking cảnh
   đêm, nhiều seed, ReID chuyên cho xe, TensorRT/FP16, export RT-DETRv2 sang OpenVINO, imgsz theo cảnh.
 
 ---
@@ -568,7 +568,8 @@ vạch vài frame (chọn trên dev).
 ### 4.12 Cảnh đêm không nhãn (`outputs/unlabeled_analysis/night/`)
 
 3 clip hầm chui, 20 s mỗi clip, mốc ngày = clip PVD: độ tin cậy trung vị v5 0.59–0.63 (đêm) vs 0.63 (ngày); tỉ lệ track
-< 1 s 47–52% vs 54% → v5 gần như không suy giảm; v3 tụt rõ (0.36–0.45; 67–73% track ngắn). Chỉ là chỉ số thay thế.
+< 1 s 47–52% vs 54% → v5 gần như không suy giảm; v3 tụt rõ (0.36–0.45; 67–73% track ngắn). Chỉ là chỉ số thay thế;
+không đưa vào báo cáo (16/10/2026) vì đã có tập đêm nhãn người (`vn_extra` đêm, đếm tay hầm chui).
 
 ### 4.13 Video demo GPU (`outputs/kaggle/vtrack-demo-gpu/demo/`) — bản cũ, YOLO26s học dữ liệu v5
 
@@ -780,7 +781,7 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 | H3.3 | Giao diện gán nhãn X-AnyLabeling / CVAT | — | **cần chụp** |
 | H3.4 | Đường học v5 | `outputs/kaggle/vn-vehicles-yolo26-train/runs/yolo26n_v5_e100_960/results.png` | có sẵn |
 | H3.5 | Đường học RT-DETRv2 | từ `rtdetrv2_r18_v5_e100_960_epochs.csv` | **cần vẽ** |
-| H4.1 | Ma trận nhầm lẫn v5 trên test Roboflow | `outputs/kaggle/vn-vehicles-yolo26-train/runs/yolo26n_v5_e100_960/test/confusion_matrix_normalized.png` | có sẵn |
+| H4.1 | Ma trận nhầm lẫn YOLO26s-v6 trên test Roboflow (thay bản v5, 16/10/2026) | `outputs/kaggle/vn-vehicles-yolo26s-train-v6/runs/yolo26s_v6_e100_960/test/confusion_matrix_normalized.png` | đã đưa vào |
 | H4.2 | Đồ thị mAP – ms/frame các kiến trúc | từ bảng 4.5 + 4.8 | **cần vẽ** |
 | H4.3–H4.9 | 7 ảnh phân tích lỗi E4 | `outputs/error_analysis/1_xe_nho_o_xa_bi_sot.jpg` … `7_doi_id.jpg` | có sẵn |
 | H4.10 | Giao diện web demo (chế độ GPU xử lý sẵn) | — | **cần chụp** (`streamlit run app/streamlit_app.py`) |

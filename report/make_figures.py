@@ -20,6 +20,7 @@ from matplotlib.axes import Axes  # noqa: E402
 
 OUT = Path("report/overleaf/figures")
 KAGGLE_YOLO = Path("outputs/kaggle/vn-vehicles-yolo26-train")
+KAGGLE_YOLO_MAIN = Path("outputs/kaggle/vn-vehicles-yolo26s-train-v6")  # lần train mô hình chính YOLO26s-v6 (seed 42)
 RTDETR_EPOCHS = Path("outputs/kaggle/vn-vehicles-rtdetrv2-train/rtdetrv2_r18_v5_e100_960_epochs.csv")
 DEMO_DIR = Path("outputs/demo_precomputed")  # video demo của mô hình chính, tạo bằng scripts/make_demo_videos.sh
 DOCX = Path("docs/DL AND CV.docx")
@@ -199,8 +200,8 @@ def data_source_examples() -> None:
 def copy_existing() -> None:
     for path in sorted(Path("outputs/error_analysis").glob("*.jpg")):
         save_jpeg(cv2.imread(str(path)), OUT / f"error_{path.name.split('_')[0]}.jpg")
-    confusion = cv2.imread(str(KAGGLE_YOLO / "runs/yolo26n_v5_e100_960/test/confusion_matrix_normalized.png"))
-    save_jpeg(confusion, OUT / "v5_confusion_matrix.jpg")
+    confusion = cv2.imread(str(KAGGLE_YOLO_MAIN / "runs/yolo26s_v6_e100_960/test/confusion_matrix_normalized.png"))
+    save_jpeg(confusion, OUT / "confusion_matrix.jpg")
     # Ảnh chụp giao diện web demo (chụp bằng trình duyệt, lưu PNG vào OUT) -> JPEG
     for screenshot in sorted(OUT.glob("app_*.png")):
         save_jpeg(cv2.imread(str(screenshot)), screenshot.with_suffix(".jpg"))

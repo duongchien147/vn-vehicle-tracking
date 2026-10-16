@@ -205,9 +205,11 @@ def copy_existing() -> None:
     for screenshot in sorted(OUT.glob("app_*.png")):
         save_jpeg(cv2.imread(str(screenshot)), screenshot.with_suffix(".jpg"))
         screenshot.unlink()
-    # Logo trường lấy từ file Word mẫu của người làm đồ án (ảnh đầu tiên của trang bìa)
-    with zipfile.ZipFile(DOCX) as docx:
-        (OUT / "logo.png").write_bytes(docx.read("word/media/image1.png"))
+    # Logo trường lấy từ file Word mẫu của người làm đồ án (ảnh đầu tiên của trang bìa). File mẫu chỉ có trên máy
+    # (không đưa lên git), logo.png đã trích sẵn nằm trong OUT nên thiếu file mẫu thì giữ logo cũ.
+    if DOCX.exists():
+        with zipfile.ZipFile(DOCX) as docx:
+            (OUT / "logo.png").write_bytes(docx.read("word/media/image1.png"))
 
 
 def main() -> None:

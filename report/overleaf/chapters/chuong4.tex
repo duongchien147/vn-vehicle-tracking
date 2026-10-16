@@ -37,8 +37,7 @@ tích hợp UHD 620) và trên GPU Tesla T4.
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả phát hiện trên tập test Hà Nội (30 frame; 2.982 xe máy, 539 ô tô; cùng camera với frame huấn luyện
-           của các mô hình từ v3 trở đi)}
+  \caption{Kết quả phát hiện trên test Hà Nội}
   \label{tab:e1-hanoi}
   \small
   \begin{tabularx}{\linewidth}{|L|c|c|c|c|}
@@ -55,7 +54,7 @@ tích hợp UHD 620) và trên GPU Tesla T4.
   \end{tabularx}
 \end{table}
 
-Bảng~\ref{tab:e1-hanoi} cho thấy tinh chỉnh trên dữ liệu phù hợp nâng mAP50 chính từ 0.686 (mô hình gốc COCO, chạy ở
+Trên 30 frame test Hà Nội (2.982 xe máy, 539 ô tô), Bảng~\ref{tab:e1-hanoi} cho thấy tinh chỉnh trên dữ liệu phù hợp nâng mAP50 chính từ 0.686 (mô hình gốc COCO, chạy ở
 ảnh 1280) lên 0.920--0.923. Bước nhảy lớn nhất ở xe máy: AP50 từ 0.530 lên 0.864. Phiên bản v1, dù tốt trên
 test Roboflow, kém cả mô hình gốc ở đây vì gần như không bắt được xe máy nhỏ. Các bản từ v3 đến v6 và YOLO26s-v6 có
 khoảng tin cậy chồng nhau, tức tập test Hà Nội không phân biệt được chúng; khác biệt giữa chúng thể hiện ở cảnh khó hơn
@@ -74,7 +73,7 @@ Nhãn sơ bộ từ YOLO26x nên dùng được cả mAP50-95.
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả phát hiện trên tập \texttt{vn\_extra} ngày và đêm}
+  \caption{Kết quả phát hiện trên \texttt{vn\_extra}}
   \label{tab:vn-extra}
   \footnotesize
   \begin{tabularx}{\linewidth}{|p{3.3cm}|C|>{\centering\arraybackslash}p{1.6cm}|C|>{\centering\arraybackslash}p{1.6cm}|}
@@ -119,7 +118,7 @@ Recall theo chiều cao xe dưới đây tính ở ngưỡng tin cậy 0.25, gh�
 
 \begin{table}[H]
   \centering
-  \caption{mAP50 trên clip Phạm Văn Đồng (20 frame) và các tập dữ liệu ngoài}
+  \caption{mAP50 trên clip Phạm Văn Đồng và các tập ngoài}
   \label{tab:tap-ngoai}
   \footnotesize
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|C|C|C|C|C|}
@@ -137,7 +136,7 @@ Recall theo chiều cao xe dưới đây tính ở ngưỡng tin cậy 0.25, gh�
   \end{tabularx}
 \end{table}
 
-Trên clip Phạm Văn Đồng (Bảng~\ref{tab:tap-ngoai}), các bản từ v3 đến v6 và YOLO26s-v6 ngang nhau. AP50 xe buýt của v5
+Trên 20 frame của clip Phạm Văn Đồng (Bảng~\ref{tab:tap-ngoai}), các bản từ v3 đến v6 và YOLO26s-v6 ngang nhau. AP50 xe buýt của v5
 trên clip này bằng 0: cả 12 box xe buýt là xe Ford Transit, mô hình gọi là ô tô vì phần lớn dữ liệu huấn luyện
 (VisDrone) xếp xe van vào ô tô. Đây là vấn đề định nghĩa lớp, không phải mô hình không nhận được xe buýt.
 
@@ -166,7 +165,7 @@ Ba mô hình cùng dữ liệu v5, cùng giao thức (mục~\ref{sec:giao-thuc})
 
 \begin{table}[H]
   \centering
-  \caption{mAP50 chính của ba kiến trúc và đối chứng cùng số điểm ảnh}
+  \caption{mAP50 chính của ba kiến trúc}
   \label{tab:kien-truc}
   \small
   \begin{tabularx}{\linewidth}{|p{3.4cm}|C|C|C|C|}
@@ -186,7 +185,7 @@ Ba mô hình cùng dữ liệu v5, cùng giao thức (mục~\ref{sec:giao-thuc})
 
 \begin{table}[H]
   \centering
-  \caption{mAP50-95 trên các tập có nhãn độc lập với mọi mô hình YOLO}
+  \caption{mAP50-95 trên các tập nhãn độc lập}
   \label{tab:kien-truc-5095}
   \small
   \begin{tabular}{|l|c|c|c|}
@@ -236,7 +235,8 @@ lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
 Laptop dòng U dễ bị hạ xung nhịp khi nóng, nên cách đo được thiết kế để công bằng giữa các mô hình: 5 đợt × 30 frame
 video 1080p, các mô hình chạy xen kẽ trên cùng 30 frame và đảo thứ tự mỗi đợt, nghỉ giữa các đợt, khởi động mỗi mô hình
 ít nhất 15 giây trước khi đo. ``Detector'' gồm tiền xử lý, suy luận và hậu xử lý; ``pipeline'' gồm cả đọc video và
-theo dõi. Hai bảng dưới đo với các mô hình học dữ liệu v5; v6 và YOLO26s-v6 có cùng kiến trúc, số tham số và kích thước
+theo dõi. Hai bảng dưới đo bằng PyTorch FP32 trên CPU của laptop và trên GPU T4 của Kaggle, với các
+mô hình học dữ liệu v5; v6 và YOLO26s-v6 có cùng kiến trúc, số tham số và kích thước
 đầu vào với YOLO26n v5 và YOLO26s, chỉ khác giá trị trọng số. Một lần đo lại trên laptop xác nhận điều này: trong cùng
 lần chạy, phần phát hiện của YOLO26s-v6 mất 338.0 ms mỗi frame, của YOLO26s học dữ liệu v5 là 302.8 ms, chênh lệch nhỏ
 hơn dao động giữa các đợt của chính hai mô hình (trung vị từng đợt 283--425 ms). Lần đo này cũng cho thấy bộ lọc box
@@ -245,14 +245,14 @@ v6 và 3.9 ms với YOLO26s-v6; trên CPU chênh lệch không nhất quán (t�
 
 \begin{table}[H]
   \centering
-  \caption{Tốc độ PyTorch trên CPU Intel Core i5-8250U (ms/frame, trung vị [khoảng tứ phân vị])}
+  \caption{Tốc độ trên CPU i5-8250U}
   \label{tab:toc-do-cpu}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.55cm}|C|C|>{\centering\arraybackslash}p{1.15cm}|C|}
     \hline
-    \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector} & \thead{frame/s} &
-      \thead{Pipeline (frame/s)} \\ \hline
+    \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector ms [IQR]} & \thead{frame/s} &
+      \thead{Pipeline ms (frame/s)} \\ \hline
     YOLO26n v5 & 544×960 & 2.51 M / 7.4 & 100.5 [88.4--109.4] & 9.9 & 133.7 (7.5) \\ \hline
     YOLO26s & 544×960 & 9.95 M / 28.7 & 261.9 [254.8--267.5] & 3.8 & 285.3 (3.5) \\ \hline
     YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & 455.2 [445.4--472.2] & 2.2 & 493.0 (2.0) \\ \hline
@@ -262,12 +262,12 @@ v6 và 3.9 ms với YOLO26s-v6; trên CPU chênh lệch không nhất quán (t�
 
 \begin{table}[H]
   \centering
-  \caption{Tốc độ trên GPU Tesla T4 (Kaggle, PyTorch FP32; ms/frame và frame/s)}
+  \caption{Tốc độ trên GPU Tesla T4}
   \label{tab:toc-do-gpu}
   \small
   \begin{tabular}{|l|c|c|}
     \hline
-    \thead{Mô hình} & \thead{Detector} & \thead{Pipeline} \\ \hline
+    \thead{Mô hình} & \thead{Detector ms (frame/s)} & \thead{Pipeline ms (frame/s)} \\ \hline
     YOLO26n v5 & 13.2 (75.7) & 23.7 (42.2) \\ \hline
     YOLO26s & 14.7 (68.0) & 23.5 (42.6) \\ \hline
     YOLO26s @1280 & 24.3 (41.2) & 33.2 (30.2) \\ \hline
@@ -310,8 +310,7 @@ v5 cho thấy ba điều:
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình chạy trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (pipeline và IDR trên VnTraffic
-    đều chưa lọc box trùng)}
+  \caption{Các cấu hình chạy trên laptop}
   \label{tab:openvino}
   \footnotesize
   \begin{tabularx}{\linewidth}{|p{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
@@ -328,7 +327,7 @@ v5 cho thấy ba điều:
   \end{tabularx}
 \end{table}
 
-Cấu hình mặc định khi chạy trên laptop là bản nhẹ v6 qua OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp
+Số pipeline và IDR trên VnTraffic trong bảng đều chưa lọc box trùng. Cấu hình mặc định khi chạy trên laptop là bản nhẹ v6 qua OpenVINO FP32, đầu vào 544×960, trên GPU tích hợp
 (Bảng~\ref{tab:openvino}): phát hiện và theo dõi đạt 19.5 frame/s với video 1080p, gấp khoảng 3 lần PyTorch trên CPU
 (6.6 frame/s). mAP50 hoà PyTorch (val Hà Nội 0.914 so với 0.914, dev đêm 0.609 so với 0.599), nhưng IDR trên VnTraffic
 thấp hơn 0.016 (0.825 so với 0.841), quá ngưỡng hoà: đây là đánh đổi một ít độ ổn định ID lấy tốc độ. Máy không có GPU
@@ -349,7 +348,7 @@ nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm n
 
 \begin{table}[H]
   \centering
-  \caption{So sánh ba thuật toán theo dõi trên VnTraffic (mô hình v3, tham số mặc định)}
+  \caption{So sánh ba thuật toán theo dõi trên VnTraffic}
   \label{tab:tracker}
   \small
   \begin{tabular}{|l|c|c|c|c|c|c|}
@@ -361,7 +360,7 @@ nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm n
   \end{tabular}
 \end{table}
 
-BoT-SORT tốt nhất trên cả ba chỉ số không phụ thuộc phát hiện thừa (Bảng~\ref{tab:tracker}). MOTA ở đây rất thấp và
+Với mô hình v3 và tham số mặc định, BoT-SORT tốt nhất trên cả ba chỉ số không phụ thuộc phát hiện thừa (Bảng~\ref{tab:tracker}). MOTA ở đây rất thấp và
 không dùng để kết luận: khoảng 21 box mỗi frame của tracker không khớp nhãn, phần lớn là xe máy thật trong cụm dày mà
 nhãn bỏ sót. OC-SORT có MOTA cao hơn chỉ vì xuất ít box hơn. Chỉnh lưới 18 cấu hình BoT-SORT và ByteTrack chọn giữ
 track mất 90 frame, không ReID (IDR 0.744, AssA 0.668; mặc định 0.738 và 0.659); bật ReID làm số lần đổi ID tăng từ
@@ -369,7 +368,7 @@ track mất 90 frame, không ReID (IDR 0.744, AssA 0.668; mặc định 0.738 v�
 
 \begin{table}[H]
   \centering
-  \caption{Ảnh hưởng của mô hình phát hiện lên theo dõi trên VnTraffic (cùng BoT-SORT đã chỉnh, chưa lọc box trùng)}
+  \caption{Ảnh hưởng của mô hình phát hiện lên theo dõi}
   \label{tab:detector-tracking}
   \small
   \begin{tabular}{|l|c|c|c|c|c|c|}
@@ -382,7 +381,8 @@ track mất 90 frame, không ReID (IDR 0.744, AssA 0.668; mặc định 0.738 v�
   \end{tabular}
 \end{table}
 
-Mô hình phát hiện ảnh hưởng lên theo dõi nhiều hơn cấu hình tracker (Bảng~\ref{tab:detector-tracking}). Từ v3 sang v5,
+Trên VnTraffic, với cùng BoT-SORT đã chỉnh và chưa lọc box trùng, mô hình phát hiện ảnh hưởng lên theo dõi nhiều
+hơn cấu hình tracker (Bảng~\ref{tab:detector-tracking}). Từ v3 sang v5,
 số box bỏ sót giảm hơn một nửa (2.550 xuống 1.058), IDR tăng từ 0.744 lên 0.827 và số lần đổi ID giảm từ 128 xuống 62:
 các xe v3 bỏ sót như một xe buýt bị che một phần, một xe tải nhìn xiên, một xe máy đang dừng đều được v5 nhận ra, nên
 quỹ đạo ít bị đứt. Tắt GMC cho kết quả gần như y hệt (IDR 0.827 cả hai bản, đổi ID 61 so với 62). v6 bỏ sót ít hơn
@@ -400,7 +400,7 @@ tóm tắt các cách đã thử, mỗi cách có tiêu chí viết ra trước 
 
 \begin{table}[H]
   \centering
-  \caption{Các cách giảm số lần đổi ID của v6 trên hai tập dev và tập test}
+  \caption{Các cách giảm đổi ID của v6}
   \label{tab:giam-doi-id}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
@@ -439,7 +439,7 @@ cho xe.
 
 \begin{table}[H]
   \centering
-  \caption{Kết quả theo dõi trên tập test (clip Phạm Văn Đồng 20 giây, 183 quỹ đạo nhãn; BoT-SORT đã chỉnh, không GMC)}
+  \caption{Kết quả theo dõi trên tập test}
   \label{tab:tracking-test}
   \footnotesize
   \begin{tabularx}{\linewidth}{|L|c|c|c|c|c|c|c|c|}
@@ -453,7 +453,7 @@ cho xe.
   \end{tabularx}
 \end{table}
 
-Trên tập test có nhãn đầy đủ, mô hình chính YOLO26s-v6 với cấu hình mặc định đạt HOTA 0.755, MOTA 0.874, IDF1 0.916
+Trên tập test có nhãn đầy đủ (clip Phạm Văn Đồng 20 giây; BoT-SORT đã chỉnh, không GMC), mô hình chính YOLO26s-v6 với cấu hình mặc định đạt HOTA 0.755, MOTA 0.874, IDF1 0.916
 và đổi ID 22 lần trên 183 xe (Bảng~\ref{tab:tracking-test}). IDP 0.953 cao hơn IDR 0.882: hệ thống ít khi gán nhầm danh
 tính, phần mất chủ yếu do bỏ sót (1.353 box bỏ sót so với 340 box thừa). Lần huấn luyện thứ hai đạt HOTA 0.769 nhưng
 đổi ID 39 lần, tức số lần đổi ID còn dao động nhiều giữa các lần huấn luyện. Bản nhẹ v6 đạt HOTA 0.744 và đổi ID 26
@@ -463,7 +463,7 @@ giảm nhẹ vì mất vài frame đầu của mỗi xe.
 
 \begin{table}[H]
   \centering
-  \caption{Ablation trên tập test (chỉ để báo cáo, lựa chọn đã chốt trên dev)}
+  \caption{Ablation trên tập test}
   \label{tab:ablation}
   \small
   \begin{tabular}{|l|c|c|c|c|}
@@ -476,7 +476,7 @@ giảm nhẹ vì mất vài frame đầu của mỗi xe.
   \end{tabular}
 \end{table}
 
-Bảng~\ref{tab:ablation} xác nhận lựa chọn trên dev: với cùng v5, BoT-SORT tốt nhất trên test. Các dòng BoT-SORT trong
+Bảng~\ref{tab:ablation} chỉ để báo cáo, vì lựa chọn đã chốt trên dev; nó xác nhận lựa chọn đó: với cùng v5, BoT-SORT tốt nhất trên test. Các dòng BoT-SORT trong
 bảng này có bật GMC; tắt GMC cho kết quả gần như y hệt (HOTA 0.718 ở cả hai bản, đổi ID 26 so với 28). So v5 với v3,
 v5 hơn rõ ở MOTA (0.815 so với 0.763), IDF1 (0.880 so với 0.845) và số lần đổi ID (28 so với 44). HOTA trung bình của v3
 cao hơn (0.741 so với 0.718) nhưng đây là thiên lệch do nhãn sơ bộ, phân tích ở mục~\ref{sec:thao-luan}.
@@ -489,18 +489,18 @@ cao hơn (0.741 so với 0.718) nhưng đây là thiên lệch do nhãn sơ bộ
 ban đêm, khi chưa có nhãn quỹ đạo, đây là số đo duy nhất về theo dõi. Vạch đếm là vạch mặc định của hệ thống (nằm ngang
 ở 60\% chiều cao ảnh), không chọn theo kết quả. Ban ngày, số lượt thật có được bằng cách cho quỹ đạo nhãn tay của clip
 test đi qua đúng bộ đếm của hệ thống; ban đêm, mỗi lượt của hệ thống được ghép với một lượt của người đếm tay nếu cùng
-hướng và lệch nhau không quá một giây (ghép tối ưu bằng thuật toán Hungarian).
+hướng và lệch nhau không quá một giây (ghép tối ưu bằng thuật toán Hungarian). Ban ngày là clip test 20 giây, ban đêm là hai clip hầm chui 60 giây; v6 và
+YOLO26s-v6 chạy với cấu hình mặc định, có lọc box trùng.
 
 \begin{table}[H]
   \centering
-  \caption{Sai số đếm xe qua vạch: clip test ban ngày 20 giây (73 lượt thật: 2 vào / 71 ra) và hai clip hầm chui ban đêm
-    60 giây (176 lượt thật, người đếm tay); v6 và YOLO26s-v6 với cấu hình mặc định, có lọc box trùng}
+  \caption{Sai số đếm xe qua vạch}
   \label{tab:dem-xe}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|C|C|C|C|C|}
     \hline
-    & \multicolumn{2}{c|}{\thead{Ban ngày}} & \multicolumn{3}{c|}{\thead{Ban đêm}} \\ \cline{2-6}
+    & \multicolumn{2}{c|}{\thead{Ban ngày (2 vào / 71 ra)}} & \multicolumn{3}{c|}{\thead{Ban đêm (176 lượt)}} \\ \cline{2-6}
     \thead{Mô hình} & \thead{Đếm (vào / ra)} & \thead{Sai số} & \thead{Sót} & \thead{Thừa} & \thead{Sai số} \\ \hline
     v5 & 0 / 72 & 3 (4.1\%) & 15 & 0 & 15 (8.5\%) \\ \hline
     YOLO26s (dữ liệu v5) & 0 / 71 & 2 (2.7\%) & 7 & 5 & 8 (4.5\%) \\ \hline
@@ -630,15 +630,15 @@ tăng của v6 và YOLO26s-v6 trên test có thể hơi lạc quan hơn trên m�
 
 \textbf{Độ dao động giữa các lần huấn luyện.} Khoảng tin cậy bootstrap chỉ đo dao động do mẫu ảnh test. Để biết một
 chênh lệch có lớn hơn dao động do khởi tạo ngẫu nhiên hay không, v5 (YOLO26n) và YOLO26s được huấn luyện thêm hai
-lần với seed 1 và 2, v6 và YOLO26s-v6 thêm một lần với seed 1, giữ nguyên dữ liệu và cấu hình (Bảng~\ref{tab:seeds}).
+lần với seed 1 và 2, v6 và YOLO26s-v6 thêm một lần với seed 1, giữ nguyên dữ liệu và cấu hình (Bảng~\ref{tab:seeds}, các giá trị theo thứ tự seed 42 / 1 / 2, cột cuối là v3;
+số theo dõi dùng BoT-SORT đã chỉnh, không GMC, chưa lọc box trùng).
 Trên phần lớn các tập, các lần huấn luyện của cùng một mô hình cho kết quả sát nhau; ngoại lệ là \texttt{vn\_extra} đêm,
 nơi mAP50 trải từ 0.510 đến 0.638 với YOLO26n và từ 0.713 đến 0.821 với YOLO26s. Số lần đổi ID trên dev cũng dao động,
 từ 61 đến 97 với YOLO26n, nên con số 61 của lần huấn luyện đầu là kết quả thuận lợi.
 
 \begin{table}[H]
   \centering
-  \caption{Các lần huấn luyện với seed 42 / 1 / 2: YOLO26n v5 và YOLO26s (dữ liệu v5) ba lần, v6 và YOLO26s-v6 hai lần
-    (seed 42 / 1), so với v3 (mAP50 chính; theo dõi dùng BoT-SORT đã chỉnh, không GMC, chưa lọc box trùng)}
+  \caption{Kết quả qua các lần huấn luyện}
   \label{tab:seeds}
   \footnotesize
   \setlength{\tabcolsep}{4pt}

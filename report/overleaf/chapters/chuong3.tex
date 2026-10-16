@@ -85,7 +85,7 @@ Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6, bả
 
 \begin{table}[H]
   \centering
-  \caption{Thống kê bộ dữ liệu v6 theo nguồn (số ảnh và số box mỗi lớp)}
+  \caption{Thống kê bộ dữ liệu v6 theo nguồn}
   \label{tab:thong-ke}
   \small
   \begin{tabularx}{\linewidth}{|c|L|r|r|r|r|r|}
@@ -116,13 +116,13 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
 
 \begin{table}[H]
   \centering
-  \caption{Các tập đánh giá và vai trò (số box theo thứ tự xe máy / ô tô / buýt / tải)}
+  \caption{Các tập đánh giá}
   \label{tab:tap-danh-gia}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
   \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|L|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{2.6cm}|}
     \hline
-    \thead{Tập} & \thead{Nội dung} & \thead{Quy mô} & \thead{Vai trò} \\ \hline
+    \thead{Tập} & \thead{Nội dung} & \thead{Quy mô (xe máy / ô tô / buýt / tải)} & \thead{Vai trò} \\ \hline
     Val Hà Nội & 10 frame video ngã tư Hà Nội, nhãn người & 889 / 156 / 7 / 1 & Dev: chọn mô hình \\ \hline
     Test Hà Nội & 30 frame ngã tư Hà Nội, nhãn người (sơ bộ từ v2); cùng camera với frame train từ v3 trở đi & 2.982 /
       539 / 5 / 2 & Test phát hiện trên camera đã học \\ \hline
@@ -290,11 +290,11 @@ cho YOLO26:
 \label{sec:cac-phien-ban}
 
 Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần chỉ đổi một yếu tố để biết thay đổi nào có tác dụng
-(Bảng~\ref{tab:lich-su-train}).
+(Bảng~\ref{tab:lich-su-train}); số val và test Roboflow trong bảng do bộ chấm của thư viện tính khi huấn luyện.
 
 \begin{table}[H]
   \centering
-  \caption{Lịch sử huấn luyện các mô hình (val và test Roboflow do bộ chấm của thư viện tính khi train)}
+  \caption{Lịch sử huấn luyện các mô hình}
   \label{tab:lich-su-train}
   \footnotesize
   \setlength{\tabcolsep}{3pt}
@@ -493,7 +493,7 @@ Quá trình chọn gồm năm bước, kết quả chi tiết ở mục~\ref{sec
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình tracker mặc định của hệ thống (BoT-SORT đã chỉnh, không GMC, lọc box trùng)}
+  \caption{Cấu hình tracker mặc định}
   \label{tab:tracker-config}
   \small
   \begin{tabularx}{\linewidth}{|p{4.2cm}|c|L|}

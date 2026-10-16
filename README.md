@@ -48,7 +48,9 @@ và v6, 8.5% với v5, 4.5% với YOLO26s học dữ liệu v5; lỗi gần như
 | Laptop i5-8250U, chỉ CPU, OpenVINO INT8 544×960 | ~18.8 frame/s | ~8.2 frame/s |
 | Laptop i5-8250U, chỉ CPU, PyTorch | ~7.5 frame/s | ~3.3 frame/s |
 
-Đo với các bản học dữ liệu v5; bản học dữ liệu v6 cùng kiến trúc nên cùng tốc độ.
+Đo với các bản học dữ liệu v5. Đo lại trên laptop với v6 và YOLO26s-v6 (`outputs/benchmark_speed/e2_v6_cpu|e2_v6_igpu/`)
+cho kết quả tương đương: bản nhẹ OpenVINO trên GPU tích hợp 19.5 frame/s, INT8 trên CPU 18.2, YOLO26s-v6 trên GPU tích
+hợp 9.8. Bộ lọc box trùng chỉ tốn thêm vài ms mỗi frame.
 
 Tính cả vẽ kết quả và ghi video 1080p, web demo trên laptop chạy khoảng 7 frame/s với bản nhẹ; video demo của mô hình
 chính được xử lý sẵn (`scripts/make_demo_videos.sh`) để trình chiếu mượt.

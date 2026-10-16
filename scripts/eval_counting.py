@@ -18,6 +18,7 @@ from pathlib import Path
 import cv2
 import yaml
 
+from vtrack.box_filter import parse_nms_iou
 from vtrack.count_eval import compare_counts, count_ground_truth
 from vtrack.models import DEFAULT_WEIGHTS
 from vtrack.mot_format import read_cvat_mot_labeled
@@ -33,8 +34,8 @@ def main() -> None:
     parser.add_argument("--sequence", default="pvd_goc_a")
     parser.add_argument("--weights", default=DEFAULT_WEIGHTS)
     parser.add_argument("--tracker", default=DEFAULT_TRACKER)
-    parser.add_argument("--agnostic-nms-iou", type=float, default=DEFAULT_AGNOSTIC_NMS_IOU,
-                        help="Ngưỡng IoU của bộ lọc box trùng trước tracker (vtrack.box_filter); mặc định như pipeline")
+    parser.add_argument("--agnostic-nms-iou", type=parse_nms_iou, default=DEFAULT_AGNOSTIC_NMS_IOU,
+                        help="Ngưỡng IoU của bộ lọc box trùng trước tracker (vtrack.box_filter), none = tắt; mặc định như pipeline")
     parser.add_argument("--line", type=float, nargs=4, default=DEFAULT_LINE, metavar=("X1", "Y1", "X2", "Y2"),
                         help="Vạch đếm, toạ độ tương đối 0–1")
     parser.add_argument("--name", default="default", help="Tên thí nghiệm -> outputs/eval_counting/<tên>/<sequence>")

@@ -6,7 +6,7 @@ from typing import cast
 import numpy as np
 from ultralytics import YOLO
 
-from vtrack.box_filter import CALLBACK_EVENT, DuplicateBoxFilter, agnostic_nms_keep, set_agnostic_nms
+from vtrack.box_filter import CALLBACK_EVENT, DuplicateBoxFilter, agnostic_nms_keep, parse_nms_iou, set_agnostic_nms
 
 
 def test_keeps_higher_score_of_overlapping_pair_regardless_of_class():
@@ -47,3 +47,9 @@ def test_set_agnostic_nms_runs_before_tracker_and_does_not_stack():
     assert isinstance(callbacks[0], DuplicateBoxFilter) and callbacks[0].iou_threshold == 0.5
     set_agnostic_nms(cast(YOLO, model), None)
     assert model.callbacks[CALLBACK_EVENT] == [tracker_callback]
+
+
+def test_parse_nms_iou_reads_none_as_disabled():
+    assert parse_nms_iou("none") is None
+    assert parse_nms_iou("None") is None
+    assert parse_nms_iou("0.6") == 0.6

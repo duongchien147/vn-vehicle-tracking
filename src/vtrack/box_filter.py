@@ -14,6 +14,11 @@ from ultralytics import YOLO
 CALLBACK_EVENT = "on_predict_postprocess_end"
 
 
+def parse_nms_iou(value: str) -> float | None:
+    """Đọc ngưỡng IoU của bộ lọc từ tham số dòng lệnh; "none" = tắt bộ lọc."""
+    return None if value.strip().lower() == "none" else float(value)
+
+
 def agnostic_nms_keep(xyxy: np.ndarray, scores: np.ndarray, iou_threshold: float) -> np.ndarray:
     """NMS tham lam bất kể lớp: duyệt box theo điểm giảm dần, bỏ box có IoU > `iou_threshold` với box đã giữ.
     Trả về chỉ số các box được giữ, theo thứ tự tăng dần (giữ nguyên thứ tự gốc)."""

@@ -258,7 +258,7 @@ nên mục lục bị lệch cấp. Thống nhất: tên chương = H1, mục n.
 **4.11. Kết luận chương**
 - 4.11.1 Kết quả chính.
 - 4.11.2 Hạn chế (mục 10).
-- 4.11.3 Hướng phát triển: thêm dữ liệu đúng góc camera giao thông (bộ Đà Nẵng nếu được cấp), gán nhãn tracking cảnh
+- 4.11.3 Hướng phát triển: thêm dữ liệu đúng góc camera giao thông, gán nhãn tracking cảnh
   đêm, nhiều seed, ReID chuyên cho xe, TensorRT/FP16, export RT-DETRv2 sang OpenVINO, imgsz theo cảnh.
 
 ---
@@ -734,8 +734,16 @@ v6 (thêm 13/10/2026): Hà Nội 0.921 [0.909–0.932] / khối [0.902–0.937];
 - Đếm: ngày (`outputs/eval_counting/yolo26s_v6_*`) 70 lượt ra / 71 thật, sai số theo hướng 3 (4.1%; seed 1: 2 = 2.7%) —
   1 xe máy sót + Transit thành ô tô (2 lượt "vào" của nhãn là hiện tượng tán cây như mục 4.11); đêm
   (`outputs/eval_manual_counts/night_human_yolo26s_v6/`) clip 2 đúng 79/79, clip 3 sai số 3 -> 3 = 1.7% (seed 1 1.1%).
-- Tốc độ: chưa đo lại riêng; cùng kiến trúc với YOLO26s v5 (T4 pipeline 43 frame/s; laptop OpenVINO GPU tích hợp 544×960
-  9.4 frame/s, INT8 CPU 8.2, PyTorch CPU 3.3).
+- Tốc độ (đo lại trên laptop 16/10/2026, `scripts/benchmark_speed.py --agnostic-nms-ious none 0.6`, máy cắm sạc,
+  `KMP_BLOCKTIME=0 OMP_WAIT_POLICY=PASSIVE`, nhóm CPU và GPU tích hợp chạy riêng; `outputs/benchmark_speed/e2_v6_cpu/`,
+  `e2_v6_igpu/`) — phát hiện ms / pipeline ms không lọc / có lọc 0.6:
+  YOLO26s-v6 PyTorch CPU 338.0 / 309.0 / 318.2; YOLO26s học v5 (đối chiếu, cùng lần) 302.8 / 290.0 / 325.4 (trung vị
+  từng đợt 283–425 ms -> hai bản cùng tốc độ trong mức nhiễu); v6 PyTorch CPU 130.0 / 151.4 / 149.7; v6 INT8 CPU 544×960
+  39.9 / 54.9 / 55.6; v6 OV FP32 GPU tích hợp 544×960 34.7 / 51.3 / 57.4 (19.5 / 17.4 frame/s); YOLO26s-v6 OV GPU tích hợp
+  80.1 / 101.8 / 105.7 (9.8 / 9.5 frame/s). Bộ lọc box trùng: +6.1 / +3.9 ms trên GPU tích hợp, trên CPU không nhất quán
+  (−1.7 đến +35 ms, trong nhiễu); đo riêng hàm lọc trên box thật (~45 box/frame) khoảng 4 ms/frame (kiểm tạm, không đưa vào
+  báo cáo). Phần phát hiện đo xen kẽ, pipeline đo liền một mạch nên pipeline của YOLO26s-v6 CPU thấp hơn phát hiện.
+  T4: chưa đo lại (cùng kiến trúc với YOLO26s v5: pipeline 43 frame/s).
 - Video demo (15/10/2026, hết quota GPU Kaggle tuần đó): xử lý sẵn trên máy bằng `scripts/make_demo_videos.sh` ->
   `outputs/demo_precomputed/` (YOLO26s-v6 PyTorch CPU, bộ lọc box trùng 0.6, lọc tuổi track 3, vạch theo
   `configs/demo_clips.yaml`), 2.57–2.80 frame/s cả quy trình (~11–12 phút/clip). Lượt qua vạch 60 s: pvd_goc_a 194 (1 vào /

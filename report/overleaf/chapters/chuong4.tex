@@ -296,9 +296,15 @@ lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
 Laptop dòng U dễ bị hạ xung nhịp khi nóng, nên cách đo được thiết kế để công bằng giữa các mô hình: 5 đợt × 30 frame
 video 1080p, các mô hình chạy xen kẽ trên cùng 30 frame và đảo thứ tự mỗi đợt, nghỉ giữa các đợt, khởi động mỗi mô hình
 ít nhất 15 giây trước khi đo. ``Detector'' gồm tiền xử lý, suy luận và hậu xử lý; ``pipeline'' gồm cả đọc video và
-theo dõi. Các phép đo tốc độ được làm với các mô hình học dữ liệu v5. v6 và YOLO26s-v6 có cùng kiến trúc, cùng số tham
-số và cùng kích thước đầu vào với YOLO26n v5 và YOLO26s, chỉ khác giá trị trọng số, nên tốc độ như các bản tương ứng và
-không đo lại. Bộ lọc box trùng được thêm vào pipeline sau các phép đo này và chưa được đo lại tốc độ.
+theo dõi. Bảng tốc độ đo với các mô hình học dữ liệu v5. v6 và YOLO26s-v6 có cùng kiến trúc, cùng số tham số và cùng
+kích thước đầu vào với YOLO26n v5 và YOLO26s, chỉ khác giá trị trọng số. Một lần đo lại trên laptop theo cùng cách xác
+nhận điều này: trong cùng lần chạy, phần phát hiện của YOLO26s-v6 mất 338.0 ms mỗi frame, của YOLO26s học dữ liệu v5 là
+302.8 ms, chênh lệch nhỏ hơn mức dao động giữa các đợt của chính hai mô hình (trung vị từng đợt 283--425 ms). Lần đo
+này cũng so pipeline có và không có bộ lọc box trùng, bước được thêm vào sau các phép đo chính. Trên GPU tích hợp, bộ
+lọc làm pipeline chậm thêm 6.1 ms mỗi frame với v6 và 3.9 ms với YOLO26s-v6; trên CPU, chênh lệch không nhất quán (từ
+$-$1.7 đến +35 ms) và chìm trong độ nhiễu của phép đo. Số đo lại của v6 và YOLO26s-v6 có trong Bảng~\ref{tab:openvino};
+ở đó phần phát hiện được đo xen kẽ giữa các mô hình còn pipeline đo liền một mạch, nên với YOLO26s-v6 trên CPU, thời
+gian mỗi frame của pipeline có thể thấp hơn của riêng phần phát hiện.
 
 \begin{table}[H]
   \centering
@@ -349,13 +355,14 @@ cho riêng phần phát hiện, chưa đủ cho một camera 30 frame/s.
 
 Laptop của đề tài không có GPU rời nhưng có GPU Intel UHD 620 tích hợp trong chip. Mô hình xuất sang OpenVINO có thể
 chạy trên CPU hoặc trên GPU tích hợp này, ở độ chính xác số FP32 hoặc INT8 (lượng tử hoá sau huấn luyện bằng
-NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Bảng~\ref{tab:openvino} so các cấu hình của v5, v6 và YOLO26s, kèm độ chính xác trên hai tập
-dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đề tài (mAP50 val Hà Nội và IDR VnTraffic chênh không quá
+NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Bảng~\ref{tab:openvino} so các cấu hình của v5, v6, YOLO26s và
+YOLO26s-v6, kèm độ chính xác trên hai tập dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đề tài (mAP50 val Hà Nội và IDR VnTraffic chênh không quá
 0.005 thì coi là hoà, hoà thì chọn bản nhanh hơn).
 
 \begin{table}[H]
   \centering
-  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (IDR trên VnTraffic, chưa lọc box trùng)}
+  \caption{Cấu hình OpenVINO trên laptop i5-8250U: tốc độ và độ chính xác trên tập dev (pipeline và IDR trên VnTraffic
+    đều chưa lọc box trùng)}
   \label{tab:openvino}
   \footnotesize
   \begin{tabularx}{\linewidth}{|p{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
@@ -370,17 +377,17 @@ dev; cấu hình được chọn theo đúng tiêu chí chốt trước của đ
     OpenVINO FP32 & GPU tích hợp & 960×960 & 54.1 & 12.5 & 0.915 & 0.819 \\ \hline
     OpenVINO INT8 & GPU tích hợp & 960×960 & 60.6 & 12.0 & 0.916 & 0.814 \\ \hline
     OpenVINO FP32 & GPU tích hợp & 544×960 & 32.8 & 19.8 & 0.918 & 0.825 \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26n v6} (tốc độ như v5, không đo lại)} \\ \hline
-    PyTorch FP32 & CPU & 544×960 & -- & -- & 0.914 & 0.841 \\ \hline
-    OpenVINO INT8 & CPU & 544×960 & -- & -- & 0.918 & 0.825 \\ \hline
-    \textbf{OpenVINO FP32} & GPU tích hợp & \textbf{544×960} & -- & -- & 0.914 & 0.825 \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26n v6} (tốc độ đo lại trong một lần chạy riêng)} \\ \hline
+    PyTorch FP32 & CPU & 544×960 & 130.0 & 6.6 & 0.914 & 0.841 \\ \hline
+    OpenVINO INT8 & CPU & 544×960 & 39.9 & 18.2 & 0.918 & 0.825 \\ \hline
+    \textbf{OpenVINO FP32} & GPU tích hợp & \textbf{544×960} & 34.7 & 19.5 & 0.914 & 0.825 \\ \hline
     \multicolumn{7}{|l|}{\textbf{YOLO26s}} \\ \hline
     PyTorch FP32 & CPU & 544×960 & 284.3 & 3.3 & 0.915 & 0.845 \\ \hline
     OpenVINO INT8 & CPU & 544×960 & 103.8 & 8.2 & 0.914 & 0.851 \\ \hline
     OpenVINO FP32 & GPU tích hợp & 544×960 & 84.5 & 9.4 & 0.915 & 0.848 \\ \hline
-    \multicolumn{7}{|l|}{\textbf{YOLO26s-v6} (tốc độ như YOLO26s, không đo lại)} \\ \hline
-    PyTorch FP32 & CPU & 544×960 & -- & -- & 0.911 & 0.866 \\ \hline
-    OpenVINO FP32 & GPU tích hợp & 544×960 & -- & -- & 0.912 & 0.875 \\ \hline
+    \multicolumn{7}{|l|}{\textbf{YOLO26s-v6} (tốc độ đo lại trong một lần chạy riêng)} \\ \hline
+    PyTorch FP32 & CPU & 544×960 & 338.0 & 3.2 & 0.911 & 0.866 \\ \hline
+    OpenVINO FP32 & GPU tích hợp & 544×960 & 80.1 & 9.8 & 0.912 & 0.875 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -412,11 +419,12 @@ lần. YOLO26s, mô hình chính xác hơn ở cảnh khó, đạt 9.4 frame/s t
 
 Khi v6 thay v5, web demo dùng cùng cấu hình đó cho v6. Trên dev, bản OpenVINO của v6 hoà PyTorch về mAP50 val (0.914
 so với 0.914) và ban đêm còn nhỉnh hơn (mAP50 dev đêm 0.609 so với 0.599), nhưng IDR thấp hơn 0.016 (0.825 so với
-0.841), quá ngưỡng hoà. Như vậy với v6, chạy OpenVINO là đổi một ít độ ổn định ID lấy tốc độ gấp 2.6 lần. So với bản
+0.841), quá ngưỡng hoà. Như vậy với v6, chạy OpenVINO là đổi một ít độ ổn định ID lấy tốc độ gấp khoảng 3 lần (19.5
+so với 6.6 frame/s cho cả pipeline). So với bản
 OpenVINO của v5 mà nó thay thế, bản của v6 có cùng IDR (0.825) và tốt hơn hẳn ban đêm.
 
-Khi mô hình chính chuyển sang YOLO26s-v6, chế độ chạy trên laptop vẫn mặc định dùng bản nhẹ v6, vì YOLO26s trên GPU tích
-hợp chỉ đạt 9.4 frame/s. Bản OpenVINO 544×960 của YOLO26s-v6 trên GPU tích hợp có trong danh sách để chọn và được chấm
+Khi mô hình chính chuyển sang YOLO26s-v6, chế độ chạy trên laptop vẫn mặc định dùng bản nhẹ v6, vì YOLO26s-v6 trên GPU
+tích hợp chỉ đạt 9.8 frame/s, khoảng một nửa bản nhẹ. Bản OpenVINO 544×960 của YOLO26s-v6 trên GPU tích hợp có trong danh sách để chọn và được chấm
 trên cùng các tập dev. Về phát hiện, nó hoà bản PyTorch: mAP50 val Hà Nội 0.912 so với 0.911, dev đêm 0.710 so với
 0.711. Về theo dõi, kết quả đổi chiều theo cấu hình. Khi không lọc box trùng, bản OpenVINO có IDR trên VnTraffic cao hơn
 (0.875 so với 0.866, đổi ID 57 so với 63). Với bộ lọc box trùng mặc định thì ngược lại: IDR 0.860 so với 0.870, đổi ID
@@ -1065,8 +1073,8 @@ nhất (Bảng~\ref{tab:kien-truc-5095}), kể cả so với YOLO26s-v6 (mAP50-9
 chậm hơn YOLO26n 15 lần. Khi cho YOLO cùng số điểm ảnh, khoảng cách độ chính xác trên dữ liệu Việt Nam
 gần như biến mất, và YOLO26s-v6 (đã học frame đêm) còn cao hơn RT-DETRv2-S (bản học dữ liệu v5) ở cảnh đêm. Vì vậy mô
 hình chính là YOLO26s-v6 chạy trên máy chủ có GPU (cả phát hiện và theo dõi khoảng 43 frame/s trên T4); trên máy không
-có GPU rời dùng bản nhẹ v6 OpenVINO trên GPU tích hợp (19.8 frame/s trên laptop của đề tài); RT-DETRv2-S là mức tham
-chiếu về độ chính xác.
+có GPU rời dùng bản nhẹ v6 OpenVINO trên GPU tích hợp (19.5 frame/s trên laptop của đề tài, 17.4 frame/s khi có bộ lọc
+box trùng); RT-DETRv2-S là mức tham chiếu về độ chính xác.
 
 \section{Kết luận chương}
 
@@ -1094,10 +1102,10 @@ chiếu về độ chính xác.
         hầu hết các tập. Ưu thế lớn của v5 so với v3, và ưu thế của YOLO26s so với YOLO26n ở \texttt{vn\_extra} ngày và
         đêm, đứng vững ở mọi lần huấn luyện. Riêng cảnh đêm, mAP50 của v5 và của YOLO26s học dữ liệu v5 dao động
         0.11--0.13 giữa các lần; hai lần huấn luyện YOLO26s-v6 chênh 0.040.
-  \item Tốc độ phát hiện + theo dõi video 1080p (đo với các bản học dữ liệu v5, cùng kiến trúc): trên GPU T4 khoảng
-        42--43 frame/s với cả YOLO26n và YOLO26s; trên laptop, bản nhẹ YOLO26n OpenVINO đạt 19.8 frame/s trên GPU tích
-        hợp và 18.8 frame/s khi chỉ dùng CPU (bản INT8), so với 7.5 frame/s của PyTorch trên CPU; YOLO26s trên GPU tích
-        hợp đạt 9.4 frame/s.
+  \item Tốc độ phát hiện + theo dõi video 1080p: trên GPU T4 khoảng 42--43 frame/s với cả YOLO26n và YOLO26s (đo với
+        các bản học dữ liệu v5, cùng kiến trúc). Trên laptop, bản nhẹ v6 qua OpenVINO đạt 19.5 frame/s trên GPU tích hợp
+        và 18.2 frame/s khi chỉ dùng CPU (bản INT8), so với 6.6 frame/s của PyTorch trên CPU; YOLO26s-v6 trên GPU tích
+        hợp đạt 9.8 frame/s. Bộ lọc box trùng chỉ tốn thêm vài ms mỗi frame.
 \end{itemize}
 
 \subsection{Hạn chế}
@@ -1121,9 +1129,9 @@ chiếu về độ chính xác.
         ước COCO; xe bị che một phần được khoanh phần nhìn thấy, lệch quy ước MOTChallenge.
   \item Mô hình chính cần GPU: trên CPU của laptop, cả quy trình xử lý video của nó chỉ đạt 2.6--2.8 frame/s. Bản nhẹ
         đạt khoảng 20 frame/s cho phát hiện và theo dõi, chưa bằng 30 frame/s của video, và khoảng 7 frame/s khi tính cả
-        vẽ và ghi video 1080p. Tốc độ của v6 và YOLO26s-v6 lấy theo bản cùng kiến trúc học dữ liệu v5, không đo lại; bộ
-        lọc box trùng cũng chưa được đo tốc độ. Trên GPU T4 mới đo một luồng video ở FP32, chưa dùng TensorRT hay FP16
-        và chưa đo khi nhiều camera chạy cùng lúc; RT-DETRv2 chưa được xuất sang OpenVINO.
+        vẽ và ghi video 1080p. Trên GPU T4, tốc độ của v6 và YOLO26s-v6 lấy theo bản cùng kiến trúc học dữ liệu v5, chưa
+        đo lại; mới đo một luồng video ở FP32, chưa dùng TensorRT hay FP16 và chưa đo khi nhiều camera chạy cùng lúc.
+        RT-DETRv2 chưa được xuất sang OpenVINO.
   \item Thời gian giữ track của BoT-SORT được chỉnh với v3; với v6 chỉ chọn lại các ngưỡng và bộ lọc box trùng, với
         YOLO26s-v6 chỉ chọn lại bộ lọc box trùng. Clip dev theo dõi thứ hai chỉ dài 20 giây ở một camera, và box của 8
         xe trong đó lấy từ đề xuất của YOLO26x gốc COCO rồi duyệt bằng mắt (mục~\ref{sec:tap-danh-gia}). Clip test theo

@@ -33,11 +33,12 @@ import torch
 import transformers
 import ultralytics
 
+from vtrack.box_filter import parse_nms_iou
 from vtrack.detection_benchmark import ModelSpec
 from vtrack.detectors import is_rtdetr_dir, load_detector
 from vtrack.models import load_model
 from vtrack.speed import COOLDOWN_S, ROUND_FRAMES, ROUNDS, WARMUP_FRAMES, measure_detectors, measure_pipeline, summarize
-from vtrack.tracking import DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
+from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, DEFAULT_DETECTION_CONF, DEFAULT_TRACKER
 from vtrack.video_io import read_frame
 
 # Đúng bộ mô hình của bảng tốc độ CPU trong báo cáo (Chương 4): mô hình triển khai, bản OpenVINO, và thí nghiệm
@@ -61,6 +62,8 @@ def main() -> None:
     parser.add_argument("--round-frames", type=int, default=ROUND_FRAMES)
     parser.add_argument("--cooldown", type=float, default=COOLDOWN_S, help="Giây nghỉ giữa các đợt")
     parser.add_argument("--no-pipeline", action="store_true", help="Chỉ đo detector")
+    parser.add_argument("--agnostic-nms-ious", nargs="+", type=parse_nms_iou, default=[DEFAULT_AGNOSTIC_NMS_IOU],
+                        help="Đo pipeline với từng ngưỡng bộ lọc box trùng (none = tắt), mỗi giá trị một dòng kết quả")
     parser.add_argument("--name", default="default", help="Tên thí nghiệm -> outputs/benchmark_speed/<tên>")
     args = parser.parse_args()
 
@@ -80,29 +83,34 @@ def main() -> None:
         # Trung vị từng đợt: tăng dần qua các đợt = máy nóng lên, kết quả cần đọc thận trọng
         round_medians = [float(np.median([t.ms for t in own if t.round_index == r])) for r in range(args.rounds)]
         complexity = detector.complexity() if detector.complexity else None
-        if args.no_pipeline or is_rtdetr_dir(specs[spec_text].weights):
-            # Pipeline tracking dùng model.track của ultralytics -> chỉ chạy được với YOLO
+        # Pipeline tracking dùng model.track của ultralytics -> chỉ chạy được với YOLO
+        has_pipeline = not args.no_pipeline and not is_rtdetr_dir(specs[spec_text].weights)
+        # Bộ lọc box trùng chỉ chạy trong pipeline; số đo detector (không lọc) giống nhau ở mọi dòng của mô hình
+        for nms_iou in args.agnostic_nms_ious if has_pipeline else [None]:
             pipeline = None
-        else:
-            time.sleep(args.cooldown)
-            pipeline = measure_pipeline(load_model(specs[spec_text].weights), args.video, args.tracker, detector.imgsz,
-                                        DEFAULT_DETECTION_CONF, timed_frames + WARMUP_FRAMES)
-        row = {
-            "model": spec_text, "imgsz": detector.imgsz,
-            "input_hw": "x".join(map(str, complexity.input_hw)) if complexity else "",
-            "params_m": round(complexity.params_m, 2) if complexity else float("nan"),
-            "gflops": round(complexity.gflops, 1) if complexity else float("nan"),
-            **{f"detector_{k}": round(v, 2) for k, v in asdict(speed).items()},
-            "detector_round_medians_ms": " ".join(f"{m:.1f}" for m in round_medians),
-            **({f"pipeline_{k}": round(v, 2) for k, v in asdict(pipeline).items()} if pipeline else {}),
-        }
-        rows.append(row)
-        iqr = speed.ms_q3 - speed.ms_q1
-        pipeline_text = f"pipeline {pipeline.ms_per_frame:6.1f} ms ({pipeline.fps:4.1f} frame/s)" if pipeline else "pipeline -"
-        complexity_text = f"{complexity.params_m:5.1f} M tham số, {complexity.gflops:6.1f} GFLOPs" if complexity else "-"
-        print(f"  {spec_text:50s} @{detector.imgsz:<5d} detector {speed.ms_per_frame:6.1f} ms (IQR {iqr:4.1f}, "
-              f"{speed.fps:4.1f} frame/s) | theo đợt {row['detector_round_medians_ms']} | {pipeline_text} | {complexity_text}",
-              flush=True)
+            if has_pipeline:
+                time.sleep(args.cooldown)
+                pipeline = measure_pipeline(load_model(specs[spec_text].weights), args.video, args.tracker,
+                                            detector.imgsz, DEFAULT_DETECTION_CONF, timed_frames + WARMUP_FRAMES,
+                                            agnostic_nms_iou=nms_iou)
+            row = {
+                "model": spec_text, "imgsz": detector.imgsz,
+                "input_hw": "x".join(map(str, complexity.input_hw)) if complexity else "",
+                "params_m": round(complexity.params_m, 2) if complexity else float("nan"),
+                "gflops": round(complexity.gflops, 1) if complexity else float("nan"),
+                **{f"detector_{k}": round(v, 2) for k, v in asdict(speed).items()},
+                "detector_round_medians_ms": " ".join(f"{m:.1f}" for m in round_medians),
+                "pipeline_agnostic_nms_iou": nms_iou if has_pipeline else "",
+                **({f"pipeline_{k}": round(v, 2) for k, v in asdict(pipeline).items()} if pipeline else {}),
+            }
+            rows.append(row)
+            iqr = speed.ms_q3 - speed.ms_q1
+            pipeline_text = (f"pipeline (lọc box trùng {nms_iou}) {pipeline.ms_per_frame:6.1f} ms "
+                             f"({pipeline.fps:4.1f} frame/s)" if pipeline else "pipeline -")
+            complexity_text = f"{complexity.params_m:5.1f} M tham số, {complexity.gflops:6.1f} GFLOPs" if complexity else "-"
+            print(f"  {spec_text:50s} @{detector.imgsz:<5d} detector {speed.ms_per_frame:6.1f} ms (IQR {iqr:4.1f}, "
+                  f"{speed.fps:4.1f} frame/s) | theo đợt {row['detector_round_medians_ms']} | {pipeline_text} | "
+                  f"{complexity_text}", flush=True)
 
     out_dir = Path("outputs/benchmark_speed") / args.name
     out_dir.mkdir(parents=True, exist_ok=True)

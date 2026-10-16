@@ -20,7 +20,7 @@ import numpy as np
 from ultralytics import YOLO
 
 from vtrack.detectors import Detector
-from vtrack.tracking import track_video
+from vtrack.tracking import DEFAULT_AGNOSTIC_NMS_IOU, track_video
 
 WARMUP_FRAMES = 10  # khởi động tối thiểu (chuẩn thường dùng khi đo tốc độ mạng nơ-ron)...
 WARMUP_SECONDS = 15.0  # ...và kéo dài ít nhất chừng này giây cho mỗi mô hình (xem docstring)
@@ -96,12 +96,17 @@ def measure_detectors(
     return timings
 
 
-def measure_pipeline(model: YOLO, video: str | Path, tracker: str, imgsz: int, conf: float, num_frames: int) -> SpeedResult:
-    """Thời gian mỗi frame của cả vòng lặp track_video (đọc frame + detector + tracker + bỏ phiếu lớp),
-    tức đúng thứ demo chạy, chưa gồm vẽ và ghi video. Tracker cần frame liên tiếp nên đo một mạch, không chia đợt."""
+def measure_pipeline(
+    model: YOLO, video: str | Path, tracker: str, imgsz: int, conf: float, num_frames: int,
+    agnostic_nms_iou: float | None = DEFAULT_AGNOSTIC_NMS_IOU,
+) -> SpeedResult:
+    """Thời gian mỗi frame của cả vòng lặp track_video (đọc frame + detector + bộ lọc box trùng + tracker + bỏ phiếu
+    lớp), tức đúng thứ demo chạy, chưa gồm vẽ và ghi video. Tracker cần frame liên tiếp nên đo một mạch, không chia
+    đợt. `agnostic_nms_iou` None = tắt bộ lọc box trùng, để đo riêng phần thời gian của bộ lọc."""
     timings = []
     started = time.perf_counter()
-    for step, _ in enumerate(track_video(video, model, tracker, imgsz, conf, max_frames=num_frames)):
+    frames = track_video(video, model, tracker, imgsz, conf, max_frames=num_frames, agnostic_nms_iou=agnostic_nms_iou)
+    for step, _ in enumerate(frames):
         now = time.perf_counter()
         if step >= WARMUP_FRAMES:
             timings.append((now - started) * 1000)

@@ -23,6 +23,7 @@ from ultralytics import YOLO
 
 from vtrack.models import DEFAULT_WEIGHTS, FALLBACK_IMGSZ, load_model, training_imgsz
 from vtrack import IGNORE_LABEL
+from vtrack.box_filter import parse_nms_iou
 from vtrack.mot_format import (
     MOT_TARGET_CLASS,
     MotBox,
@@ -86,10 +87,6 @@ def run_tracker(
                                agnostic_nms_iou=agnostic_nms_iou):
         boxes += to_mot_boxes(tracked)
     return boxes, num_frames / (time.perf_counter() - started)
-
-
-def parse_nms_iou(value: str) -> float | None:
-    return None if value.lower() == "none" else float(value)
 
 
 def make_run_name(base_name: str, min_track_age: int) -> str:

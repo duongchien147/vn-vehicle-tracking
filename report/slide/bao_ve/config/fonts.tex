@@ -1,0 +1,55 @@
+% =====================================================================
+%  config/fonts.tex - TINH CHỈNH FONT
+%  File này chỉ khai báo giá trị; theme/beamerthemeMLWNet.sty đọc và
+%  áp dụng. Được \input TRƯỚC \documentclass nên chỉ dùng \newcommand.
+% =====================================================================
+
+% ---------------------------------------------------------------------
+% 1. Họ font chữ (cần XeLaTeX hoặc LuaLaTeX)
+% ---------------------------------------------------------------------
+%  - mlwFontPath  : thư mục chứa .ttf/.otf (có "/" ở cuối).
+%                   Để TRỐNG {} nếu muốn dùng font đã cài trong hệ thống.
+%  - mlwFontName  : tiền tố tên file, VD BeVietnamPro -> BeVietnamPro-Regular.ttf
+%                   (hoặc tên font hệ thống nếu mlwFontPath trống).
+%  - mlwFontExt   : phần mở rộng (.ttf hoặc .otf).
+%  - Hậu tố từng kiểu chữ; file nào thiếu thì theme tự bỏ qua kiểu đó.
+\newcommand{\mlwFontPath}{fonts/}
+\newcommand{\mlwFontName}{BeVietnamPro}
+\newcommand{\mlwFontExt}{.ttf}
+\newcommand{\mlwFontRegular}{-Regular}
+\newcommand{\mlwFontBold}{-Bold}
+\newcommand{\mlwFontItalic}{-Italic}
+\newcommand{\mlwFontBoldItalic}{-BoldItalic}
+
+%  Tỉ lệ co giãn (Be Vietnam Pro khá rộng; 0.95 giúp chữ gọn hơn)
+\newcommand{\mlwFontScale}{0.95}
+
+%  Ví dụ đổi sang font hệ thống (bỏ % để dùng):
+% \renewcommand{\mlwFontPath}{}
+% \renewcommand{\mlwFontName}{Arial}
+
+% ---------------------------------------------------------------------
+% 2. Font toán
+% ---------------------------------------------------------------------
+%  - cm    : Computer Modern có chân (mặc định LaTeX, an toàn nhất)
+%  - sans  : chữ toán không chân theo font chính (kiểu Beamer gốc)
+%  - Tên một font OpenType Math, dùng unicode-math, VD:
+%      Latin Modern Math | TeX Gyre Pagella Math | TeX Gyre Termes Math
+%  Ghi tên file (latinmodern-math.otf) thay cho tên font: Tectonic không tìm font theo tên hệ thống
+\newcommand{\mlwMathFont}{latinmodern-math.otf}
+
+% ---------------------------------------------------------------------
+% 3. Cỡ chữ
+% ---------------------------------------------------------------------
+%  Cỡ chữ gốc: 8pt, 9pt, 10pt, 11pt, 12pt, 14pt, 17pt, 20pt
+\newcommand{\mlwBaseSize}{10pt}
+
+%  Cỡ chữ từng thành phần (\tiny \scriptsize \footnotesize \small
+%  \normalsize \large \Large \LARGE \huge \Huge)
+\newcommand{\mlwSizeFrameTitle}{\large}        % tiêu đề slide
+\newcommand{\mlwSizeTitle}{\Large}             % tiêu đề trang bìa
+\newcommand{\mlwSizeSection}{\LARGE}           % slide chuyển mục
+\newcommand{\mlwSizeFooter}{\scriptsize}       % dòng chân trang
+\newcommand{\mlwSizeSource}{\scriptsize}       % chú thích nguồn \src{}
+\newcommand{\mlwSizeBib}{\scriptsize}          % danh mục tài liệu tham khảo
+\newcommand{\mlwSizeQA}{\Huge}                 % chữ "HỎI ĐÁP"

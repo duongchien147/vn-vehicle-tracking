@@ -81,6 +81,12 @@ report/overleaf_truoc/
 report/bao_cao.pdf
 report/*.zip
 # Chỉ có trên máy: file Word mẫu của trường (có thông tin sinh viên)
-# và mẫu slide bảo vệ
 docs/DL AND CV.docx
-report/slide/
+# Slide bảo vệ: chỉ theo dõi mã nguồn report/slide/bao_ve/; gói mẫu gốc, bản giải nén và file sinh ra thì bỏ qua
+report/slide/Mau_Slide_Template.zip
+report/slide/template/
+report/slide/*.pdf
+report/slide/*.zip
+report/slide/bao_ve/main.pdf
+report/slide/bao_ve/*.log
+report/slide/bao_ve/*.blg

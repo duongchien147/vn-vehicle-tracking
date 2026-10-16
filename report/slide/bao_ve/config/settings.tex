@@ -1,0 +1,57 @@
+% =====================================================================
+%  config/settings.tex - THIẾT LẬP CHUNG
+%  Logo, thư mục ảnh, dòng footer và các công tắc hiển thị.
+%  Được \input TRƯỚC \documentclass nên chỉ dùng \newcommand.
+% =====================================================================
+
+% ---------------------------------------------------------------------
+% 1. Khổ slide
+% ---------------------------------------------------------------------
+%  169 (16:9) | 1610 (16:10) | 43 (4:3) | 32 (3:2)
+\newcommand{\mlwAspectRatio}{169}
+
+% ---------------------------------------------------------------------
+% 2. Hình ảnh
+% ---------------------------------------------------------------------
+%  Thư mục ảnh (có "/" ở cuối). \includegraphics và \figorbox
+%  đều tìm ảnh tại đây, nên trong main.tex chỉ cần ghi tên file.
+\newcommand{\mlwImageDir}{images/}
+
+%  Logo trường (nằm trong \mlwImageDir). Thiếu file -> tự ẩn logo.
+\newcommand{\mlwLogoFile}{logo.jpg}
+\newcommand{\mlwLogoHeaderHeight}{1.2cm}       % logo góc phải tiêu đề slide
+\newcommand{\mlwLogoTitleHeight}{1.7cm}        % logo trên trang bìa
+
+%  true: logo ở mọi slide | false: chỉ ở trang bìa
+\newcommand{\mlwLogoOnEveryFrame}{true}
+
+% ---------------------------------------------------------------------
+% 3. Dòng footer
+% ---------------------------------------------------------------------
+%  Chữ nghiêng bên trái chân trang. Để trống {} sẽ dùng \title ngắn
+%  (\title[ngắn]{dài}) hoặc tiêu đề đầy đủ.
+\newcommand{\mlwFooterText}{Phát hiện, phân loại và theo dõi phương tiện giao thông -- Dương Minh Chiến}
+
+%  true: "5 / 20" | false: chỉ "5"
+\newcommand{\mlwShowTotalFrames}{true}
+
+% ---------------------------------------------------------------------
+% 4. Bố cục và nhãn
+% ---------------------------------------------------------------------
+%  Tự chèn slide chuyển mục ở mỗi \section
+\newcommand{\mlwSectionDivider}{true}
+
+%  Nhãn trên trang bìa
+\newcommand{\mlwLabelPresenter}{Người trình bày}
+\newcommand{\mlwLabelStudentID}{MSSV}
+\newcommand{\mlwLabelAdvisor}{Giảng viên hướng dẫn}
+\newcommand{\mlwLabelQA}{HỎI ĐÁP}
+\newcommand{\mlwLabelMissingFig}{Chưa có tệp hình:}
+
+% ---------------------------------------------------------------------
+% 5. Tài liệu tham khảo (BibTeX)
+% ---------------------------------------------------------------------
+%  File .bib (không ghi đuôi) và kiểu trích dẫn. Nếu máy không có
+%  IEEEtran.bst, theme tự chuyển sang ieeetr (có sẵn trong TeX Live).
+\newcommand{\mlwBibFile}{references}
+\newcommand{\mlwBibStyle}{IEEEtran}

@@ -1,0 +1,318 @@
+% =====================================================================
+%  theme/beamerthemeMLWNet.sty
+%  "Engine" giao diện Beamer đơn sắc tối giản (kế thừa UTEHYMinimal).
+%
+%  KHÔNG chỉnh trực tiếp file này. Mọi tinh chỉnh nằm ở:
+%    config/fonts.tex     - họ font, font toán, cỡ chữ
+%    config/settings.tex  - logo, thư mục ảnh, footer, công tắc hiển thị
+%  Theme vẫn chạy độc lập (dùng giá trị mặc định) nếu thiếu config.
+%
+%  API dùng trong main.tex:
+%    \presenter{} \studentid{} \advisor{} \sourceline{}
+%    \utehytitlepage          trang bìa
+%    \stitle                  tiêu đề slide đánh số tự động "x.y. ..."
+%    \ct{key}                 trích dẫn [n] màu xám sau tên phương pháp
+%    \src{...}                chú thích nguồn dưới hình/bảng
+%    \figorbox{file}{opt}{h}  chèn hình, thiếu file thì hiện khung báo
+%    \bibslide[tiêu đề]       slide tài liệu tham khảo từ file .bib
+%    \qaslide{lời cảm ơn}     slide hỏi đáp
+% =====================================================================
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{\@currpath\@currname}[2026/10/03 v1.0 MLWNet minimal academic theme]
+
+% ---------------------------------------------------------------------
+% 0. Giá trị mặc định (chỉ có hiệu lực khi config chưa khai báo)
+% ---------------------------------------------------------------------
+\providecommand{\mlwFontPath}{fonts/}
+\providecommand{\mlwFontName}{BeVietnamPro}
+\providecommand{\mlwFontExt}{.ttf}
+\providecommand{\mlwFontRegular}{-Regular}
+\providecommand{\mlwFontBold}{-Bold}
+\providecommand{\mlwFontItalic}{-Italic}
+\providecommand{\mlwFontBoldItalic}{-BoldItalic}
+\providecommand{\mlwFontScale}{1.0}
+\providecommand{\mlwMathFont}{cm}
+\providecommand{\mlwSizeFrameTitle}{\large}
+\providecommand{\mlwSizeTitle}{\Large}
+\providecommand{\mlwSizeSection}{\LARGE}
+\providecommand{\mlwSizeFooter}{\scriptsize}
+\providecommand{\mlwSizeSource}{\scriptsize}
+\providecommand{\mlwSizeBib}{\scriptsize}
+\providecommand{\mlwSizeQA}{\Huge}
+\providecommand{\mlwImageDir}{images/}
+\providecommand{\mlwLogoFile}{logo-utehy.png}
+\providecommand{\mlwLogoHeaderHeight}{0.8cm}
+\providecommand{\mlwLogoTitleHeight}{1.7cm}
+\providecommand{\mlwLogoHeaderShift}{0pt}
+\providecommand{\mlwLogoOnEveryFrame}{true}
+\providecommand{\mlwFooterText}{}
+\providecommand{\mlwShowTotalFrames}{true}
+\providecommand{\mlwSectionDivider}{true}
+\providecommand{\mlwLabelPresenter}{Người trình bày}
+\providecommand{\mlwLabelStudentID}{MSSV}
+\providecommand{\mlwLabelAdvisor}{Giảng viên hướng dẫn}
+\providecommand{\mlwLabelQA}{HỎI ĐÁP}
+\providecommand{\mlwLabelMissingFig}{Chưa có tệp hình:}
+\providecommand{\mlwBibFile}{references}
+\providecommand{\mlwBibStyle}{IEEEtran}
+
+% Tiện ích: \mlw@iftrue{macro}{nếu true}{nếu khác}
+\def\mlw@truestr{true}
+\newcommand{\mlw@iftrue}[3]{%
+  \edef\mlw@tmp{#1}%
+  \ifx\mlw@tmp\mlw@truestr #2\else #3\fi}
+% Tiện ích: \mlw@ifempty{macro}{nếu rỗng}{nếu có nội dung}
+\newcommand{\mlw@ifempty}[3]{%
+  \if\relax\detokenize\expandafter{#1}\relax #2\else #3\fi}
+
+% ---------------------------------------------------------------------
+% 1. Gói nền
+% ---------------------------------------------------------------------
+\RequirePackage{iftex}
+\RequirePackage{amsmath}
+\RequirePackage{booktabs}
+\RequirePackage{graphicx}
+\RequirePackage{xcolor}
+\RequirePackage{colortbl}
+
+% ---------------------------------------------------------------------
+% 2. Font chữ và font toán
+% ---------------------------------------------------------------------
+\edef\mlw@math{\mlwMathFont}
+\def\mlw@cmstr{cm}
+\def\mlw@sansstr{sans}
+\newif\ifmlw@unicodemath
+\ifx\mlw@math\mlw@cmstr\else\ifx\mlw@math\mlw@sansstr\else
+  \mlw@unicodemathtrue
+\fi\fi
+
+\ifPDFTeX
+  % pdfLaTeX không đọc được .ttf: dùng font Latin Modern có dấu tiếng Việt.
+  \PackageWarningNoLine{beamerthemeMLWNet}{%
+    Dang bien dich bang pdfLaTeX nen font trong config/fonts.tex\MessageBreak
+    bi bo qua. Hay chon compiler XeLaTeX (Overleaf: Menu ->\MessageBreak
+    Compiler -> XeLaTeX)}
+  \RequirePackage[utf8]{inputenc}
+  \IfFileExists{t5enc.def}{\RequirePackage[T5]{fontenc}}{}
+  \IfFileExists{lmodern.sty}{\RequirePackage{lmodern}}{}
+  \RequirePackage{amssymb}
+  \mlw@unicodemathfalse
+\else
+  \RequirePackage{fontspec}
+  % Ghép tuỳ chọn fontspec theo những file thực sự tồn tại
+  \edef\mlw@fontopts{Scale=\mlwFontScale}
+  \mlw@ifempty{\mlwFontPath}{}{%
+    \edef\mlw@fontopts{\mlw@fontopts,Path=\mlwFontPath,%
+      Extension=\mlwFontExt,UprightFont=*\mlwFontRegular}%
+    \IfFileExists{\mlwFontPath\mlwFontName\mlwFontRegular\mlwFontExt}{}{%
+      \PackageError{beamerthemeMLWNet}{Khong tim thay font
+        \mlwFontPath\mlwFontName\mlwFontRegular\mlwFontExt}{Kiem tra
+        thu muc fonts/ va config/fonts.tex.}}%
+    \IfFileExists{\mlwFontPath\mlwFontName\mlwFontBold\mlwFontExt}%
+      {\edef\mlw@fontopts{\mlw@fontopts,BoldFont=*\mlwFontBold}}{}%
+    \IfFileExists{\mlwFontPath\mlwFontName\mlwFontItalic\mlwFontExt}%
+      {\edef\mlw@fontopts{\mlw@fontopts,ItalicFont=*\mlwFontItalic}}{}%
+    \IfFileExists{\mlwFontPath\mlwFontName\mlwFontBoldItalic\mlwFontExt}%
+      {\edef\mlw@fontopts{\mlw@fontopts,BoldItalicFont=*\mlwFontBoldItalic}}{}%
+  }
+  \edef\mlw@setfonts{%
+    \noexpand\setmainfont{\mlwFontName}[\mlw@fontopts]%
+    \noexpand\setsansfont{\mlwFontName}[\mlw@fontopts]}
+  \mlw@setfonts
+  \ifmlw@unicodemath\else\RequirePackage{amssymb}\fi
+\fi
+
+\ifx\mlw@math\mlw@sansstr
+  % Chữ toán không chân: hành vi mặc định của Beamer
+\else
+  \usefonttheme{professionalfonts}
+\fi
+\ifmlw@unicodemath
+  \RequirePackage{unicode-math}
+  \edef\mlw@setmath{\noexpand\setmathfont{\mlwMathFont}}
+  \mlw@setmath
+\fi
+
+% ---------------------------------------------------------------------
+% 3. Bảng màu đơn sắc
+% ---------------------------------------------------------------------
+\definecolor{PureBlack}{RGB}{0, 0, 0}
+\definecolor{DarkSlate}{RGB}{30, 41, 59}
+\definecolor{MidGray}{RGB}{100, 116, 139}
+\definecolor{LightGray}{RGB}{241, 245, 249}
+\definecolor{LineGray}{RGB}{203, 213, 225}
+\definecolor{HiRow}{RGB}{226, 232, 240}
+
+\usetheme{default}
+\setbeamercolor{normal text}{fg=DarkSlate,bg=white}
+\setbeamercolor{structure}{fg=PureBlack}
+\setbeamercolor{item}{fg=PureBlack}
+\setbeamercolor{alerted text}{fg=PureBlack}
+\setbeamerfont{alerted text}{series=\bfseries}
+\setbeamertemplate{navigation symbols}{}
+\setbeamertemplate{itemize items}[square]
+\setbeamertemplate{enumerate items}[default]
+\setbeamertemplate{blocks}[default]
+\setbeamercolor{block title}{fg=PureBlack,bg=LightGray}
+\setbeamercolor{block body}{fg=DarkSlate,bg=LightGray!50}
+\setbeamercolor{block title alerted}{fg=white,bg=DarkSlate}
+\setbeamercolor{block body alerted}{fg=DarkSlate,bg=LightGray!50}
+
+% ---------------------------------------------------------------------
+% 4. Thư mục ảnh và logo
+% ---------------------------------------------------------------------
+\edef\mlw@tmp{\noexpand\graphicspath{{\mlwImageDir}}}\mlw@tmp
+\newcommand{\mlw@logofile}{\mlwImageDir\mlwLogoFile}
+\newcommand{\schoollogo}[1]{%
+  \IfFileExists{\mlw@logofile}{\includegraphics[height=#1]{\mlw@logofile}}{}}
+\newif\iflogoheader
+\mlw@iftrue{\mlwLogoOnEveryFrame}{\logoheadertrue}{\logoheaderfalse}
+
+% ---------------------------------------------------------------------
+% 5. Thông tin trang bìa
+% ---------------------------------------------------------------------
+\def\mlw@presenter{}\def\mlw@studentid{}\def\mlw@advisor{}\def\mlw@sourceline{}
+\newcommand{\presenter}[1]{\def\mlw@presenter{#1}}
+\newcommand{\studentid}[1]{\def\mlw@studentid{#1}}
+\newcommand{\advisor}[1]{\def\mlw@advisor{#1}}
+\newcommand{\sourceline}[1]{\def\mlw@sourceline{#1}}
+% Cho phép ghi đè footer ngay trong main.tex nếu cần
+\newcommand{\footertext}[1]{\renewcommand{\mlwFooterText}{#1}}
+
+% ---------------------------------------------------------------------
+% 6. Tiêu đề slide, footer, trang bìa
+% ---------------------------------------------------------------------
+\setbeamertemplate{frametitle}{%
+  \vspace{0.7em}%
+  \begin{minipage}[c]{0.86\textwidth}
+    {\mlwSizeFrameTitle\textbf{\color{PureBlack}\insertframetitle}}
+  \end{minipage}\hfill
+  \begin{minipage}[c]{0.12\textwidth}
+    % Logo "nổi": \llap bỏ chiều rộng, [0pt][0pt] bỏ chiều cao/sâu,
+    % nên logo to đến đâu cũng không đẩy đường kẻ và nội dung xuống.
+    % Tâm logo đặt ngang tâm tiêu đề, dịch thêm \mlwLogoHeaderShift.
+    \iflogoheader\hfill\llap{%
+      \raisebox{\dimexpr-0.5\height+\mlwLogoHeaderShift\relax}[0pt][0pt]{%
+        \schoollogo{\mlwLogoHeaderHeight}}}\fi
+  \end{minipage}
+  \par\vspace{0.2em}
+  {\color{LineGray}\rule{\textwidth}{0.8pt}}
+  \vspace{-0.6em}
+}
+\setbeamertemplate{frametitle continuation}{}
+
+\setbeamertemplate{footline}{%
+  \leavevmode%
+  \hbox{%
+  \begin{beamercolorbox}[wd=0.75\paperwidth,ht=2.2ex,dp=1ex,left]{footline}%
+    \hspace{1.2cm}\mlwSizeFooter\color{MidGray}\textit{%
+      \mlw@ifempty{\mlwFooterText}{\insertshorttitle}{\mlwFooterText}}%
+  \end{beamercolorbox}%
+  \begin{beamercolorbox}[wd=0.25\paperwidth,ht=2.2ex,dp=1ex,right]{footline}%
+    \footnotesize\color{DarkSlate}\textbf{\insertframenumber}%
+    \mlw@iftrue{\mlwShowTotalFrames}{{\color{MidGray} / \inserttotalframenumber}}{}%
+    \hspace{1.2cm}%
+  \end{beamercolorbox}}%
+  \vskip6pt%
+}
+
+\newcommand{\utehytitlepage}{%
+  \begin{frame}[plain,c]
+    \centering
+    \IfFileExists{\mlw@logofile}{\schoollogo{\mlwLogoTitleHeight}\par\vspace{0.8em}}{}
+    {\mlwSizeTitle\textbf{\color{PureBlack}\inserttitle}}\par
+    \ifx\mlw@sourceline\@empty\else
+      \vspace{0.5em}{\small\color{DarkSlate}\mlw@sourceline}\par
+    \fi
+    \vspace{0.4em}
+    {\color{LineGray}\rule{0.6\textwidth}{1pt}}\par
+    \vspace{1.0em}
+    \small
+    \textbf{\mlwLabelPresenter:} \mlw@presenter
+    \ifx\mlw@studentid\@empty\else
+      \quad|\quad\textbf{\mlwLabelStudentID:} \mlw@studentid
+    \fi\par
+    \ifx\mlw@advisor\@empty\else
+      \vspace{0.3em}\textbf{\mlwLabelAdvisor:} \mlw@advisor\par
+    \fi
+    \vspace{0.8em}
+    {\footnotesize\color{MidGray}\insertinstitute\ - \insertdate}\par
+  \end{frame}
+}
+\let\titleslide\utehytitlepage
+
+% ---------------------------------------------------------------------
+% 7. Đánh số mục tự động, mục lục, slide chuyển mục
+% ---------------------------------------------------------------------
+\renewcommand{\thesection}{\arabic{section}}
+\renewcommand{\thesubsection}{\arabic{section}.\arabic{subsection}}
+\newcommand{\stitle}{\thesubsection.~\insertsubsection}
+
+\setbeamertemplate{section in toc}{%
+  {\color{PureBlack}\textbf{\inserttocsectionnumber.}}~\inserttocsection\par}
+\setbeamertemplate{subsection in toc}{}
+
+\mlw@iftrue{\mlwSectionDivider}{%
+  \AtBeginSection[]{%
+    \begin{frame}[c]
+      \begin{center}
+        {\mlwSizeSection\bfseries\color{PureBlack}\insertsectionnumber.~\insertsection}\\[0.7em]
+        {\color{LineGray}\rule{0.35\textwidth}{1pt}}
+      \end{center}
+    \end{frame}
+  }%
+}{}
+
+% ---------------------------------------------------------------------
+% 8. Trích dẫn, hình ảnh
+% ---------------------------------------------------------------------
+\newcommand{\src}[1]{{\mlwSizeSource\color{MidGray}#1}}
+\newcommand{\ct}[1]{\,{\color{MidGray}\cite{#1}}}
+\newcommand{\figorbox}[3]{%
+  \IfFileExists{\mlwImageDir#1}{\includegraphics[#2]{#1}\par}{%
+    \fbox{\parbox[c][#3][c]{0.9\linewidth}{\centering\scriptsize\color{MidGray}%
+      \mlwLabelMissingFig\ \texttt{\detokenize\expandafter{\mlwImageDir}\detokenize{#1}}}}\par}}
+
+% ---------------------------------------------------------------------
+% 9. Tài liệu tham khảo (BibTeX, số thứ tự theo lần trích dẫn đầu tiên)
+% ---------------------------------------------------------------------
+\setbeamertemplate{bibliography item}{\insertbiblabel}
+\setbeamertemplate{bibliography entry title}{}
+\setbeamertemplate{bibliography entry location}{}
+\setbeamertemplate{bibliography entry note}{}
+\setbeamercolor{bibliography item}{fg=PureBlack}
+\setbeamercolor{bibliography entry author}{fg=DarkSlate}
+\setbeamercolor{bibliography entry title}{fg=DarkSlate}
+\setbeamercolor{bibliography entry location}{fg=MidGray}
+\setbeamercolor{bibliography entry note}{fg=MidGray}
+
+\IfFileExists{\mlwBibStyle.bst}
+  {\edef\mlw@bibstyle{\mlwBibStyle}}
+  {\def\mlw@bibstyle{ieeetr}%
+   \PackageWarningNoLine{beamerthemeMLWNet}{Khong co \mlwBibStyle.bst,
+     dung ieeetr thay the}}
+
+\newcommand{\bibslide}[1][Tài Liệu Tham Khảo]{%
+  \begin{frame}[allowframebreaks]{#1}
+    \mlwSizeBib
+    \bibliographystyle{\mlw@bibstyle}
+    \bibliography{\mlwBibFile}
+  \end{frame}
+}
+
+% ---------------------------------------------------------------------
+% 10. Slide hỏi đáp
+% ---------------------------------------------------------------------
+\newcommand{\qaslide}[1]{%
+  \begin{frame}[plain,c]
+    \begin{center}
+      {\mlwSizeQA\textbf{\color{PureBlack}\mlwLabelQA}}\\
+      \vspace{0.8em}
+      {\color{LineGray}\rule{0.35\textwidth}{1pt}}\\
+      \vspace{0.8em}
+      {\normalsize\color{MidGray}#1}
+    \end{center}
+  \end{frame}
+}
+
+\endinput

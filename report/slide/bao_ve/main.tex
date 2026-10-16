@@ -1,0 +1,834 @@
+% =====================================================================
+%  main.tex - Slide bảo vệ bài tập lớn (khung: theme MLWNet của người làm đồ án)
+%  Font: config/fonts.tex | Logo, ảnh, footer: config/settings.tex
+%  Giao diện: theme/beamerthemeMLWNet.sty
+%  Biên dịch: XeLaTeX -> BibTeX -> XeLaTeX -> XeLaTeX (Overleaf: Compiler = XeLaTeX)
+%  Số liệu lấy từ báo cáo (report/overleaf), không gõ số mới.
+% =====================================================================
+\makeatletter\def\input@path{{config/}{theme/}}\makeatother
+\input{config/fonts}
+\input{config/settings}
+\documentclass[aspectratio=\mlwAspectRatio, \mlwBaseSize, t]{beamer}
+\usetheme{MLWNet}
+\usepackage{tabularx}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+% ---------------------------------------------------------------------
+% Thông tin trang bìa
+% ---------------------------------------------------------------------
+\title[Phát hiện, phân loại và theo dõi phương tiện giao thông]{Ứng dụng học sâu trong phát hiện, phân loại\\
+  và theo dõi phương tiện giao thông}
+\sourceline{Bài tập lớn môn Học sâu}
+\presenter{Dương Minh Chiến}
+\studentid{12423062}
+\advisor{PGS.TS. Nguyễn Minh Tiến}
+\institute{Khoa Công nghệ Thông tin - Trường Đại học Công nghệ Kỹ thuật Hưng Yên}
+\date{Hưng Yên, 2026}
+
+% Ô số liệu kèm khoảng tin cậy: giá trị ở trên, [a–b] chữ nhỏ màu xám ở dưới
+\newcommand{\ci}[2]{{\renewcommand{\arraystretch}{0.9}%
+  \begin{tabular}[t]{@{}c@{}}#1\\{\tiny\color{MidGray}[#2]}\end{tabular}}}
+% Tiêu đề cột hai dòng (chữ đậm), để cột không phải rộng theo tiêu đề dài
+\newcommand{\hd}[2]{{\renewcommand{\arraystretch}{0.95}%
+  \begin{tabular}[b]{@{}c@{}}\textbf{#1}\\\textbf{#2}\end{tabular}}}
+
+\begin{document}
+
+\utehytitlepage
+
+\begin{frame}{Tiến Trình Trình Bày}
+  \vspace{0.6em}
+  \tableofcontents
+\end{frame}
+
+% =====================================================================
+\section{Giới thiệu bài toán}
+% =====================================================================
+
+\subsection{Bối cảnh}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.50\textwidth}
+      \begin{itemize}
+        \item Việt Nam có \alert{77 triệu xe máy} đăng ký (9/2024)\ct{tienphong2024xemay}.
+        \item Xe máy đi chung với ô tô, buýt, tải; ít giữ làn, dồn thành cụm khi chờ đèn đỏ.
+        \item Hà Nội vận hành trung tâm điều khiển giao thông thông minh (12/2025) với \alert{1.837 camera} tại 195 nút
+              giao\ct{vneconomy2025camera}.
+        \item Không thể có người xem từng camera: máy phải tự \alert{tìm xe, biết loại xe, nhận ra cùng một xe} qua
+              các frame.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.46\textwidth}
+      \centering
+      \figorbox{intro_day.jpg}{width=\linewidth,height=0.30\textheight,keepaspectratio}{2.3cm}
+      \vspace{0.15em}
+      \figorbox{intro_night.jpg}{width=\linewidth,height=0.30\textheight,keepaspectratio}{2.3cm}
+      \src{Nguồn video: Raw Street Capture 101, Midnight Soundscape.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Bài toán}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \begin{block}{Ba bài toán}
+        \textbf{Phát hiện}: box của từng xe.\\
+        \textbf{Phân loại}: xe máy, ô tô, buýt, tải.\\
+        \textbf{Theo dõi}: một ID cho mỗi xe qua các frame.
+      \end{block}
+      \begin{block}{Đầu vào và đầu ra}
+        \textbf{Vào:} video camera cố định nhìn chéo từ trên cao, ngày và đêm.\\
+        \textbf{Ra:} box, lớp, ID; ứng dụng đếm xe qua vạch.
+      \end{block}
+    \end{column}
+    \begin{column}{0.54\textwidth}
+      \centering
+      \figorbox{demo_pvd_goc_a.jpg}{width=\linewidth,height=0.58\textheight,keepaspectratio}{4cm}
+      \src{Kết quả của hệ thống trên clip Phạm Văn Đồng (nguồn video: Vietnam Naturally).}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Khó khăn}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item \textbf{Mật độ xe máy rất cao}: 2.982 xe máy trên 30 frame test Hà Nội, che khuất lẫn nhau.
+        \item \textbf{Xe rất nhỏ ở xa}: 52\% xe ở cảnh đại lộ cao dưới 32 điểm ảnh.
+        \item \textbf{Ban đêm}: đèn pha chói, xe tối lẫn nền, xe xa chỉ thấy đèn.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item \textbf{Lệch miền}: mô hình COCO gốc chỉ đạt mAP50 0.686 trên test Hà Nội.
+        \item \textbf{Thiếu dữ liệu đúng góc camera giao thông}; định nghĩa lớp xe khác nhau giữa các bộ dữ liệu.
+        \item \textbf{Thời gian thực}: video 30 frame/s, nhiều camera.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Mục tiêu và phạm vi}
+\begin{frame}{\stitle}
+  \begin{block}{Mục tiêu}
+    Hệ thống phát hiện, phân loại và theo dõi phương tiện từ video camera giao thông Việt Nam có
+    \alert{khả năng triển khai thực tế}: đủ chính xác trên camera chưa dùng khi huấn luyện, cả ngày lẫn đêm, và chạy
+    kịp thời gian thực trên máy chủ có GPU.
+  \end{block}
+  \begin{block}{Phạm vi}
+    \begin{itemize}
+      \item Camera cố định nhìn chéo từ trên cao, kiểu camera giao thông; ban ngày và ban đêm.
+      \item Bốn lớp: \texttt{motorbike}, \texttt{car}, \texttt{bus}, \texttt{truck}; box xe máy bao cả người lái.
+      \item Đánh giá phát hiện bằng mAP (COCO), theo dõi bằng HOTA, MOTA, IDF1 (MOTChallenge).
+    \end{itemize}
+  \end{block}
+\end{frame}
+
+\subsection{Nội dung và nguyên tắc đánh giá}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Nội dung thực hiện}
+        \begin{itemize}
+          \item Gộp dữ liệu, tự xây tập test Việt Nam có người kiểm.
+          \item Tinh chỉnh YOLO26 qua nhiều phiên bản dữ liệu.
+          \item So sánh CNN (YOLO26) với Transformer (RT-DETRv2-S).
+          \item Chọn tracker, đếm xe qua vạch, web demo.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Nguyên tắc đánh giá}
+        \begin{itemize}
+          \item Mọi lựa chọn chốt trên tập \alert{dev}, theo tiêu chí viết trước khi chạy.
+          \item Tập \alert{test} chỉ để báo cáo kết quả.
+          \item Chênh dưới 0.005 coi là hoà; hoà thì chọn bản nhanh hơn.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Cơ sở lý thuyết}
+% =====================================================================
+
+\subsection{YOLO26: phát hiện một giai đoạn, không cần NMS}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \centering
+      \figorbox{paper_yolo26_arch.png}{width=\linewidth,height=0.64\textheight,keepaspectratio}{4.6cm}
+      \src{Nguồn: \cite{jocher2026yolo26}.}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{itemize}
+        \item Họ YOLO\ct{redmon2016yolo}: một lần đưa ảnh qua mạng cho ra mọi box và lớp.
+        \item \textbf{Backbone} trích đặc trưng, \textbf{neck} trộn nhiều mức, \textbf{head} dự đoán ở 1/8, 1/16, 1/32.
+        \item YOLO26: đầu một-một khi suy luận nên \alert{không cần NMS}.
+        \item Hai cỡ: \textbf{YOLO26n} (2.5 M tham số), \textbf{YOLO26s} (10.0 M).
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{RT-DETRv2: phát hiện bằng Transformer}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \centering
+      \figorbox{paper_rtdetr.png}{width=\linewidth,height=0.60\textheight,keepaspectratio}{4.6cm}
+      \src{Nguồn: \cite{zhao2024rtdetr}.}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{itemize}
+        \item DETR\ct{carion2020detr}: phát hiện là dự đoán tập hợp, ghép một-một bằng Hungarian.
+        \item RT-DETR: bộ mã hoá lai (AIFI + CCFF), chọn truy vấn theo độ bất định, attention biến dạng.
+        \item RT-DETRv2-S\ct{lv2024rtdetrv2}: ResNet-18, 20.1 M tham số.
+        \item Ưu: box khít. Nhược: \alert{nặng hơn YOLO}.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Theo dõi đa đối tượng}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{itemize}
+        \item \textbf{SORT}\ct{bewley2016sort}: Kalman dự đoán vị trí, Hungarian ghép box theo IoU.
+        \item \textbf{ByteTrack}\ct{zhang2022bytetrack}: ghép thêm lần hai với box điểm thấp, xe bị che không mất
+              track.
+        \item \textbf{BoT-SORT}\ct{aharon2022botsort}: Kalman theo rộng và cao box, bù chuyển động camera, tuỳ chọn
+              ReID.
+        \item Ngưỡng tin cậy detector đặt \alert{0.1} để có box điểm thấp cho lần ghép hai.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.52\textwidth}
+      \centering
+      \figorbox{paper_bytetrack.jpg}{width=\linewidth,height=0.29\textheight,keepaspectratio}{2.4cm}
+      \src{Nguồn: \cite{zhang2022bytetrack}.}
+      \vspace{0.15em}
+      \figorbox{paper_botsort.png}{width=\linewidth,height=0.29\textheight,keepaspectratio}{2.4cm}
+      \src{Nguồn: \cite{aharon2022botsort}.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Chỉ số đánh giá}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Phát hiện: AP, mAP (COCO\ct{lin2014coco})}
+        \[
+          \mathrm{AP} = \frac{1}{101} \sum_{r \in \{0, 0.01, \ldots, 1\}} p_{\mathrm{interp}}(r)
+        \]
+        \textbf{mAP50 chính}: trung bình AP50 của xe máy và ô tô (buýt, tải quá ít mẫu trong tập test).
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Theo dõi: MOTA, IDF1, HOTA}
+        \[
+          \mathrm{MOTA} = 1 - \frac{\sum_t (\mathrm{FN}_t + \mathrm{FP}_t + \mathrm{IDSW}_t)}{\sum_t \mathrm{GT}_t}
+        \]
+        \[
+          \mathrm{HOTA}_\alpha = \sqrt{\mathrm{DetA}_\alpha \cdot \mathrm{AssA}_\alpha}
+        \]
+        IDF1, IDR: giữ đúng danh tính\ct{ristani2016idf1}; HOTA tách phát hiện và liên kết\ct{luiten2021hota}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Dữ liệu và xây dựng hệ thống}
+% =====================================================================
+
+\subsection{Dữ liệu huấn luyện: gộp bảy nguồn}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{@{}p{3.6cm}Yr@{}}
+    \toprule
+    \textbf{Nguồn} & \textbf{Đặc điểm} & \textbf{Ảnh train} \\
+    \midrule
+    vietnamese-vehicle\ct{roboflow_vnvehicle} & Xe Việt Nam nhiều cảnh; nguồn duy nhất chia cả val, test & 929 \\
+    cantho, vehicle-detection & Gần như một camera mỗi bộ; chỉ dùng train & 300 + 300 \\
+    VisDrone\ct{zhu2022visdrone} & Rất nhiều xe máy nhỏ nhìn từ trên cao & 909 \\
+    UVH-26\ct{sharma2025uvh26} & Đúng góc camera giao thông, khoảng 2.800 camera & 2.000 \\
+    Video ngã tư Hà Nội & Đúng cảnh mục tiêu, nhãn tự động, lặp 4 lần & 69 $\times$ 4 \\
+    \rowcolor{HiRow}
+    Video TP.HCM ban đêm & Hai camera đêm, nhãn tự động (từ v6) & 288 \\
+    \bottomrule
+  \end{tabularx}\par
+  \vspace{0.6em}
+  \begin{itemize}
+    \item Bộ dữ liệu v6: \alert{5.002 ảnh train}, 320 ảnh val, 308 ảnh test.
+    \item Không dùng cách chia sẵn của Roboflow: ảnh gần trùng được gom nhóm bằng dHash rồi chia theo nhóm, tránh test
+          cùng cảnh với train.
+  \end{itemize}
+\end{frame}
+
+\subsection{Các tập đánh giá: đo trên camera mới}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.46\textwidth}
+      \begin{block}{Dev (dùng để chọn)}
+        \begin{itemize}
+          \item Val Hà Nội: 10 frame, nhãn người.
+          \item Dev đêm: 32 frame nút giao Gia Định.
+          \item VnTraffic\ct{le2026vntraffic} và clip dev Phạm Văn Đồng góc C: chọn tracker.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.50\textwidth}
+      \begin{block}{Test (chỉ để báo cáo)}
+        \begin{itemize}
+          \item Test Hà Nội 30 frame: \alert{cùng camera} với frame train.
+          \item \texttt{vn\_extra} ngày, đêm: \alert{camera mới}, 30 + 30 frame.
+          \item Clip Phạm Văn Đồng 20 giây, 183 quỹ đạo nhãn tay.
+          \item 176 lượt xe đếm tay ở hai clip hầm chui đêm.
+          \item Val UVH-26, UA-DETRAC\ct{wen2020uadetrac}.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Gán nhãn dữ liệu}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Quy trình ba bước}
+        Mô hình tạo nhãn sơ bộ $\rightarrow$ người gán sửa từng box $\rightarrow$ mô hình khác chỉ ra chỗ có thể sót.
+      \end{block}
+      \begin{block}{Quy tắc}
+        \begin{itemize}
+          \item Box xe máy bao cả người lái.
+          \item Xe mơ hồ gán lớp \texttt{ignore} (như KITTI, COCO).
+          \item Van nhỏ là ô tô, cỡ Ford Transit là buýt.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Nhãn tự động cho frame train}
+        Ghép nhiều mô hình ``thầy'' bằng WBF\ct{solovyev2021wbf} và SAHI\ct{akyon2022sahi}; val Hà Nội: P 0.905,
+        R 0.853.
+      \end{block}
+      \begin{block}{Tránh thiên lệch}
+        Nhãn sơ bộ của tập test mới lấy từ YOLO26x COCO, \alert{không phải mô hình đang so sánh}.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Quá trình cải tiến mô hình}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{@{}lYccc@{}}
+    \toprule
+    \textbf{Bản} & \textbf{Thay đổi} & \textbf{Ảnh} & \hd{Test Hà Nội}{mAP50} & \hd{\texttt{vn\_extra} đêm}{mAP50} \\
+    \midrule
+    COCO gốc & YOLO26n chưa tinh chỉnh & 1280 & 0.686 & 0.437 \\
+    v1 & Roboflow + VisDrone & 640 & 0.395 & 0.183 \\
+    v2 & Ảnh 960, VisDrone nhiều xe máy & 960 & 0.890 & 0.496 \\
+    v3 & + frame Hà Nội nhãn tự động & 960 & 0.921 & 0.437 \\
+    v4 & Như v3, ảnh 1280 & 1280 & 0.919 & 0.481 \\
+    v5 & + 2.000 ảnh UVH-26 (góc camera giao thông) & 960 & \textbf{0.923} & 0.628 \\
+    v6 & + 288 frame đêm (\alert{bản nhẹ}, YOLO26n) & 960 & 0.921 & 0.755 \\
+    \rowcolor{HiRow}
+    YOLO26s-v6 & YOLO26s học dữ liệu v6 (\alert{mô hình chính}) & 960 & 0.920 & \textbf{0.887} \\
+    \bottomrule
+  \end{tabularx}\par
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Dữ liệu \alert{đúng góc camera} (v5) và \alert{đúng cảnh đêm} (v6) có tác dụng lớn hơn tăng ảnh lên 1280 (v4).
+  \end{itemize}
+\end{frame}
+
+\subsection{Tiêu chí chọn mô hình viết trước khi chạy}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabularx}{\linewidth}{@{}Ycc@{}}
+    \toprule
+    \textbf{Điều kiện trên tập dev (cả hai lần huấn luyện phải đạt)} & \hd{v6}{(seed 42 / 1)} & \hd{YOLO26s-v6}{(seed 42 / 1)} \\
+    \midrule
+    mAP50 dev đêm cao hơn lần tốt nhất của bản cũ ($> 0.499$; $> 0.641$) & 0.599 / 0.618 & 0.711 / 0.712 \\
+    mAP50 val Hà Nội không kém quá 0.005 ($\ge 0.909$) & 0.914 / 0.914 & 0.911 / 0.916 \\
+    IDR VnTraffic không kém quá 0.005 ($\ge 0.822$; $\ge 0.821$) & 0.841 / 0.824 & 0.866 / 0.870 \\
+    \midrule
+    \textbf{Kết luận} & \textbf{Đạt cả ba} & \textbf{Đạt cả ba} \\
+    \bottomrule
+  \end{tabularx}\par
+  \vspace{0.6em}
+  \begin{itemize}
+    \item Tiêu chí lưu vào kho mã nguồn \alert{trước khi huấn luyện}; tập test chỉ chấm \alert{sau khi đã nhận}.
+    \item Huấn luyện trên GPU Tesla T4 (Kaggle), tối đa 100 epoch, AdamW; YOLO26s-v6 mất 5.16 giờ.
+  \end{itemize}
+\end{frame}
+
+\subsection{Giao thức so sánh CNN và Transformer}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Đồng nhất}
+        \begin{itemize}
+          \item Cùng dữ liệu v5, cùng file nhãn, cùng khởi tạo COCO.
+          \item Ảnh 960, tối đa 100 epoch, dừng sớm sau 20.
+          \item Cùng cách chọn checkpoint và cùng đường chấm.
+          \item Cùng CPU, cùng frame khi đo tốc độ.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Giữ theo công thức từng họ}
+        Tốc độ học, batch, tăng cường dữ liệu, hàm mất mát. YOLO giữ tỉ lệ ảnh (544$\times$960), RT-DETRv2 kéo giãn
+        (960$\times$960), nhiều điểm ảnh hơn 1.8 lần.
+      \end{block}
+      \begin{block}{Đối chứng}
+        Thêm \alert{YOLO26s ở ảnh 1280} (gần cùng số điểm ảnh) để tách tác dụng của kiến trúc và của độ phân giải.
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Pipeline hệ thống}
+\begin{frame}{\stitle}
+  \centering
+  \figorbox{pipeline.pdf}{width=0.92\textwidth,height=0.36\textheight,keepaspectratio}{3cm}
+  \vspace{0.3em}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item Phát hiện (ngưỡng 0.1) $\rightarrow$ \alert{lọc box trùng} IoU 0.6 $\rightarrow$ BoT-SORT (không GMC, không
+              ReID).
+        \item Ánh xạ lớp theo tên, chạy được cả mô hình COCO gốc.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{itemize}
+        \item \textbf{Bỏ phiếu lớp theo track}: $\hat{c}(k) = \arg\max_c \sum_{t} s_t \mathbf{1}\{c_t = c\}$.
+        \item Đếm khi điểm giữa đáy box cắt vạch; xuất video H.264 và CSV.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Kết quả thực nghiệm}
+% =====================================================================
+
+\subsection{Phát hiện: test Hà Nội và cảnh mới}
+\begin{frame}{\stitle}
+  \centering
+  \footnotesize
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    & & \multicolumn{3}{c}{\textbf{\texttt{vn\_extra} (camera mới)}} \\
+    \cmidrule(lr){3-5}
+    \textbf{Mô hình} & \hd{Test Hà Nội}{mAP50} & \hd{Ngày}{mAP50} & \hd{Đêm}{mAP50} & \hd{Đêm}{mAP50-95} \\
+    \midrule
+    COCO gốc @1280 & \ci{0.686}{0.668--0.705} & \ci{0.458}{0.416--0.502} & \ci{0.437}{0.363--0.498} & 0.308 \\
+    v3 & \ci{0.921}{0.911--0.933} & 0.757 & 0.437 & 0.263 \\
+    v5 & \ci{\textbf{0.923}}{0.913--0.932} & \ci{0.745}{0.699--0.787} & \ci{0.628}{0.575--0.681} & 0.404 \\
+    v6 (bản nhẹ) & \ci{0.921}{0.909--0.932} & \ci{0.760}{0.724--0.795} & \ci{0.755}{0.708--0.795} & 0.495 \\
+    \rowcolor{HiRow}
+    YOLO26s-v6 & \ci{0.920}{0.911--0.931} & \ci{\textbf{0.830}}{0.801--0.858} & \ci{\textbf{0.887}}{0.861--0.913} &
+      \textbf{0.614} \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Tinh chỉnh nâng mAP50 Hà Nội từ 0.686 lên 0.920--0.923; các bản từ v3 trở đi \alert{hoà nhau} ở đây.
+    \item Trên camera mới, YOLO26s-v6 cao nhất cả ngày lẫn đêm; frame đêm (v6) nâng đêm từ 0.628 lên 0.755.
+  \end{itemize}
+\end{frame}
+
+\subsection{Phát hiện: clip Phạm Văn Đồng và tập ngoài}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.62\textwidth}
+      \centering
+      \footnotesize
+      \setlength{\tabcolsep}{4pt}
+      \begin{tabular}{@{}lccccc@{}}
+        \toprule
+        \textbf{Tập} & \hd{COCO}{@1280} & \textbf{v3} & \textbf{v5} & \textbf{v6} & \hd{YOLO26s}{-v6} \\
+        \midrule
+        Clip PVD & 0.664 & 0.891 & 0.892 & \textbf{0.907} & 0.901 \\
+        Val UVH-26 & 0.594 & 0.335 & 0.850 & 0.849 & \textbf{0.871} \\
+        UA-DETRAC đêm & 0.689 & 0.722 & 0.845 & 0.857 & \textbf{0.867} \\
+        UA-DETRAC ngày & 0.690 & 0.709 & 0.812 & 0.852 & \textbf{0.881} \\
+        Test Roboflow & 0.255 & -- & 0.834 & 0.844 & \textbf{0.857} \\
+        \bottomrule
+      \end{tabular}\par
+      \vspace{0.5em}
+      \begin{itemize}
+        \item v3 thấp hơn cả COCO ở UVH-26 (lệch miền Ấn Độ); thêm UVH-26 (v5) đưa lên 0.850.
+        \item Frame đêm (v6) không làm kém đi ở camera Ấn Độ, Trung Quốc.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.34\textwidth}
+      \centering
+      \figorbox{confusion_matrix.jpg}{width=\linewidth,height=0.48\textheight,keepaspectratio}{3cm}
+      \src{Ma trận nhầm lẫn của YOLO26s-v6 trên test Roboflow: nhầm lớp lớn nhất 0.07; lỗi chủ yếu là bỏ sót (18\% xe
+        máy).}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{So sánh kiến trúc CNN và Transformer}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabular}{@{}lcccc@{}}
+    \toprule
+    \textbf{Tập (mAP50 chính)} & \hd{YOLO26n}{@960} & \hd{YOLO26s}{@960} & \hd{RT-DETRv2-S}{@960$\times$960} &
+      \hd{YOLO26s}{@1280} \\
+    \midrule
+    Test Hà Nội & 0.923 & 0.914 & \textbf{0.929} & 0.915 \\
+    \texttt{vn\_extra} ngày & 0.745 & 0.798 & \textbf{0.886} & 0.875 \\
+    \texttt{vn\_extra} đêm & 0.628 & 0.713 & \textbf{0.816} & 0.800 \\
+    Val UVH-26 & 0.850 & 0.859 & \textbf{0.894} & 0.865 \\
+    UA-DETRAC ngày & 0.812 & 0.885 & \textbf{0.924} & 0.885 \\
+    \midrule
+    mAP50-95 val UVH-26 & 0.696 & 0.721 & \textbf{0.757} & -- \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.5em}
+  \begin{enumerate}
+    \item Cùng ảnh 960: RT-DETRv2-S bằng hoặc hơn YOLO26s, hơn rõ ở cảnh khó.
+    \item Cho YOLO26s \alert{cùng số điểm ảnh} (ảnh 1280): hai họ \alert{hoà nhau} trên dữ liệu Việt Nam, nên phần lớn
+          lợi thế đến từ độ phân giải đầu vào.
+    \item Trên tập nhãn độc lập, box của RT-DETRv2-S khít hơn khoảng 0.03 mAP50-95.
+  \end{enumerate}
+\end{frame}
+
+\subsection{Tốc độ trên CPU và GPU}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \centering
+      \footnotesize
+      \begin{tabular}{@{}lcc@{}}
+        \toprule
+        \textbf{Mô hình} & \hd{CPU i5-8250U}{phát hiện (ms)} & \hd{GPU Tesla T4}{pipeline (frame/s)} \\
+        \midrule
+        YOLO26n & 100.5 & 42.2 \\
+        YOLO26s & 261.9 & 42.6 \\
+        YOLO26s @1280 & 455.2 & 30.2 \\
+        RT-DETRv2-S & 1526.2 & 16.0\textsuperscript{*} \\
+        \bottomrule
+      \end{tabular}\par
+      \vspace{0.2em}
+      \src{* riêng phần phát hiện.}
+      \vspace{0.4em}
+      \begin{itemize}
+        \item Trên GPU, YOLO26n và YOLO26s \alert{nhanh như nhau} (khoảng 42 frame/s).
+        \item RT-DETRv2-S chậm hơn YOLO26s 5.8 lần trên CPU, khoảng 4 lần trên GPU.
+      \end{itemize}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \centering
+      \figorbox{accuracy_vs_speed.pdf}{width=\linewidth,height=0.55\textheight,keepaspectratio}{4cm}
+      \src{Độ chính xác theo thời gian phát hiện trên CPU.}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Chạy trên laptop với OpenVINO}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabular}{@{}llcccc@{}}
+    \toprule
+    \textbf{Mô hình} & \textbf{Cấu hình, thiết bị} & \hd{Phát hiện}{(ms)} & \hd{Pipeline}{(frame/s)} & \hd{mAP50}{val} &
+      \hd{IDR}{dev} \\
+    \midrule
+    v6 & PyTorch FP32, CPU & 130.0 & 6.6 & 0.914 & \textbf{0.841} \\
+    v6 & OpenVINO INT8, CPU & 39.9 & 18.2 & \textbf{0.918} & 0.825 \\
+    \rowcolor{HiRow}
+    v6 & OpenVINO FP32, GPU tích hợp & \textbf{34.7} & \textbf{19.5} & 0.914 & 0.825 \\
+    YOLO26s-v6 & PyTorch FP32, CPU & 338.0 & 3.2 & 0.911 & 0.866 \\
+    YOLO26s-v6 & OpenVINO FP32, GPU tích hợp & 80.1 & 9.8 & 0.912 & 0.875 \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Laptop không GPU rời: bản nhẹ v6 qua OpenVINO trên GPU Intel UHD 620 đạt \alert{19.5 frame/s}, gấp 3 lần PyTorch.
+    \item Ba điều quan trọng: chỉ định thiết bị, tránh tranh chấp luồng CPU, xuất đúng khung 544$\times$960 (nhanh hơn
+          ảnh vuông 1.6--2.1 lần).
+    \item Đánh đổi: mAP50 hoà PyTorch, IDR thấp hơn 0.016.
+  \end{itemize}
+\end{frame}
+
+\subsection{Theo dõi: chọn tracker trên dev}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.52\textwidth}
+      \centering
+      \footnotesize
+      \begin{tabular}{@{}lcccc@{}}
+        \toprule
+        \textbf{Tracker (v3)} & \textbf{AssA} & \textbf{IDR} & \textbf{Đổi ID} & \textbf{frame/s} \\
+        \midrule
+        ByteTrack & 0.615 & 0.708 & 147 & \textbf{4.4} \\
+        \rowcolor{HiRow}
+        BoT-SORT & \textbf{0.659} & \textbf{0.738} & \textbf{128} & 3.6 \\
+        OC-SORT & 0.594 & 0.669 & 206 & 4.0 \\
+        \bottomrule
+      \end{tabular}\par
+      \vspace{0.7em}
+      \begin{tabular}{@{}lccc@{}}
+        \toprule
+        \textbf{Detector} & \textbf{IDR} & \textbf{Đổi ID} & \textbf{Bỏ sót} \\
+        \midrule
+        v3 & 0.744 & 128 & 2.550 \\
+        v5 & 0.827 & \textbf{62} & 1.058 \\
+        v6 & 0.841 & 93 & 717 \\
+        \rowcolor{HiRow}
+        YOLO26s-v6 & \textbf{0.866} & 63 & \textbf{632} \\
+        \bottomrule
+      \end{tabular}
+    \end{column}
+    \begin{column}{0.44\textwidth}
+      \begin{itemize}
+        \item VnTraffic thiếu nhãn xe nên chỉ so bằng \alert{AssA, IDR, số lần đổi ID}.
+        \item BoT-SORT tốt nhất; tắt bù chuyển động camera vì camera đứng yên (hoà trên dev, nhanh hơn).
+        \item Mô hình phát hiện ảnh hưởng lên theo dõi \alert{nhiều hơn} cấu hình tracker: v3 sang v5 giảm đổi ID
+              từ 128 xuống 62.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Giảm số lần đổi ID bằng bộ lọc box trùng}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabular}{@{}lcccccc@{}}
+    \toprule
+    & \multicolumn{2}{c}{\textbf{Dev VnTraffic}} & \multicolumn{2}{c}{\textbf{Dev PVD góc C}} &
+      \multicolumn{2}{c}{\textbf{Test PVD góc A}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-5}\cmidrule(lr){6-7}
+    \textbf{Cấu hình tracker (v6)} & \textbf{Đổi ID} & \textbf{IDR} & \textbf{Bỏ sót} & \textbf{HOTA} & \textbf{Đổi ID} &
+      \textbf{HOTA} \\
+    \midrule
+    Cũ (không lọc) & 93.5 & 0.833 & \textbf{1.521} & 0.689 & 49 & 0.732 \\
+    Mở track từ 0.6 & 62.5 & 0.836 & 2.182 & \textbf{0.700} & \textbf{7} & 0.687 \\
+    \rowcolor{HiRow}
+    Lọc box trùng IoU 0.6 & 63.0 & \textbf{0.841} & 1.535 & 0.695 & 26 & \textbf{0.744} \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.5em}
+  \begin{itemize}
+    \item YOLO26 không chạy NMS: khoảng 20 trong 82 box mỗi frame là \alert{box phụ} chồng lên cùng một xe.
+    \item Nâng ngưỡng mở track đẹp trên VnTraffic nhưng \alert{bỏ sót gần gấp đôi} trên test, vì VnTraffic không có nhãn
+          xe nhỏ ở xa. Vì vậy đề tài gán nhãn thêm clip dev góc C và chọn lại trên cả hai tập dev.
+    \item Bộ lọc box trùng IoU 0.6: tổng đổi ID trên dev giảm 30\%, bỏ sót chỉ tăng 0.9\%; trên test đổi ID 49 xuống 26.
+  \end{itemize}
+\end{frame}
+
+\subsection{Theo dõi trên tập test}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabular}{@{}lcccccc@{}}
+    \toprule
+    \textbf{Cấu hình} & \textbf{HOTA} & \textbf{MOTA} & \textbf{IDF1} & \textbf{IDR} & \textbf{IDP} & \textbf{Đổi ID} \\
+    \midrule
+    \rowcolor{HiRow}
+    YOLO26s-v6 (mặc định) & \textbf{0.755} & \textbf{0.874} & \textbf{0.916} & \textbf{0.882} & 0.953 & 22 \\
+    YOLO26s-v6, lọc track dưới 3 frame & 0.745 & 0.855 & 0.907 & 0.860 & \textbf{0.959} & \textbf{17} \\
+    v6 (bản nhẹ) & 0.744 & 0.847 & 0.905 & 0.859 & 0.955 & 26 \\
+    v5, chưa lọc box trùng & 0.718 & 0.813 & 0.880 & 0.822 & 0.947 & 26 \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.6em}
+  \begin{itemize}
+    \item Clip Phạm Văn Đồng 20 giây, 183 xe, nhãn quỹ đạo đầy đủ.
+    \item Mô hình chính: \alert{HOTA 0.755, MOTA 0.874, IDF1 0.916}, đổi ID 22 lần.
+    \item IDP cao hơn IDR: ít gán nhầm danh tính, phần mất chủ yếu do bỏ sót (1.353 box sót, 340 box thừa).
+    \item Với cùng v5, BoT-SORT cũng tốt nhất trên test (ByteTrack HOTA 0.698, OC-SORT 0.692).
+  \end{itemize}
+\end{frame}
+
+\subsection{Ứng dụng: sai số đếm xe qua vạch}
+\begin{frame}{\stitle}
+  \centering
+  \small
+  \begin{tabular}{@{}lccccc@{}}
+    \toprule
+    & \multicolumn{2}{c}{\textbf{Ban ngày (73 lượt)}} & \multicolumn{3}{c}{\textbf{Ban đêm (176 lượt, đếm tay)}} \\
+    \cmidrule(lr){2-3}\cmidrule(lr){4-6}
+    \textbf{Mô hình} & \textbf{Đếm (vào / ra)} & \textbf{Sai số} & \textbf{Sót} & \textbf{Thừa} & \textbf{Sai số} \\
+    \midrule
+    v5 & 0 / 72 & 3 (4.1\%) & 15 & \textbf{0} & 15 (8.5\%) \\
+    YOLO26s (dữ liệu v5) & 0 / 71 & \textbf{2 (2.7\%)} & 7 & 5 & 8 (4.5\%) \\
+    v6 (bản nhẹ) & 0 / 71 & \textbf{2 (2.7\%)} & \textbf{3} & 2 & \textbf{3 (1.7\%)} \\
+    \rowcolor{HiRow}
+    YOLO26s-v6 & 0 / 70 & 3 (4.1\%) & \textbf{3} & 2 & \textbf{3 (1.7\%)} \\
+    \bottomrule
+  \end{tabular}\par
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Ban ngày: phần lớn sai số là hiện tượng của nhãn ở tán cây; lỗi thật là một Ford Transit đếm thành ô tô.
+    \item Ban đêm: mọi lỗi ở xe máy, sót trong \alert{cụm xe đi sát nhau}; thừa do box dao động quanh vạch.
+    \item Học thêm cảnh đêm đưa sai số đêm từ 8.5\% xuống \alert{1.7\%}.
+  \end{itemize}
+\end{frame}
+
+\subsection{Phân tích lỗi: bỏ sót ban ngày}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.49\textwidth}
+      \centering
+      \figorbox{error_1.jpg}{width=\linewidth,height=0.42\textheight,keepaspectratio}{3cm}
+      \src{Xe máy nhỏ ở xa bị sót (\texttt{vn\_extra} ngày).}
+    \end{column}
+    \begin{column}{0.49\textwidth}
+      \centering
+      \figorbox{error_2.jpg}{width=\linewidth,height=0.42\textheight,keepaspectratio}{3cm}
+      \src{Cụm xe máy chờ đèn đỏ bị sót (test Hà Nội).}
+    \end{column}
+  \end{columns}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Đỏ là bỏ sót, xanh lá là đúng, tím là thừa, xám là vùng bỏ qua.
+    \item Hai dạng bỏ sót chính: xe quá nhỏ sau khi thu ảnh về 960 điểm ảnh, và xe máy dừng sát nhau che lẫn nhau.
+  \end{itemize}
+\end{frame}
+
+\subsection{Phân tích lỗi: ban đêm và đổi ID}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.44\textwidth}
+      \centering
+      \figorbox{error_3.jpg}{width=\linewidth,height=0.40\textheight,keepaspectratio}{3cm}
+      \src{Ô tô ban đêm chỉ thấy đèn bị sót.}
+    \end{column}
+    \begin{column}{0.54\textwidth}
+      \centering
+      \figorbox{error_7.jpg}{width=\linewidth,height=0.30\textheight,keepaspectratio}{2.4cm}
+      \src{Đổi ID khi xe bị cây che: ID 296 (frame 340) sang ID 780 (frame 341).}
+    \end{column}
+  \end{columns}
+  \vspace{0.4em}
+  \begin{itemize}
+    \item Ban đêm: xe máy chở hàng có đèn chói bị gọi là ô tô; mô hình hay chỉ khoanh phần đèn hậu nên một xe vừa bị
+          tính sót vừa sinh box thừa.
+    \item Đổi ID: xe đi sau cây, box co lại theo phần nhìn thấy, tracker tạo track mới. Hướng sửa: \alert{ReID riêng cho
+          xe}.
+  \end{itemize}
+\end{frame}
+
+\subsection{Độ tin cậy của kết luận}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Huấn luyện lặp lại với seed khác}
+        \begin{itemize}
+          \item v5 và YOLO26s ba lần, v6 và YOLO26s-v6 hai lần.
+          \item YOLO26s hơn YOLO26n ở \texttt{vn\_extra} ngày và đêm \alert{ở mọi seed}.
+          \item Đêm dao động lớn: YOLO26n 0.510--0.638, YOLO26s 0.713--0.821.
+          \item Lần kém hơn của YOLO26s-v6 (0.847) vẫn hơn lần tốt nhất của YOLO26s học dữ liệu v5 (0.821).
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Thiên lệch và dùng lại tập test}
+        \begin{itemize}
+          \item Box sơ bộ giữ nguyên mang dấu mô hình tạo ra nó, nên ở test Hà Nội và clip PVD chỉ dùng mAP50.
+          \item Khoảng tin cậy lấy mẫu theo khối 10 giây: kết luận chính giữ nguyên.
+          \item Một lần kết quả test làm loại cấu hình chọn trên dev; đã ghi rõ trong báo cáo.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Web demo}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.56\textwidth}
+      \centering
+      \fbox{\includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{app_gpu_demo.jpg}}\par
+      \vspace{0.3em}
+      \fbox{\includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{app_counts.jpg}}
+    \end{column}
+    \begin{column}{0.42\textwidth}
+      \begin{itemize}
+        \item Streamlit: chọn clip hoặc tải video, chọn mô hình, đặt vạch đếm.
+        \item Kết quả: video có box, ID, vết di chuyển; bảng đếm theo lớp và hướng; biểu đồ cộng dồn; tải CSV.
+        \item Chế độ trình chiếu nạp video xử lý sẵn bằng \alert{YOLO26s-v6}; chế độ chạy trên laptop dùng bản nhẹ v6
+              OpenVINO.
+      \end{itemize}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+% =====================================================================
+\section{Kết luận và hướng phát triển}
+% =====================================================================
+
+\subsection{Kết quả chính}
+\begin{frame}{\stitle}
+  \begin{itemize}
+    \item \textbf{Phát hiện}: YOLO26s-v6 trên camera mới đạt mAP50 0.830 ban ngày, \alert{0.887 ban đêm} (COCO gốc 0.458
+          và 0.437).
+    \item \textbf{Theo dõi}: trên clip test HOTA 0.755, MOTA 0.874, IDF1 0.916; đổi ID 22 lần trên 183 xe.
+    \item \textbf{Đếm xe}: sai số 4.1\% ban ngày (73 lượt), \alert{1.7\%} ban đêm (176 lượt đếm tay).
+    \item \textbf{Kiến trúc}: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960 nhưng hoà khi YOLO nhìn cùng số điểm ảnh,
+          và chậm hơn 4--5.8 lần.
+    \item \textbf{Triển khai}: khoảng 43 frame/s trên GPU T4; laptop không GPU rời dùng bản nhẹ v6 OpenVINO 19.5 frame/s.
+    \item \textbf{Dữ liệu đúng cảnh} có tác dụng lớn hơn tăng kích thước ảnh hay đổi kiến trúc.
+  \end{itemize}
+\end{frame}
+
+\subsection{Đóng góp và hạn chế}
+\begin{frame}{\stitle}
+  \begin{columns}[T]
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Đóng góp}
+        \begin{itemize}
+          \item Tập test Việt Nam có người kiểm, gồm cảnh đêm và nhãn quỹ đạo.
+          \item Chọn trên dev theo tiêu chí viết trước; tách camera đã học và camera mới.
+          \item So sánh CNN và Transformer có đối chứng cùng số điểm ảnh.
+          \item Chạy được trên cả máy chủ GPU lẫn laptop.
+        \end{itemize}
+      \end{block}
+    \end{column}
+    \begin{column}{0.48\textwidth}
+      \begin{block}{Hạn chế}
+        \begin{itemize}
+          \item Tập test nhỏ (20--30 frame), một clip theo dõi 20 giây, ba địa điểm.
+          \item Chưa có nhãn theo dõi cho cảnh đêm.
+          \item Nhãn train đêm là nhãn tự động, thiếu xe nhỏ ở xa.
+          \item Chưa có lớp xe van; tốc độ T4 mới đo một luồng FP32.
+        \end{itemize}
+      \end{block}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\subsection{Hướng phát triển}
+\begin{frame}{\stitle}
+  \begin{itemize}
+    \item Thêm dữ liệu đúng góc camera giao thông Việt Nam, chia theo camera; gán nhãn theo dõi cho cảnh đêm.
+    \item Huấn luyện RT-DETRv2-S trên dữ liệu v6, lặp lại vài lần để so ban đêm cùng dữ liệu.
+    \item Chỉ đếm khi xe ở hẳn bên kia vạch vài frame, chặn đếm lặp do box dao động.
+    \item Mô hình ReID riêng cho xe để giảm đổi ID khi bị che.
+    \item TensorRT, FP16 trên GPU; đo số camera một GPU xử lý kịp cùng lúc.
+    \item Tách khâu vẽ và ghi video sang luồng riêng hoặc dùng bộ mã hoá phần cứng.
+  \end{itemize}
+\end{frame}
+
+% =====================================================================
+\bibslide
+\qaslide{Em xin chân thành cảm ơn Quý Thầy Cô đã lắng nghe.}
+
+\end{document}

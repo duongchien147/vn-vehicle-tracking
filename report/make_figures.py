@@ -8,7 +8,6 @@ Chạy: .venv\\Scripts\\python.exe report\\make_figures.py
 """
 
 import csv
-import zipfile
 from pathlib import Path
 
 import cv2
@@ -23,7 +22,6 @@ KAGGLE_YOLO = Path("outputs/kaggle/vn-vehicles-yolo26-train")
 KAGGLE_YOLO_MAIN = Path("outputs/kaggle/vn-vehicles-yolo26s-train-v6")  # lần train mô hình chính YOLO26s-v6 (seed 42)
 RTDETR_EPOCHS = Path("outputs/kaggle/vn-vehicles-rtdetrv2-train/rtdetrv2_r18_v5_e100_960_epochs.csv")
 DEMO_DIR = Path("outputs/demo_precomputed")  # video demo của mô hình chính, tạo bằng scripts/make_demo_videos.sh
-DOCX = Path("docs/DL AND CV.docx")
 
 # Bảng màu danh mục (3 ô đầu đạt kiểm tra mù màu theo mọi cặp) + marker/nét khác nhau để in đen trắng vẫn phân biệt
 SERIES = [
@@ -206,11 +204,6 @@ def copy_existing() -> None:
     for screenshot in sorted(OUT.glob("app_*.png")):
         save_jpeg(cv2.imread(str(screenshot)), screenshot.with_suffix(".jpg"))
         screenshot.unlink()
-    # Logo trường lấy từ file Word mẫu của người làm đồ án (ảnh đầu tiên của trang bìa). File mẫu chỉ có trên máy
-    # (không đưa lên git), logo.png đã trích sẵn nằm trong OUT nên thiếu file mẫu thì giữ logo cũ.
-    if DOCX.exists():
-        with zipfile.ZipFile(DOCX) as docx:
-            (OUT / "logo.png").write_bytes(docx.read("word/media/image1.png"))
 
 
 def main() -> None:

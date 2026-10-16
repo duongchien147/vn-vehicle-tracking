@@ -80,7 +80,7 @@ report/overleaf_truoc/
 # Sản phẩm tạo lại được của báo cáo: PDF (report/build_pdf.ps1) và gói zip cho Overleaf
 report/bao_cao.pdf
 report/*.zip
-# Chỉ có trên máy: file Word mẫu của trường (có thông tin sinh viên; logo đã trích vào report/overleaf/figures)
+# Chỉ có trên máy: file Word mẫu của trường (có thông tin sinh viên)
 # và mẫu slide bảo vệ
 docs/DL AND CV.docx
 report/slide/

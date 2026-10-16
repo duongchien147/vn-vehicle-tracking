@@ -35,11 +35,11 @@ $y = F(x) + x$ để huấn luyện được mạng sâu; RT-DETRv2-S dùng ResN
 Mô hình phát hiện nhận một ảnh và trả về tập dự đoán $\{(b_k, c_k, s_k)\}$, trong đó $b_k = (x, y, w, h)$ là box (toạ độ
 tâm, chiều rộng, chiều cao), $c_k$ là lớp và $s_k$ là điểm tin cậy. Các mô hình hiện đại thường gồm ba phần:
 \begin{itemize}
-  \item \textbf{Backbone}: mạng trích đặc trưng, cho ra các bản đồ đặc trưng ở nhiều độ phân giải (thường là 1/8, 1/16 và
+  \item Backbone: mạng trích đặc trưng, cho ra các bản đồ đặc trưng ở nhiều độ phân giải (thường là 1/8, 1/16 và
         1/32 ảnh gốc);
-  \item \textbf{Neck}: trộn đặc trưng giữa các mức để mức độ phân giải cao (dành cho vật nhỏ) cũng mang thông tin ngữ
+  \item Neck: trộn đặc trưng giữa các mức để mức độ phân giải cao (dành cho vật nhỏ) cũng mang thông tin ngữ
         nghĩa của mức sâu;
-  \item \textbf{Head}: dự đoán box và lớp tại từng vị trí trên các bản đồ đặc trưng.
+  \item Head: dự đoán box và lớp tại từng vị trí trên các bản đồ đặc trưng.
 \end{itemize}
 
 Mức độ trùng khớp giữa hai box $A$ và $B$ được đo bằng tỉ lệ giao trên hợp (IoU):
@@ -99,16 +99,16 @@ kênh với 0.25, cỡ s với 0.5, và cả hai chỉ lặp mỗi khối bằng
 
 Các điểm khác biệt chính so với thế hệ trước:
 \begin{itemize}
-  \item \textbf{Phát hiện đầu cuối, không cần NMS.} Theo hướng của YOLOv10~\cite{wang2024yolov10}, đầu phát hiện có hai
+  \item Phát hiện đầu cuối, không cần NMS. Theo hướng của YOLOv10~\cite{wang2024yolov10}, đầu phát hiện có hai
         nhánh (khối cuối của Hình~\ref{fig:yolo26-blocks}). Nhánh một-nhiều chỉ dùng khi huấn luyện, gán mỗi xe cho nhiều
         dự đoán để có thêm tín hiệu học. Nhánh một-một gán mỗi xe cho đúng một dự đoán và là nhánh dùng khi suy luận,
         nên đầu ra dùng được ngay, không qua NMS.
-  \item \textbf{Bỏ Distribution Focal Loss (DFL).} Box được hồi quy trực tiếp, giúp mô hình gọn hơn khi xuất sang các
+  \item Bỏ Distribution Focal Loss (DFL). Box được hồi quy trực tiếp, giúp mô hình gọn hơn khi xuất sang các
         định dạng triển khai như OpenVINO.
-  \item \textbf{ProgLoss và STAL.} ProgLoss (Progressive Loss) điều chỉnh dần trọng số giữa mất mát của nhánh một-nhiều
+  \item ProgLoss và STAL. ProgLoss (Progressive Loss) điều chỉnh dần trọng số giữa mất mát của nhánh một-nhiều
         và nhánh một-một trong quá trình huấn luyện. STAL (gán nhãn có chú ý tới vật nhỏ) bảo đảm box rất nhỏ vẫn có dự
         đoán được gán để học, đúng với xe máy ở xa trong bài toán này.
-  \item \textbf{Optimizer MuSGD}, kết hợp SGD với Muon. Thư viện chỉ tự chọn MuSGD khi số vòng lặp huấn luyện vượt
+  \item Optimizer MuSGD, kết hợp SGD với Muon. Thư viện chỉ tự chọn MuSGD khi số vòng lặp huấn luyện vượt
         10.000; với bộ dữ liệu của đề tài, số vòng lặp thấp hơn nên AdamW được chọn (mục~\ref{sec:cau-hinh-train}).
 \end{itemize}
 
@@ -230,11 +230,11 @@ trăm epoch trên COCO) và chậm khi suy luận.
 
 RT-DETR~\cite{zhao2024rtdetr} đưa họ DETR về tốc độ thời gian thực trên GPU nhờ ba thay đổi (Hình~\ref{fig:rtdetr}):
 \begin{itemize}
-  \item \textbf{Bộ mã hoá lai.} Attention trong cùng một mức (AIFI) chỉ chạy trên bản đồ đặc trưng sâu nhất (1/32),
+  \item Bộ mã hoá lai. Attention trong cùng một mức (AIFI) chỉ chạy trên bản đồ đặc trưng sâu nhất (1/32),
         nơi số phần tử ít; việc trộn đặc trưng giữa các mức (CCFF) làm bằng tích chập.
-  \item \textbf{Chọn truy vấn có độ bất định nhỏ nhất.} Truy vấn khởi tạo cho bộ giải mã được chọn từ các vị trí mà
+  \item Chọn truy vấn có độ bất định nhỏ nhất. Truy vấn khởi tạo cho bộ giải mã được chọn từ các vị trí mà
         điểm phân lớp và chất lượng định vị (IoU) cùng cao và khớp nhau, thay cho truy vấn học tự do.
-  \item \textbf{Attention biến dạng trong bộ giải mã.} Mỗi truy vấn chỉ lấy mẫu một số ít điểm quanh điểm tham chiếu:
+  \item Attention biến dạng trong bộ giải mã. Mỗi truy vấn chỉ lấy mẫu một số ít điểm quanh điểm tham chiếu:
 \end{itemize}
 \begin{equation}
   \mathrm{DeformAttn}(z_q, p_q, x) = \sum_{m=1}^{M} W_m \Big[ \sum_{k=1}^{K} A_{mqk} \cdot W'_m\, x\big(p_q +
@@ -335,10 +335,10 @@ Công thức (\ref{eq:hungarian}): bài toán gán. Các cặp có chi phí vư�
 
 \subsection{Các thuật toán theo dõi họ SORT}
 
-\textbf{SORT}~\cite{bewley2016sort} là dạng cơ bản: Kalman để dự đoán, Hungarian theo IoU để ghép. Track mới chỉ được
+SORT~\cite{bewley2016sort} là dạng cơ bản: Kalman để dự đoán, Hungarian theo IoU để ghép. Track mới chỉ được
 xác nhận sau vài frame liên tiếp có box (\texttt{min\_hits}) và bị xoá sau một số frame không được ghép.
 
-\textbf{ByteTrack}~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp (Hình~\ref{fig:bytetrack}). Box được chia hai
+ByteTrack~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp (Hình~\ref{fig:bytetrack}). Box được chia hai
 nhóm theo điểm tin cậy: lần ghép thứ nhất chỉ dùng box điểm cao; các track còn lại được ghép lần hai với box điểm thấp. Xe bị che một phần thường
 có điểm thấp, nên lần ghép thứ hai giúp track không bị đứt. Chỉ box điểm cao chưa ghép mới tạo track mới. Vì lý do
 này, ngưỡng tin cậy của mô hình phát hiện trong hệ thống được đặt ở 0.1 thay cho 0.25 thông thường: các box từ 0.1 đến
@@ -353,7 +353,7 @@ này, ngưỡng tin cậy của mô hình phát hiện trong hệ thống đư�
   \label{fig:bytetrack}
 \end{figure}
 
-\textbf{BoT-SORT}~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến (Hình~\ref{fig:botsort}): trạng thái
+BoT-SORT~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến (Hình~\ref{fig:botsort}): trạng thái
 Kalman dùng trực tiếp chiều rộng và chiều cao box; bù chuyển động camera (GMC) bằng cách ước lượng phép biến đổi giữa
 hai frame từ luồng quang học thưa rồi áp vào vị trí dự đoán; và tuỳ chọn kết hợp đặc trưng ngoại hình (ReID) với IoU
 khi ghép. Cấu hình của đề tài tắt cả ReID lẫn bù chuyển động camera, vì camera đứng yên và đặc trưng ngoại hình lấy từ
@@ -368,7 +368,7 @@ mô hình phát hiện làm số lần đổi ID tăng (mục~\ref{sec:chon-trac
   \label{fig:botsort}
 \end{figure}
 
-\textbf{OC-SORT}~\cite{cao2023ocsort} xử lý trường hợp xe bị che lâu: khi track được ghép lại sau thời gian mất, thuật
+OC-SORT~\cite{cao2023ocsort} xử lý trường hợp xe bị che lâu: khi track được ghép lại sau thời gian mất, thuật
 toán dựng lại quỹ đạo ảo từ quan sát cuối để sửa sai số tích luỹ của Kalman, và dùng hướng chuyển động thực tế làm
 thêm một thành phần chi phí khi ghép.
 
@@ -395,7 +395,7 @@ COCO~\cite{lin2014coco} là trung bình độ chính xác nội suy tại 101 m�
 Công thức (\ref{eq:ap}): AP nội suy 101 điểm của COCO.
 
 mAP là trung bình AP trên các lớp. mAP50 tính ở ngưỡng IoU 0.5; mAP50-95 lấy trung bình thêm trên 10 ngưỡng IoU 0.50,
-0.55, \ldots, 0.95, nên đòi hỏi box khít hơn. Trong đề tài, \textbf{mAP50 chính} là trung bình AP50 của xe máy và ô tô:
+0.55, \ldots, 0.95, nên đòi hỏi box khít hơn. Trong đề tài, mAP50 chính là trung bình AP50 của xe máy và ô tô:
 các tập test Việt Nam có rất ít xe buýt và xe tải (tập test Hà Nội chỉ có 5 xe buýt và 2 xe tải), AP của hai lớp này
 nhảy giữa 0 và 1 theo từng box nên không đưa vào chỉ số chính.
 

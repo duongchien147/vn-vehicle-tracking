@@ -13,9 +13,9 @@ mỗi ảnh, có vùng bỏ qua), mỗi mô hình chạy ở đúng kích thư�
 mà nhãn sơ bộ không đến từ mô hình đang so sánh (\texttt{vn\_extra}, val UVH-26, UA-DETRAC); lý do ở
 mục~\ref{sec:thao-luan}. Tập test Roboflow, val UVH-26 dùng cả bốn lớp; UA-DETRAC dùng xe máy, ô tô và xe buýt.
 
-Các tập test chia làm hai nhóm. Tập test Hà Nội dùng \textbf{cùng camera} với frame huấn luyện của các mô hình từ v3
+Các tập test chia làm hai nhóm. Tập test Hà Nội dùng cùng camera với frame huấn luyện của các mô hình từ v3
 trở đi (mục~\ref{sec:chia-tap}), nên đo độ chính xác trên camera đã tinh chỉnh. Các tập \texttt{vn\_extra}, clip Phạm Văn Đồng,
-val UVH-26 và UA-DETRAC dùng \textbf{camera chưa từng xuất hiện} trong dữ liệu huấn luyện, nên đo khả năng tổng quát.
+val UVH-26 và UA-DETRAC dùng camera chưa từng xuất hiện trong dữ liệu huấn luyện, nên đo khả năng tổng quát.
 Khi hai nhóm cho kết luận khác nhau, nhóm thứ hai quyết định.
 
 \textbf{Theo dõi.} Trên tập test (clip Phạm Văn Đồng) báo đủ HOTA, DetA, AssA, MOTA, IDF1, IDR, IDP và số lần đổi ID.
@@ -51,7 +51,7 @@ tích hợp UHD 620) và trên GPU Tesla T4.
     v4 & 1280 & 0.919 [0.907--0.929] & 0.862 & 0.975 \\ \hline
     v5 & 960 & 0.923 [0.913--0.932] & 0.864 & 0.982 \\ \hline
     v6 & 960 & 0.921 [0.909--0.932] & 0.865 & 0.977 \\ \hline
-    \textbf{YOLO26s-v6} & 960 & 0.920 [0.911--0.931] & 0.869 & 0.972 \\ \hline
+    YOLO26s-v6 & 960 & 0.920 [0.911--0.931] & 0.869 & 0.972 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -88,27 +88,27 @@ Nhãn sơ bộ từ YOLO26x nên dùng được cả mAP50-95.
     v5 & 0.745 [0.699--0.787] & 0.438 & 0.628 [0.575--0.681] & 0.404 \\ \hline
     v5 @1280 (chỉ phân tích) & 0.834 [0.799--0.866] & 0.519 & 0.657 [0.607--0.705] & 0.449 \\ \hline
     v6 & 0.760 [0.724--0.795] & 0.446 & 0.755 [0.708--0.795] & 0.495 \\ \hline
-    \textbf{YOLO26s-v6} & \textbf{0.830} [0.801--0.858] & 0.545 & \textbf{0.887} [0.861--0.913] & 0.614 \\ \hline
+    YOLO26s-v6 & 0.830 [0.801--0.858] & 0.545 & 0.887 [0.861--0.913] & 0.614 \\ \hline
   \end{tabularx}
 \end{table}
 
 Recall theo chiều cao xe dưới đây tính ở ngưỡng tin cậy 0.25, ghép IoU 0.5. Kết quả ban ngày và ban đêm khác nhau
 (Bảng~\ref{tab:vn-extra}):
 \begin{itemize}
-  \item \textbf{Ban ngày}, v4 (ảnh 1280) có điểm cao nhất trong các bản YOLO26n chạy ở kích thước ảnh lúc huấn luyện,
+  \item Ban ngày, v4 (ảnh 1280) có điểm cao nhất trong các bản YOLO26n chạy ở kích thước ảnh lúc huấn luyện,
         nhưng khoảng tin cậy còn chồng nhẹ với v5 (0.808 [0.770--0.843] so với 0.745 [0.699--0.787]). Với xe cao dưới
         20 điểm ảnh, recall của v3 là 0.29, v5 là 0.31, v4 là 0.45; với xe cao từ 32 điểm ảnh trở lên, ba bản này đạt
         0.82--0.88. Khoảng cách ban ngày đến từ xe rất nhỏ ở xa, và ở cảnh này độ phân giải đầu vào có tác dụng rõ:
         chính v5 chạy ở ảnh 1280 đạt 0.834. Kết quả này chỉ để phân tích, không dùng để chọn: trên hai tập dev, ảnh
         1280 không tốt hơn ảnh 960 (mục~\ref{sec:cac-phien-ban}), nhưng hai tập dev không có cảnh xe rất nhỏ ở xa. Vì
         vậy kích thước ảnh nên chọn theo cảnh: camera nhìn đoạn đường dài nên dùng 1280, đổi lại chậm hơn khoảng 1.5 lần.
-  \item \textbf{Ban đêm}, v5 tốt hơn hẳn các bản trước (0.628 so với 0.437 của v3). Với xe cao từ 64 điểm ảnh, recall
+  \item Ban đêm, v5 tốt hơn hẳn các bản trước (0.628 so với 0.437 của v3). Với xe cao từ 64 điểm ảnh, recall
         của v5 là 0.74, của v3 là 0.43; v3 nhầm xe máy thành ô tô 36 lần do đèn pha.
-  \item \textbf{v6} (v5 cộng 288 frame đêm nhãn tự động) tăng mAP50 ban đêm từ 0.628 lên 0.755, khoảng tin cậy hai
+  \item v6 (v5 cộng 288 frame đêm nhãn tự động) tăng mAP50 ban đêm từ 0.628 lên 0.755, khoảng tin cậy hai
         bản không chồng nhau; mAP50-95 tăng từ 0.404 lên 0.495. Camera hầm chui không có trong frame đêm huấn luyện, nên
         đây là cải thiện trên camera mới. Recall xe cao từ 64 điểm ảnh tăng từ 0.74 lên 0.91. Ban ngày v6 và v5 ngang
         nhau (0.760 so với 0.745, khoảng tin cậy chồng nhau).
-  \item \textbf{YOLO26s-v6} (YOLO26s học dữ liệu v6, mô hình chính) cao nhất bảng ở cả hai cảnh trong các mô hình chạy
+  \item YOLO26s-v6 (YOLO26s học dữ liệu v6, mô hình chính) cao nhất bảng ở cả hai cảnh trong các mô hình chạy
         ở kích thước ảnh lúc huấn luyện: 0.830 ban ngày và 0.887 ban đêm; lần huấn luyện thứ hai đạt 0.841 và 0.847.
         Ban đêm, khoảng tin cậy của nó không chồng với v6 và mAP50-95 tăng từ 0.495 lên 0.614. Ban ngày, recall xe cao
         dưới 20 điểm ảnh là 0.51 so với 0.38 của v6. So với RT-DETRv2-S học dữ liệu v5 (mục~\ref{sec:ket-qua-kien-truc}),
@@ -174,11 +174,11 @@ Ba mô hình cùng dữ liệu v5, cùng giao thức (mục~\ref{sec:giao-thuc})
     \thead{Tập} & \thead{YOLO26n (v5) @960} & \thead{YOLO26s @960} & \thead{RT-DETRv2-S @960×960} &
       \thead{YOLO26s @1280} \\ \hline
     Test Hà Nội & 0.923 & 0.914 & 0.929 & 0.915 \\ \hline
-    \texttt{vn\_extra} ngày & 0.745 & 0.798 & \textbf{0.886} & 0.875 \\ \hline
-    \texttt{vn\_extra} đêm & 0.628 & 0.713 & \textbf{0.816} & 0.800 \\ \hline
+    \texttt{vn\_extra} ngày & 0.745 & 0.798 & 0.886 & 0.875 \\ \hline
+    \texttt{vn\_extra} đêm & 0.628 & 0.713 & 0.816 & 0.800 \\ \hline
     20 frame PVD & 0.892 & 0.903 & 0.895 & 0.907 \\ \hline
     Test Roboflow (4 lớp) & 0.834 & 0.862 & 0.874 & -- \\ \hline
-    Val UVH-26 (4 lớp) & 0.850 & 0.859 & \textbf{0.894} & 0.865 \\ \hline
+    Val UVH-26 (4 lớp) & 0.850 & 0.859 & 0.894 & 0.865 \\ \hline
     UA-DETRAC đêm & 0.845 & 0.876 & 0.887 & 0.862 \\ \hline
     UA-DETRAC ngày & 0.812 & 0.885 & 0.924 & 0.885 \\ \hline
   \end{tabularx}
@@ -192,9 +192,9 @@ Ba mô hình cùng dữ liệu v5, cùng giao thức (mục~\ref{sec:giao-thuc})
   \begin{tabular}{|l|c|c|c|}
     \hline
     \thead{Tập} & \thead{YOLO26n (v5)} & \thead{YOLO26s} & \thead{RT-DETRv2-S} \\ \hline
-    Val UVH-26 & 0.696 & 0.721 & \textbf{0.757} \\ \hline
-    UA-DETRAC đêm & 0.538 & 0.554 & \textbf{0.588} \\ \hline
-    UA-DETRAC ngày & 0.539 & 0.569 & \textbf{0.599} \\ \hline
+    Val UVH-26 & 0.696 & 0.721 & 0.757 \\ \hline
+    UA-DETRAC đêm & 0.538 & 0.554 & 0.588 \\ \hline
+    UA-DETRAC ngày & 0.539 & 0.569 & 0.599 \\ \hline
   \end{tabular}
 \end{table}
 
@@ -204,7 +204,7 @@ Từ Bảng~\ref{tab:kien-truc} và~\ref{tab:kien-truc-5095} rút ra ba kết lu
         cảnh khó: \texttt{vn\_extra} ngày 0.886 so với 0.798, đêm 0.816 so với 0.713, val UVH-26 0.894 so với 0.859;
         hoà ở cảnh dễ (Hà Nội, PVD). Riêng ở cảnh đêm, khoảng cách này chưa vượt dao động giữa các lần huấn luyện
         YOLO26s (mục~\ref{sec:thao-luan}).
-  \item Khi cho YOLO26s nhìn cùng số điểm ảnh (ảnh 1280), hai họ \textbf{hoà nhau} trên dữ liệu Việt Nam 1080p: khoảng tin
+  \item Khi cho YOLO26s nhìn cùng số điểm ảnh (ảnh 1280), hai họ hoà nhau trên dữ liệu Việt Nam 1080p: khoảng tin
         cậy chồng nhau (ngày 0.875 [0.844--0.902] so với 0.886 [0.855--0.914]; đêm 0.800 [0.765--0.832] so với 0.816
         [0.777--0.854]), mAP50-95 ngày 0.588 so với 0.578, đêm 0.548 so với 0.547. Phần lớn lợi thế của RT-DETRv2 ở
         \texttt{vn\_extra} đến từ độ phân giải đầu vào chứ không phải từ kiến trúc. Ban ngày lợi thế đó nằm chủ yếu ở
@@ -296,14 +296,14 @@ NNCF~\cite{nncf}, hiệu chỉnh bằng 300 ảnh train). Cấu hình được c
 val Hà Nội và IDR VnTraffic chênh không quá 0.005 thì coi là hoà, hoà thì chọn bản nhanh hơn). Các cấu hình đã thử với
 v5 cho thấy ba điều:
 \begin{itemize}
-  \item \textbf{Phải chỉ định thiết bị.} Nếu không, OpenVINO tự đưa mô hình FP32 lên GPU tích hợp còn mô hình INT8 có
+  \item Phải chỉ định thiết bị. Nếu không, OpenVINO tự đưa mô hình FP32 lên GPU tích hợp còn mô hình INT8 có
         thể chạy trên CPU, và so sánh tốc độ mất ý nghĩa. Ngoài ra luồng OpenMP của PyTorch (dùng cho vài bước tiền xử
         lý) mặc định chiếm lõi CPU mà OpenVINO cần; tắt cơ chế chờ của nó (\texttt{KMP\_BLOCKTIME=0},
         \texttt{OMP\_WAIT\_POLICY=PASSIVE}) làm v5 INT8 trên CPU giảm từ khoảng 90 xuống 34 ms mỗi frame, đổi lại
         PyTorch trên CPU chậm đi 15--20\%. Web demo, chương trình dòng lệnh và các phép đo dưới đây đều tắt cơ chế này.
-  \item \textbf{INT8} không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần (72.1 so với
+  \item INT8 không làm giảm độ chính xác trên dev. Trên CPU nó nhanh hơn FP32 khoảng 1.6 lần (72.1 so với
         112.4 ms với v5), trên GPU tích hợp UHD 620 thì không nhanh hơn (60.6 so với 54.1 ms).
-  \item \textbf{Đầu vào 544×960.} Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
+  \item Đầu vào 544×960. Bản OpenVINO mặc định nhận ảnh vuông 960×960, trong khi PyTorch đưa frame 16:9 vào ở
         544×960, ít hơn 43\% điểm ảnh. Xuất OpenVINO đúng khung 544×960 nhanh hơn bản vuông 1.6--2.1 lần và độ chính xác
         gần PyTorch hơn. Bản này chỉ dùng cho video 16:9, đúng phạm vi đề tài.
 \end{itemize}
@@ -321,7 +321,7 @@ v5 cho thấy ba điều:
     \multicolumn{7}{|l|}{\textbf{v6 (bản nhẹ, YOLO26n)}} \\ \hline
     PyTorch FP32 & CPU & 544×960 & 130.0 & 6.6 & 0.914 & 0.841 \\ \hline
     OpenVINO INT8 & CPU & 544×960 & 39.9 & 18.2 & 0.918 & 0.825 \\ \hline
-    \textbf{OpenVINO FP32} & GPU tích hợp & \textbf{544×960} & 34.7 & 19.5 & 0.914 & 0.825 \\ \hline
+    OpenVINO FP32 & GPU tích hợp & 544×960 & 34.7 & 19.5 & 0.914 & 0.825 \\ \hline
     \multicolumn{7}{|l|}{\textbf{YOLO26s-v6 (mô hình chính)}} \\ \hline
     PyTorch FP32 & CPU & 544×960 & 338.0 & 3.2 & 0.911 & 0.866 \\ \hline
     OpenVINO FP32 & GPU tích hợp & 544×960 & 80.1 & 9.8 & 0.912 & 0.875 \\ \hline
@@ -356,7 +356,7 @@ nhanh thì việc vẽ và mã hoá video trên CPU trở thành phần chậm n
     \hline
     \thead{Tracker} & \thead{HOTA} & \thead{AssA} & \thead{IDR} & \thead{Đổi ID} & \thead{MOTA} & \thead{frame/s CPU} \\ \hline
     ByteTrack & 0.480 & 0.615 & 0.708 & 147 & 0.054 & 4.4 \\ \hline
-    \textbf{BoT-SORT} & 0.505 & \textbf{0.659} & \textbf{0.738} & \textbf{128} & 0.068 & 3.6 \\ \hline
+    BoT-SORT & 0.505 & 0.659 & 0.738 & 128 & 0.068 & 3.6 \\ \hline
     OC-SORT & 0.493 & 0.594 & 0.669 & 206 & 0.227 & 4.0 \\ \hline
   \end{tabular}
 \end{table}
@@ -376,9 +376,9 @@ track mất 90 frame, không ReID (IDR 0.744, AssA 0.668; mặc định 0.738 v�
     \hline
     \thead{Detector} & \thead{HOTA} & \thead{AssA} & \thead{IDR} & \thead{Đổi ID} & \thead{FN} & \thead{Số track} \\ \hline
     v3 & 0.507 & 0.668 & 0.744 & 128 & 2.550 & 467 \\ \hline
-    v5 & 0.554 & 0.709 & 0.827 & \textbf{62} & 1.058 & 334 \\ \hline
+    v5 & 0.554 & 0.709 & 0.827 & 62 & 1.058 & 334 \\ \hline
     v6 & 0.532 & 0.698 & 0.841 & 93 & 717 & 352 \\ \hline
-    \textbf{YOLO26s-v6} & 0.565 & 0.714 & \textbf{0.866} & 63 & \textbf{632} & 327 \\ \hline
+    YOLO26s-v6 & 0.565 & 0.714 & 0.866 & 63 & 632 & 327 \\ \hline
   \end{tabular}
 \end{table}
 
@@ -413,7 +413,7 @@ tóm tắt các cách đã thử, mỗi cách có tiêu chí viết ra trước 
     Cũ: ngưỡng mở track 0.25, không lọc & 93.5 & 0.833 & 36.5 & 1.521 & 0.689 & 49 & 1.689 & 0.732 \\ \hline
     Ngưỡng mở track 0.6, ngưỡng ghép lần một 0.4 & 62.5 & 0.836 & 13.0 & 2.182 & 0.700 & 7 & 3.291 & 0.687 \\ \hline
     Lọc box trùng, IoU 0.5 & 51.0 & 0.851 & 25.0 & 1.559 & 0.696 & -- & -- & -- \\ \hline
-    \textbf{Lọc box trùng, IoU 0.6 (mặc định mới)} & 63.0 & 0.841 & 27.5 & 1.535 & 0.695 & 26 & 1.704 & 0.744 \\ \hline
+    Lọc box trùng, IoU 0.6 (mặc định mới) & 63.0 & 0.841 & 27.5 & 1.535 & 0.695 & 26 & 1.704 & 0.744 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -446,7 +446,7 @@ cho xe.
     \hline
     \thead{Cấu hình} & \thead{HOTA} & \thead{DetA} & \thead{AssA} & \thead{MOTA} & \thead{IDF1} & \thead{IDR} & \thead{IDP} &
       \thead{Đổi ID} \\ \hline
-    \textbf{YOLO26s-v6}, lọc box trùng (mặc định) & 0.755 & 0.717 & 0.811 & 0.874 & 0.916 & 0.882 & 0.953 & 22 \\ \hline
+    YOLO26s-v6, lọc box trùng (mặc định) & 0.755 & 0.717 & 0.811 & 0.874 & 0.916 & 0.882 & 0.953 & 22 \\ \hline
     YOLO26s-v6, mặc định, lọc track dưới 3 frame & 0.745 & 0.703 & 0.807 & 0.855 & 0.907 & 0.860 & 0.959 & 17 \\ \hline
     v6 (bản nhẹ), lọc box trùng & 0.744 & 0.701 & 0.806 & 0.847 & 0.905 & 0.859 & 0.955 & 26 \\ \hline
     v5, chưa lọc box trùng & 0.718 & 0.670 & 0.784 & 0.813 & 0.880 & 0.822 & 0.947 & 26 \\ \hline
@@ -505,7 +505,7 @@ hướng và lệch nhau không quá một giây (ghép tối ưu bằng thuật
     v5 & 0 / 72 & 3 (4.1\%) & 15 & 0 & 15 (8.5\%) \\ \hline
     YOLO26s (dữ liệu v5) & 0 / 71 & 2 (2.7\%) & 7 & 5 & 8 (4.5\%) \\ \hline
     v6 (bản nhẹ) & 0 / 71 & 2 (2.7\%) & 3 & 2 & 3 (1.7\%) \\ \hline
-    \textbf{YOLO26s-v6} & 0 / 70 & 3 (4.1\%) & 3 & 2 & 3 (1.7\%) \\ \hline
+    YOLO26s-v6 & 0 / 70 & 3 (4.1\%) & 3 & 2 & 3 (1.7\%) \\ \hline
   \end{tabularx}
 \end{table}
 

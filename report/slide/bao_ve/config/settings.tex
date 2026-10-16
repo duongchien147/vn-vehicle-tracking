@@ -30,7 +30,8 @@
 % ---------------------------------------------------------------------
 %  Chữ nghiêng bên trái chân trang. Để trống {} sẽ dùng \title ngắn
 %  (\title[ngắn]{dài}) hoặc tiêu đề đầy đủ.
-\newcommand{\mlwFooterText}{Phát hiện, phân loại và theo dõi phương tiện giao thông -- Dương Minh Chiến}
+%  \mbox{}: không hiện chữ ở chân trang (để trống {} thì theme tự lấy \title ngắn), chỉ còn số trang
+\newcommand{\mlwFooterText}{\mbox{}}
 
 %  true: "5 / 20" | false: chỉ "5"
 \newcommand{\mlwShowTotalFrames}{true}

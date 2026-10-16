@@ -290,7 +290,8 @@ cho YOLO26:
 \label{sec:cac-phien-ban}
 
 Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần chỉ đổi một yếu tố để biết thay đổi nào có tác dụng
-(Bảng~\ref{tab:lich-su-train}); số val và test Roboflow trong bảng do bộ chấm của thư viện tính khi huấn luyện.
+(Bảng~\ref{tab:lich-su-train}); cột Epoch ghi epoch tốt nhất / số epoch đã chạy; số val và test Roboflow trong bảng do bộ chấm của thư viện tính
+khi huấn luyện.
 
 \begin{table}[H]
   \centering
@@ -298,9 +299,9 @@ Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần c
   \label{tab:lich-su-train}
   \footnotesize
   \setlength{\tabcolsep}{3pt}
-  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.5cm}L>{\centering\arraybackslash}p{0.8cm}>{\centering\arraybackslash}p{1.3cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{0.8cm}}
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{3.4cm}L>{\centering\arraybackslash}p{0.8cm}>{\centering\arraybackslash}p{1.3cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{0.8cm}}
     \toprule
-    \thead{Mô hình} & \thead{Dữ liệu train} & \thead{Ảnh} & \thead{Epoch tốt nhất / đã chạy} &
+    \thead{Mô hình} & \thead{Dữ liệu train} & \thead{Ảnh} & \thead{Epoch} &
       \thead{Val mAP50 / 50-95} & \thead{Test Roboflow mAP50 / 50-95} & \thead{Giờ T4} \\ \midrule
     v1 & Roboflow + VisDrone & 640 & 81 / 100 & 0.831 / 0.549 & 0.861 / 0.572 & 0.84 \\ \rowsep
     v2 & cantho, vehicle-detection 300 ảnh mỗi bộ; VisDrone 909 ảnh nhiều xe máy & 960 & 86 / 100 & 0.838 / 0.555 &

@@ -90,22 +90,29 @@
 \graphicspath{{figures/}}
 \usepackage{float}
 \usepackage[table]{xcolor}
-\definecolor{tableheader}{HTML}{5B9BD5}
-\usepackage{array, tabularx, longtable, multirow}
+\usepackage{array, tabularx, longtable, multirow, booktabs}
 \newcolumntype{C}{>{\centering\arraybackslash}X}
 \newcolumntype{L}{>{\raggedright\arraybackslash}X}
-\renewcommand{\arraystretch}{1.15}
+% Bảng kiểu ba đường kẻ (booktabs, như bài báo IEEE/CVPR): không kẻ dọc, chỉ kẻ trên cùng, dưới tiêu đề và cuối bảng.
+% Khoảng đệm dòng lấy từ arraystretch; đệm của đường kẻ đặt 0 để nền tô màu của hàng/cột không bị hở trắng quanh kẻ.
+\renewcommand{\arraystretch}{1.25}
+\setlength{\aboverulesep}{0pt}
+\setlength{\belowrulesep}{0pt}
+\definecolor{mainmodel}{gray}{0.92} % nền nhạt cho hàng/cột của mô hình chính hoặc cấu hình được chọn
+% Vạch mảnh màu xám giữa các hàng của bảng nhiều chữ (mỗi ô nhiều dòng, không có vạch thì khó dò theo hàng)
+\newcommand{\rowsep}{\arrayrulecolor{black!25}\midrule\arrayrulecolor{black}}
 \usepackage{caption}
 \usepackage{subcaption}
 \DeclareCaptionFont{twelve}{\fontsize{12}{14.5}\selectfont}
 \captionsetup{font={twelve,it}, labelsep=space, justification=centering, skip=6pt}
-\captionsetup[table]{position=top}
-% Hàng tiêu đề bảng: nền xanh, chữ đậm như mẫu
-\newcommand{\thead}[1]{\cellcolor{tableheader}\textbf{#1}}
+\captionsetup[table]{position=top, skip=6pt}
+% Hàng tiêu đề bảng: chữ đậm, không tô nền
+\newcommand{\thead}[1]{\textbf{#1}}
 % Cột chữ căn trái: cột p{} mặc định dàn đều, ô hẹp có khoảng trắng lớn giữa các từ
 \newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
-% Ô số liệu kèm khoảng tin cậy: giá trị ở dòng trên, khoảng [a–b] chữ nhỏ ở dòng dưới, để khoảng không bị ngắt giữa chừng
-\newcommand{\ci}[2]{\begin{tabular}[t]{@{}c@{}}#1\\{\scriptsize[#2]}\end{tabular}}
+% Ô số liệu kèm khoảng tin cậy: giá trị ở dòng trên, khoảng [a–b] chữ nhỏ màu xám ở dòng dưới
+\newcommand{\ci}[2]{{\renewcommand{\arraystretch}{1}%
+  \begin{tabular}[t]{@{}c@{}}#1\\{\scriptsize\color{black!60}[#2]}\end{tabular}}}
 
 % ---------- Danh sách ----------
 \usepackage{enumitem}

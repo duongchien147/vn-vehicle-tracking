@@ -15,8 +15,6 @@ Mạng nơ-ron tích chập (CNN) xử lý ảnh bằng các lớp tích chập:
   Y(i, j, c') = \sum_{c=1}^{C} \sum_{u=0}^{k-1} \sum_{v=0}^{k-1} W(u, v, c, c')\, X(i s + u,\; j s + v,\; c) + b_{c'}
   \label{eq:conv}
 \end{equation}
-Công thức (\ref{eq:conv}): phép tích chập hai chiều.
-
 Với:
 \begin{itemize}
   \item $W$: trọng số bộ lọc, dùng chung cho mọi vị trí trong ảnh;
@@ -47,7 +45,7 @@ Mức độ trùng khớp giữa hai box $A$ và $B$ được đo bằng tỉ l�
   \mathrm{IoU}(A, B) = \frac{|A \cap B|}{|A \cup B|}
   \label{eq:iou}
 \end{equation}
-Công thức (\ref{eq:iou}): tỉ lệ giao trên hợp của hai box, nhận giá trị từ 0 (không giao nhau) đến 1 (trùng khít).
+IoU nhận giá trị từ 0 (không giao nhau) đến 1 (trùng khít).
 
 IoU được dùng ở ba chỗ: khi gán nhãn huấn luyện (dự đoán nào chịu trách nhiệm cho xe nào), khi chấm điểm (một dự đoán
 là đúng nếu IoU với box nhãn vượt ngưỡng) và khi theo dõi (ghép box giữa hai frame).
@@ -124,8 +122,6 @@ toạ độ box. Mất mát phân lớp là entropy chéo nhị phân (BCE) tín
   \Big[ y_{ic} \log p_{ic} + (1 - y_{ic}) \log (1 - p_{ic}) \Big]
   \label{eq:bce}
 \end{equation}
-Công thức (\ref{eq:bce}): mất mát phân lớp entropy chéo nhị phân.
-
 Với:
 \begin{itemize}
   \item $N$: số dự đoán được tính mất mát; $K = 4$: số lớp;
@@ -160,13 +156,11 @@ trên dữ liệu của đề tài.
 \subsection{Cơ chế attention}
 
 Transformer~\cite{vaswani2017attention} xây dựng trên cơ chế attention: mỗi phần tử của chuỗi đầu vào tổng hợp thông
-tin từ mọi phần tử khác theo trọng số học được.
+tin từ mọi phần tử khác theo trọng số học được. Attention tích vô hướng có chuẩn hoá được tính như sau:
 \begin{equation}
   \mathrm{Attention}(Q, K, V) = \mathrm{softmax}\!\left( \frac{Q K^{\top}}{\sqrt{d_k}} \right) V
   \label{eq:attention}
 \end{equation}
-Công thức (\ref{eq:attention}): attention tích vô hướng có chuẩn hoá.
-
 Với:
 \begin{itemize}
   \item $Q$, $K$, $V$: ma trận truy vấn (query), khoá (key) và giá trị (value), là các phép chiếu tuyến tính của đầu
@@ -191,8 +185,6 @@ Khi huấn luyện, $N$ dự đoán được ghép một-một với các box nh
   \end{split}
   \label{eq:detr-match}
 \end{equation}
-Công thức (\ref{eq:detr-match}): ghép cặp tối ưu giữa nhãn và dự đoán trong DETR.
-
 Với:
 \begin{itemize}
   \item $\sigma$: một hoán vị gán mỗi nhãn $y_i = (c_i, b_i)$ cho một dự đoán $\hat{y}_{\sigma(i)}$;
@@ -207,7 +199,7 @@ Thành phần GIoU khắc phục việc IoU bằng 0 cho mọi cặp box không 
   \qquad \mathcal{L}_{\mathrm{giou}} = 1 - \mathrm{GIoU}
   \label{eq:giou}
 \end{equation}
-Công thức (\ref{eq:giou}): IoU tổng quát, với $C$ là box nhỏ nhất bao cả $A$ và $B$.
+với $C$ là box nhỏ nhất bao cả $A$ và $B$.
 
 Vì ghép một-một, mỗi xe chỉ ứng với một dự đoán và DETR không cần NMS. Nhược điểm của DETR gốc là hội tụ chậm (hàng
 trăm epoch trên COCO) và chậm khi suy luận.
@@ -234,8 +226,6 @@ RT-DETR~\cite{zhao2024rtdetr} đưa họ DETR về tốc độ thời gian thự
   \Delta p_{mqk}\big) \Big]
   \label{eq:deform}
 \end{equation}
-Công thức (\ref{eq:deform}): attention biến dạng.
-
 Với:
 \begin{itemize}
   \item $z_q$, $p_q$: đặc trưng và điểm tham chiếu của truy vấn $q$;
@@ -252,8 +242,7 @@ Mất mát phân lớp của RT-DETR là Varifocal Loss (VFL), dùng IoU giữa 
   \end{cases}
   \label{eq:vfl}
 \end{equation}
-Công thức (\ref{eq:vfl}): Varifocal Loss, với $p$ là điểm dự đoán, $\alpha$ và $\gamma$ là hệ số giảm trọng số cho
-mẫu nền.
+với $p$ là điểm dự đoán, $\alpha$ và $\gamma$ là hệ số giảm trọng số cho mẫu nền.
 
 RT-DETRv2~\cite{lv2024rtdetrv2} giữ kiến trúc trên và thêm một số cải tiến không làm chậm suy luận (bag-of-freebies):
 số điểm lấy mẫu khác nhau cho từng mức đặc trưng, toán tử lấy mẫu rời rạc thuận tiện khi triển khai, tăng cường dữ
@@ -287,12 +276,12 @@ Các thuật toán theo dõi trong đề tài đều theo vòng lặp sau cho m�
 
 Bộ lọc Kalman~\cite{kalman1960} ước lượng trạng thái của từng xe dưới giả thiết vận tốc không đổi. Với BoT-SORT, trạng
 thái là $\mathbf{x} = [x_c, y_c, w, h, \dot{x}_c, \dot{y}_c, \dot{w}, \dot{h}]^{\top}$ (tâm, kích thước box và vận tốc
-của chúng). Mỗi frame gồm hai bước:
+của chúng). Mỗi frame gồm hai bước, dự đoán:
 \begin{equation}
   \hat{\mathbf{x}}_{t|t-1} = F \hat{\mathbf{x}}_{t-1}, \qquad P_{t|t-1} = F P_{t-1} F^{\top} + Q
   \label{eq:kalman-predict}
 \end{equation}
-Công thức (\ref{eq:kalman-predict}): bước dự đoán.
+và cập nhật khi track được ghép với một box:
 \begin{equation}
   \begin{split}
     K_t &= P_{t|t-1} H^{\top} \big( H P_{t|t-1} H^{\top} + R \big)^{-1} \\
@@ -301,8 +290,6 @@ Công thức (\ref{eq:kalman-predict}): bước dự đoán.
   \end{split}
   \label{eq:kalman-update}
 \end{equation}
-Công thức (\ref{eq:kalman-update}): bước cập nhật khi track được ghép với một box.
-
 Với:
 \begin{itemize}
   \item $F$: ma trận chuyển trạng thái (vị trí cộng vận tốc); $H$: ma trận quan sát, lấy 4 thành phần box từ trạng thái;
@@ -322,7 +309,7 @@ Hungarian~\cite{kuhn1955hungarian} tìm phép gán một-một có tổng chi ph
   \quad \text{sao cho} \quad \sum_{j} x_{ij} \le 1,\; \sum_{i} x_{ij} \le 1
   \label{eq:hungarian}
 \end{equation}
-Công thức (\ref{eq:hungarian}): bài toán gán. Các cặp có chi phí vượt ngưỡng ghép bị loại dù được thuật toán chọn.
+Các cặp có chi phí vượt ngưỡng ghép bị loại dù được thuật toán chọn.
 
 \subsection{Các thuật toán theo dõi họ SORT}
 
@@ -369,13 +356,11 @@ thêm một thành phần chi phí khi ghép.
 \subsection{Chỉ số phát hiện: Precision, Recall, AP và mAP}
 
 Một dự đoán là đúng (TP) nếu cùng lớp và có IoU với một box nhãn chưa được ghép vượt ngưỡng; các dự đoán được xét lần
-lượt theo điểm tin cậy giảm dần. Dự đoán không ghép được là phát hiện thừa (FP), box nhãn không được ghép là bỏ sót (FN).
+lượt theo điểm tin cậy giảm dần. Dự đoán không ghép được là phát hiện thừa (FP), box nhãn không được ghép là bỏ sót (FN). Độ chính xác (Precision) và độ bao phủ (Recall) là:
 \begin{equation}
   \mathrm{Precision} = \frac{TP}{TP + FP}, \qquad \mathrm{Recall} = \frac{TP}{TP + FN}
   \label{eq:pr}
 \end{equation}
-Công thức (\ref{eq:pr}): độ chính xác và độ bao phủ.
-
 Quét ngưỡng tin cậy từ cao xuống thấp cho đường cong Precision–Recall. Độ chính xác trung bình (AP) theo quy ước
 COCO~\cite{lin2014coco} là trung bình độ chính xác nội suy tại 101 mức recall:
 \begin{equation}
@@ -383,8 +368,6 @@ COCO~\cite{lin2014coco} là trung bình độ chính xác nội suy tại 101 m�
   p_{\mathrm{interp}}(r) = \max_{\tilde{r} \ge r} p(\tilde{r})
   \label{eq:ap}
 \end{equation}
-Công thức (\ref{eq:ap}): AP nội suy 101 điểm của COCO.
-
 mAP là trung bình AP trên các lớp. mAP50 tính ở ngưỡng IoU 0.5; mAP50-95 lấy trung bình thêm trên 10 ngưỡng IoU 0.50,
 0.55, \ldots, 0.95, nên đòi hỏi box khít hơn. Trong đề tài, mAP50 chính là trung bình AP50 của xe máy và ô tô:
 các tập test Việt Nam có rất ít xe buýt và xe tải (tập test Hà Nội chỉ có 5 xe buýt và 2 xe tải), AP của hai lớp này
@@ -401,8 +384,6 @@ MOTA~\cite{bernardin2008clear} gộp ba loại lỗi trên toàn bộ video:
   \mathrm{MOTA} = 1 - \frac{\sum_{t} \big( \mathrm{FN}_t + \mathrm{FP}_t + \mathrm{IDSW}_t \big)}{\sum_{t} \mathrm{GT}_t}
   \label{eq:mota}
 \end{equation}
-Công thức (\ref{eq:mota}): độ chính xác theo dõi đa đối tượng.
-
 Với:
 \begin{itemize}
   \item $\mathrm{FN}_t$, $\mathrm{FP}_t$: số box bỏ sót và thừa ở frame $t$;
@@ -415,7 +396,7 @@ MOTA bị chi phối bởi FN và FP, tức chủ yếu đo chất lượng phá
 \subsection{IDF1}
 
 IDF1~\cite{ristani2016idf1} đo mức giữ đúng danh tính. Toàn bộ quỹ đạo nhãn và quỹ đạo dự đoán được ghép một-một sao
-cho số frame trùng khớp lớn nhất; IDTP là số box thuộc cặp quỹ đạo được ghép và trùng khớp, IDFP và IDFN là phần còn lại.
+cho số frame trùng khớp lớn nhất; IDTP là số box thuộc cặp quỹ đạo được ghép và trùng khớp, IDFP và IDFN là phần còn lại. Từ đó tính IDF1, độ chính xác danh tính IDP và độ bao phủ danh tính IDR:
 \begin{equation}
   \begin{gathered}
     \mathrm{IDF1} = \frac{2\,\mathrm{IDTP}}{2\,\mathrm{IDTP} + \mathrm{IDFP} + \mathrm{IDFN}} \\
@@ -424,8 +405,6 @@ cho số frame trùng khớp lớn nhất; IDTP là số box thuộc cặp quỹ
   \end{gathered}
   \label{eq:idf1}
 \end{equation}
-Công thức (\ref{eq:idf1}): IDF1, độ chính xác danh tính IDP và độ bao phủ danh tính IDR.
-
 IDR chỉ phụ thuộc vào quỹ đạo nhãn được theo đúng bao nhiêu, không bị phạt khi hệ thống phát hiện thêm xe không có
 nhãn. Tính chất này được dùng khi đánh giá trên tập VnTraffic có nhãn thiếu (mục~\ref{sec:theo-doi}).
 
@@ -445,8 +424,6 @@ Tại ngưỡng IoU $\alpha$, sau khi ghép box nhãn với box dự đoán:
   \mathrm{HOTA} = \frac{1}{19} \sum_{\alpha \in \{0.05, 0.10, \ldots, 0.95\}} \mathrm{HOTA}_{\alpha}
   \label{eq:hota}
 \end{equation}
-Công thức (\ref{eq:deta-assa}) và (\ref{eq:hota}): các thành phần của HOTA.
-
 Với:
 \begin{itemize}
   \item $TPA(c)$: tập các cặp TP có cùng ID nhãn và cùng ID dự đoán với cặp $c$, tức những frame quỹ đạo được nối đúng;

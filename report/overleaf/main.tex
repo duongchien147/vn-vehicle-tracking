@@ -21,8 +21,9 @@
 \begin{document}
 \bstctlcite{IEEEexample:BSTcontrol} % cấu hình IEEEtran ở đầu references.bib, phải đứng trước mọi \cite
 
-% ----- Trang bìa và phần đầu (số trang đánh liên tục từ bìa, như mẫu của trường) -----
+% ----- Trang bìa (không số) và phần đầu (số La Mã i, ii, ...); nội dung đánh số Ả Rập từ 1 ở Mở đầu -----
 \include{frontmatter/bia}
+\pagenumbering{roman}
 \include{frontmatter/nhanxet}
 \include{frontmatter/loicamdoan}
 \include{frontmatter/loicamon}
@@ -30,6 +31,7 @@
 \include{frontmatter/danhmuc}
 
 % ----- Nội dung: Mở đầu + đúng 4 chương -----
+\pagenumbering{arabic}
 \include{chapters/modau}
 \include{chapters/chuong1}
 \include{chapters/chuong2}

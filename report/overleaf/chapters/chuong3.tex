@@ -19,22 +19,22 @@ bốn lớp của đề tài theo tên lớp; riêng xe van trong VisDrone đư�
   \caption{Các nguồn dữ liệu huấn luyện}
   \label{tab:nguon-du-lieu}
   \small
-  \begin{tabularx}{\linewidth}{|P{3.4cm}|L|P{2.0cm}|P{2.4cm}|}
-    \hline
-    \thead{Nguồn} & \thead{Đặc điểm và cách dùng} & \thead{Dùng cho} & \thead{Giấy phép} \\ \hline
+  \begin{tabularx}{\linewidth}{P{3.4cm}LP{2.0cm}P{2.4cm}}
+    \toprule
+    \thead{Nguồn} & \thead{Đặc điểm và cách dùng} & \thead{Dùng cho} & \thead{Giấy phép} \\ \midrule
     vietnamese-vehicle v3~\cite{roboflow_vnvehicle} & Ảnh xe Việt Nam từ nhiều cảnh; nguồn duy nhất được chia ra cả
-      val và test & Train, val, test & CC BY 4.0 \\ \hline
+      val và test & Train, val, test & CC BY 4.0 \\ \rowsep
     vehicle-vietnam-cantho v19~\cite{roboflow_cantho} & Gần như một camera cố định ở Cần Thơ; lấy 300 ảnh & Train &
-      CC BY 4.0 \\ \hline
-    vehicle-detection v2~\cite{roboflow_indo} & Gần như một camera cố định; lấy 300 ảnh & Train & CC BY 4.0 \\ \hline
+      CC BY 4.0 \\ \rowsep
+    vehicle-detection v2~\cite{roboflow_indo} & Gần như một camera cố định; lấy 300 ảnh & Train & CC BY 4.0 \\ \rowsep
     VisDrone2019-DET~\cite{zhu2022visdrone} & Ảnh từ drone, rất nhiều xe máy nhỏ; chỉ lấy 909 ảnh có từ 10 xe máy trở
-      lên & Train & Chỉ dùng cho nghiên cứu \\ \hline
+      lên & Train & Chỉ dùng cho nghiên cứu \\ \rowsep
     UVH-26~\cite{sharma2025uvh26} & Ảnh camera giao thông Bengaluru (Ấn Độ), khoảng 2.800 camera; lấy 2.000 ảnh,
-      đổi 14 lớp về 4 lớp & Train & CC BY 4.0 \\ \hline
+      đổi 14 lớp về 4 lớp & Train & CC BY 4.0 \\ \rowsep
     Video ngã tư Hà Nội (YouTube, kênh Raw Street Capture 101) & 69 frame nhãn tự động (lặp 4 lần khi train) và 10
-      frame val nhãn tay; 30 frame khác làm test & Train, val, test & Chỉ dùng học tập \\ \hline
+      frame val nhãn tay; 30 frame khác làm test & Train, val, test & Chỉ dùng học tập \\ \rowsep
     Video đường phố TP.HCM ban đêm (YouTube, kênh Midnight Soundscape) & 288 frame từ hai camera, nhãn tự động; chỉ
-      có từ v6 & Train & Chỉ dùng học tập \\ \hline
+      có từ v6 & Train & Chỉ dùng học tập \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -88,19 +88,19 @@ Bảng~\ref{tab:thong-ke} là thống kê bộ dữ liệu phiên bản v6, bả
   \caption{Thống kê bộ dữ liệu v6 theo nguồn}
   \label{tab:thong-ke}
   \small
-  \begin{tabularx}{\linewidth}{|c|L|r|r|r|r|r|}
-    \hline
-    \thead{Tập} & \thead{Nguồn} & \thead{Ảnh} & \thead{Xe máy} & \thead{Ô tô} & \thead{Buýt} & \thead{Tải} \\ \hline
-    train & cantho & 300 & 878 & 842 & 15 & 68 \\ \hline
-    train & vehicle-detection & 300 & 2.181 & 844 & 49 & 51 \\ \hline
-    train & vietnamese-vehicle & 929 & 1.328 & 1.629 & 197 & 1.123 \\ \hline
-    train & VisDrone & 909 & 18.050 & 28.702 & 472 & 1.801 \\ \hline
-    train & Hà Nội (69 frame × 4) & 276 & 18.192 & 4.256 & 68 & 100 \\ \hline
-    train & UVH-26 & 2.000 & 12.348 & 7.066 & 1.231 & 3.351 \\ \hline
-    train & Frame đêm (chỉ v6) & 288 & 6.256 & 3.811 & 162 & 148 \\ \hline
-    val & vietnamese-vehicle & 310 & 451 & 579 & 93 & 352 \\ \hline
-    val & Hà Nội & 10 & 889 & 156 & 7 & 1 \\ \hline
-    test & vietnamese-vehicle & 308 & 453 & 609 & 115 & 303 \\ \hline
+  \begin{tabularx}{\linewidth}{cLrrrrr}
+    \toprule
+    \thead{Tập} & \thead{Nguồn} & \thead{Ảnh} & \thead{Xe máy} & \thead{Ô tô} & \thead{Buýt} & \thead{Tải} \\ \midrule
+    train & cantho & 300 & 878 & 842 & 15 & 68 \\
+    train & vehicle-detection & 300 & 2.181 & 844 & 49 & 51 \\
+    train & vietnamese-vehicle & 929 & 1.328 & 1.629 & 197 & 1.123 \\
+    train & VisDrone & 909 & 18.050 & 28.702 & 472 & 1.801 \\
+    train & Hà Nội (69 frame × 4) & 276 & 18.192 & 4.256 & 68 & 100 \\
+    train & UVH-26 & 2.000 & 12.348 & 7.066 & 1.231 & 3.351 \\
+    train & Frame đêm (chỉ v6) & 288 & 6.256 & 3.811 & 162 & 148 \\
+    val & vietnamese-vehicle & 310 & 451 & 579 & 93 & 352 \\
+    val & Hà Nội & 10 & 889 & 156 & 7 & 1 \\
+    test & vietnamese-vehicle & 308 & 453 & 609 & 115 & 303 \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -120,34 +120,34 @@ Việt Nam và dùng thêm ba bộ dữ liệu bên ngoài (Bảng~\ref{tab:tap-
   \label{tab:tap-danh-gia}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|L|>{\raggedright\arraybackslash}p{2.9cm}|>{\raggedright\arraybackslash}p{2.6cm}|}
-    \hline
-    \thead{Tập} & \thead{Nội dung} & \thead{Quy mô (xe máy / ô tô / buýt / tải)} & \thead{Vai trò} \\ \hline
-    Val Hà Nội & 10 frame video ngã tư Hà Nội, nhãn người & 889 / 156 / 7 / 1 & Dev: chọn mô hình \\ \hline
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.3cm}L>{\raggedright\arraybackslash}p{2.9cm}>{\raggedright\arraybackslash}p{2.6cm}}
+    \toprule
+    \thead{Tập} & \thead{Nội dung} & \thead{Quy mô (xe máy / ô tô / buýt / tải)} & \thead{Vai trò} \\ \midrule
+    Val Hà Nội & 10 frame video ngã tư Hà Nội, nhãn người & 889 / 156 / 7 / 1 & Dev: chọn mô hình \\ \rowsep
     Test Hà Nội & 30 frame ngã tư Hà Nội, nhãn người (sơ bộ từ v2); cùng camera với frame train từ v3 trở đi & 2.982 /
-      539 / 5 / 2 & Test phát hiện trên camera đã học \\ \hline
+      539 / 5 / 2 & Test phát hiện trên camera đã học \\ \rowsep
     \texttt{vn\_extra} ngày & 30 frame hai góc máy đại lộ Phạm Văn Đồng, nhãn người (sơ bộ từ YOLO26x) & 552 / 156 /
-      0 / 2 & Test phát hiện \\ \hline
+      0 / 2 & Test phát hiện \\ \rowsep
     \texttt{vn\_extra} đêm & 30 frame hầm chui TP.HCM ban đêm, nhãn người (sơ bộ từ YOLO26x) & 468 / 157 / 6 / 9 & Test
-      phát hiện \\ \hline
+      phát hiện \\ \rowsep
     Dev đêm & 32 frame đêm nút giao Công viên Gia Định, TP.HCM (YouTube, kênh Vietnam Naturally), camera không có
       trong dữ liệu train; nhãn người (sơ bộ từ YOLO26x), 20 vùng bỏ qua & 359 / 162 / 3 / 0 & Dev: nhận v6 và
-      YOLO26s-v6; chọn ngưỡng nhãn tự động \\ \hline
-    20 frame PVD & 1 frame mỗi giây của clip theo dõi & 375 / 238 / 12 / 0 & Test phát hiện \\ \hline
+      YOLO26s-v6; chọn ngưỡng nhãn tự động \\ \rowsep
+    20 frame PVD & 1 frame mỗi giây của clip theo dõi & 375 / 238 / 12 / 0 & Test phát hiện \\ \rowsep
     Clip theo dõi PVD & 20 giây (600 frame, 30 fps), nhãn quỹ đạo bằng CVAT & 183 quỹ đạo & Test theo dõi, đếm xe
-      ban ngày \\ \hline
+      ban ngày \\ \rowsep
     Clip dev theo dõi PVD & 20 giây, góc máy khác clip test, nhãn quỹ đạo bằng CVAT & 80 quỹ đạo ngoài vùng bỏ qua &
-      Dev: chọn tracker \\ \hline
+      Dev: chọn tracker \\ \rowsep
     Đếm xe hầm chui & Hai clip đêm 60 giây, người đếm tay từng lượt qua vạch & 176 lượt: 149 / 25 / 1 / 1 & Test đếm xe
-      ban đêm \\ \hline
+      ban đêm \\ \rowsep
     VnTraffic~\cite{le2026vntraffic} & Video giao thông Việt Nam (nguồn kênh HTV), nhìn chéo từ trên cao, 17 giây & 501
       frame, 85 quỹ đạo
-      & Dev: chọn tracker \\ \hline
-    Val UVH-26 & 509 ảnh, bỏ ảnh cùng camera với ảnh train & 2.973 / 1.239 / 219 / 546 & Chấm phụ \\ \hline
+      & Dev: chọn tracker \\ \rowsep
+    Val UVH-26 & 509 ảnh, bỏ ảnh cùng camera với ảnh train & 2.973 / 1.239 / 219 / 546 & Chấm phụ \\ \rowsep
     UA-DETRAC~\cite{wen2020uadetrac, patrikskalos_uadetrac} & Camera cầu vượt Trung Quốc, 960×540; 21 video đêm và 39
       video ngày, 1 frame mỗi 100 frame & Đêm 51 / 1.578 / 143 / 21; ngày 35 / 4.003 / 246 / 19 & Chấm phụ đêm–ngày
-      \\ \hline
-    Test Roboflow & 308 ảnh \texttt{vietnamese-vehicle} & 453 / 609 / 115 / 303 & Chấm phụ \\ \hline
+      \\ \rowsep
+    Test Roboflow & 308 ảnh \texttt{vietnamese-vehicle} & 453 / 609 / 115 / 303 & Chấm phụ \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -298,26 +298,26 @@ Mô hình được cải tiến qua sáu phiên bản dữ liệu, mỗi lần c
   \label{tab:lich-su-train}
   \footnotesize
   \setlength{\tabcolsep}{3pt}
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.5cm}|L|>{\centering\arraybackslash}p{0.8cm}|>{\centering\arraybackslash}p{1.3cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{2.0cm}|>{\centering\arraybackslash}p{0.8cm}|}
-    \hline
+  \begin{tabularx}{\linewidth}{>{\raggedright\arraybackslash}p{2.5cm}L>{\centering\arraybackslash}p{0.8cm}>{\centering\arraybackslash}p{1.3cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{2.0cm}>{\centering\arraybackslash}p{0.8cm}}
+    \toprule
     \thead{Mô hình} & \thead{Dữ liệu train} & \thead{Ảnh} & \thead{Epoch tốt nhất / đã chạy} &
-      \thead{Val mAP50 / 50-95} & \thead{Test Roboflow mAP50 / 50-95} & \thead{Giờ T4} \\ \hline
-    v1 & Roboflow + VisDrone & 640 & 81 / 100 & 0.831 / 0.549 & 0.861 / 0.572 & 0.84 \\ \hline
+      \thead{Val mAP50 / 50-95} & \thead{Test Roboflow mAP50 / 50-95} & \thead{Giờ T4} \\ \midrule
+    v1 & Roboflow + VisDrone & 640 & 81 / 100 & 0.831 / 0.549 & 0.861 / 0.572 & 0.84 \\ \rowsep
     v2 & cantho, vehicle-detection 300 ảnh mỗi bộ; VisDrone 909 ảnh nhiều xe máy & 960 & 86 / 100 & 0.838 / 0.555 &
-      0.864 / 0.573 & 1.61 \\ \hline
-    v3 & v2 + 69 frame Hà Nội nhãn tự động + 10 frame val & 960 & 80 / 100 & 0.853 / 0.616 & 0.870 / 0.573 & 1.79 \\ \hline
-    v4 & như v3 & 1280 & 83 / 100 & 0.851 / 0.616 & 0.873 / 0.575 & 3.18 \\ \hline
-    v5 & v3 + 2.000 ảnh UVH-26 & 960 & 90 / 100 & 0.867 / 0.628 & 0.861 / 0.578 & 2.96 \\ \hline
-    v5, seed 1 & như v5 & 960 & 69 / 89 & 0.877 / 0.638 & 0.868 / 0.590 & 2.68 \\ \hline
-    v5, seed 2 & như v5 & 960 & 93 / 100 & 0.871 / 0.630 & 0.862 / 0.579 & 3.02 \\ \hline
-    v6 & v5 + 288 frame đêm nhãn tự động & 960 & 73 / 93 & 0.868 / 0.629 & 0.868 / 0.584 & 3.04 \\ \hline
-    v6, seed 1 & như v6 & 960 & 85 / 100 & 0.862 / 0.626 & 0.858 / 0.587 & 3.27 \\ \hline
-    YOLO26s & như v5 & 960 & 87 / 100 & 0.873 / 0.639 & 0.884 / 0.600 & 4.90 \\ \hline
-    YOLO26s, seed 1 & như v5 & 960 & 81 / 100 & 0.875 / 0.644 & 0.879 / 0.594 & 5.36 \\ \hline
-    YOLO26s, seed 2 & như v5 & 960 & 60 / 80 & 0.873 / 0.647 & 0.887 / 0.603 & 4.31 \\ \hline
-    RT-DETRv2-S & như v5 & 960 & 61 / 81 & 0.878 / 0.651 & 0.874 / 0.601 & 10.7 \\ \hline
-    YOLO26s-v6 & như v6 & 960 & 77 / 97 & 0.871 / 0.645 & 0.890 / 0.601 & 5.16 \\ \hline
-    YOLO26s-v6, seed 1 & như v6 & 960 & 58 / 78 & 0.885 / 0.648 & 0.880 / 0.592 & 3.99 \\ \hline
+      0.864 / 0.573 & 1.61 \\ \rowsep
+    v3 & v2 + 69 frame Hà Nội nhãn tự động + 10 frame val & 960 & 80 / 100 & 0.853 / 0.616 & 0.870 / 0.573 & 1.79 \\ \rowsep
+    v4 & như v3 & 1280 & 83 / 100 & 0.851 / 0.616 & 0.873 / 0.575 & 3.18 \\ \rowsep
+    v5 & v3 + 2.000 ảnh UVH-26 & 960 & 90 / 100 & 0.867 / 0.628 & 0.861 / 0.578 & 2.96 \\ \rowsep
+    v5, seed 1 & như v5 & 960 & 69 / 89 & 0.877 / 0.638 & 0.868 / 0.590 & 2.68 \\ \rowsep
+    v5, seed 2 & như v5 & 960 & 93 / 100 & 0.871 / 0.630 & 0.862 / 0.579 & 3.02 \\ \rowsep
+    v6 & v5 + 288 frame đêm nhãn tự động & 960 & 73 / 93 & 0.868 / 0.629 & 0.868 / 0.584 & 3.04 \\ \rowsep
+    v6, seed 1 & như v6 & 960 & 85 / 100 & 0.862 / 0.626 & 0.858 / 0.587 & 3.27 \\ \rowsep
+    YOLO26s & như v5 & 960 & 87 / 100 & 0.873 / 0.639 & 0.884 / 0.600 & 4.90 \\ \rowsep
+    YOLO26s, seed 1 & như v5 & 960 & 81 / 100 & 0.875 / 0.644 & 0.879 / 0.594 & 5.36 \\ \rowsep
+    YOLO26s, seed 2 & như v5 & 960 & 60 / 80 & 0.873 / 0.647 & 0.887 / 0.603 & 4.31 \\ \rowsep
+    RT-DETRv2-S & như v5 & 960 & 61 / 81 & 0.878 / 0.651 & 0.874 / 0.601 & 10.7 \\ \rowsep
+    YOLO26s-v6 & như v6 & 960 & 77 / 97 & 0.871 / 0.645 & 0.890 / 0.601 & 5.16 \\ \rowsep
+    YOLO26s-v6, seed 1 & như v6 & 960 & 58 / 78 & 0.885 / 0.648 & 0.880 / 0.592 & 3.99 \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -417,20 +417,20 @@ RT-DETRv2-S dùng cấu hình chính thức của tác giả cho bản ResNet-18
   \caption{Các yếu tố được đồng nhất giữa YOLO26 và RT-DETRv2-S}
   \label{tab:dong-nhat}
   \small
-  \begin{tabularx}{\linewidth}{|P{4cm}|L|}
-    \hline
-    \thead{Yếu tố} & \thead{Cách giữ đồng nhất} \\ \hline
-    Dữ liệu và nhãn & Cùng bộ v5 (4.714 train, 320 val, 308 test), cùng file nhãn \\ \hline
-    Khởi tạo & Cả hai từ trọng số COCO, đầu phân lớp khởi tạo lại cho 4 lớp \\ \hline
-    Kích thước ảnh & 960 \\ \hline
-    Số epoch, dừng sớm & Tối đa 100; dừng khi mAP50-95 val không tăng sau 20 epoch \\ \hline
-    Chọn checkpoint & Trọng số EMA có mAP50-95 val cao nhất; cùng công thức EMA \\ \hline
-    Optimizer & AdamW ở cả hai; huấn luyện độ chính xác hỗn hợp; seed 42 \\ \hline
-    Đầu ra & Tối đa 300 phát hiện mỗi ảnh, không NMS, không TTA \\ \hline
+  \begin{tabularx}{\linewidth}{P{4cm}L}
+    \toprule
+    \thead{Yếu tố} & \thead{Cách giữ đồng nhất} \\ \midrule
+    Dữ liệu và nhãn & Cùng bộ v5 (4.714 train, 320 val, 308 test), cùng file nhãn \\ \rowsep
+    Khởi tạo & Cả hai từ trọng số COCO, đầu phân lớp khởi tạo lại cho 4 lớp \\ \rowsep
+    Kích thước ảnh & 960 \\ \rowsep
+    Số epoch, dừng sớm & Tối đa 100; dừng khi mAP50-95 val không tăng sau 20 epoch \\ \rowsep
+    Chọn checkpoint & Trọng số EMA có mAP50-95 val cao nhất; cùng công thức EMA \\ \rowsep
+    Optimizer & AdamW ở cả hai; huấn luyện độ chính xác hỗn hợp; seed 42 \\ \rowsep
+    Đầu ra & Tối đa 300 phát hiện mỗi ảnh, không NMS, không TTA \\ \rowsep
     Chấm điểm & Một đường chấm chung: pycocotools, ngưỡng tin cậy 0.001, tối đa 500 phát hiện mỗi ảnh, cùng vùng bỏ
-      qua, cùng bootstrap \\ \hline
+      qua, cùng bootstrap \\ \rowsep
     Đo tốc độ và độ phức tạp & Cùng CPU, cùng frame, cùng giao diện (tiền xử lý + suy luận + hậu xử lý); GFLOPs đo bằng
-      cùng công cụ ở đúng đầu vào thực tế \\ \hline
+      cùng công cụ ở đúng đầu vào thực tế \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -445,14 +445,14 @@ Các yếu tố không thể đồng nhất vì gắn với công thức của t
   \caption{Các yếu tố khác nhau giữa hai họ mô hình}
   \label{tab:khong-dong-nhat}
   \small
-  \begin{tabularx}{\linewidth}{|P{2.8cm}|L|L|}
-    \hline
-    \thead{Yếu tố} & \thead{YOLO26} & \thead{RT-DETRv2-S} \\ \hline
-    Tốc độ học & 0.00125, giảm tuyến tính & $10^{-4}$ cố định sau warmup, cắt gradient 0.1 \\ \hline
-    Batch hiệu dụng & 64 (batch 16 hoặc 8, cộng dồn gradient) & 16 (8 × cộng dồn 2) \\ \hline
-    Tăng cường dữ liệu & Mosaic, HSV, lật, co giãn & Biến đổi màu, ZoomOut, IoUCrop, lật \\ \hline
-    Đưa ảnh về 960 & Giữ tỉ lệ, đệm viền: video 1080p thành 544×960 & Kéo giãn thành 960×960 \\ \hline
-    Mất mát & BCE, box IoU, L1 & VFL, L1, GIoU, denoising \\ \hline
+  \begin{tabularx}{\linewidth}{P{2.8cm}LL}
+    \toprule
+    \thead{Yếu tố} & \thead{YOLO26} & \thead{RT-DETRv2-S} \\ \midrule
+    Tốc độ học & 0.00125, giảm tuyến tính & $10^{-4}$ cố định sau warmup, cắt gradient 0.1 \\ \rowsep
+    Batch hiệu dụng & 64 (batch 16 hoặc 8, cộng dồn gradient) & 16 (8 × cộng dồn 2) \\ \rowsep
+    Tăng cường dữ liệu & Mosaic, HSV, lật, co giãn & Biến đổi màu, ZoomOut, IoUCrop, lật \\ \rowsep
+    Đưa ảnh về 960 & Giữ tỉ lệ, đệm viền: video 1080p thành 544×960 & Kéo giãn thành 960×960 \\ \rowsep
+    Mất mát & BCE, box IoU, L1 & VFL, L1, GIoU, denoising \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -496,18 +496,18 @@ Quá trình chọn gồm năm bước, kết quả chi tiết ở mục~\ref{sec
   \caption{Cấu hình tracker mặc định}
   \label{tab:tracker-config}
   \small
-  \begin{tabularx}{\linewidth}{|P{4.2cm}|c|L|}
-    \hline
-    \thead{Tham số} & \thead{Giá trị} & \thead{Ý nghĩa} \\ \hline
-    \texttt{track\_high\_thresh} & 0.25 & Ngưỡng box điểm cao cho lần ghép thứ nhất \\ \hline
-    \texttt{track\_low\_thresh} & 0.1 & Ngưỡng dưới của box dùng ở lần ghép thứ hai \\ \hline
-    \texttt{new\_track\_thresh} & 0.25 & Điểm tối thiểu để tạo track mới \\ \hline
-    \texttt{track\_buffer} & 90 & Số frame giữ track bị mất trước khi xoá \\ \hline
-    \texttt{match\_thresh} & 0.8 & Ngưỡng chi phí ghép cặp \\ \hline
-    \texttt{gmc\_method} & none & Tắt bù chuyển động camera \\ \hline
-    \texttt{with\_reid} & false & Không dùng đặc trưng ngoại hình \\ \hline
+  \begin{tabularx}{\linewidth}{P{4.2cm}cL}
+    \toprule
+    \thead{Tham số} & \thead{Giá trị} & \thead{Ý nghĩa} \\ \midrule
+    \texttt{track\_high\_thresh} & 0.25 & Ngưỡng box điểm cao cho lần ghép thứ nhất \\ \rowsep
+    \texttt{track\_low\_thresh} & 0.1 & Ngưỡng dưới của box dùng ở lần ghép thứ hai \\ \rowsep
+    \texttt{new\_track\_thresh} & 0.25 & Điểm tối thiểu để tạo track mới \\ \rowsep
+    \texttt{track\_buffer} & 90 & Số frame giữ track bị mất trước khi xoá \\ \rowsep
+    \texttt{match\_thresh} & 0.8 & Ngưỡng chi phí ghép cặp \\ \rowsep
+    \texttt{gmc\_method} & none & Tắt bù chuyển động camera \\ \rowsep
+    \texttt{with\_reid} & false & Không dùng đặc trưng ngoại hình \\ \rowsep
     Lọc box trùng & IoU 0.6 & NMS không phân lớp: bỏ box chồng lên một box điểm cao hơn trước khi đưa vào tracker
-      \\ \hline
+      \\ \bottomrule
   \end{tabularx}
 \end{table}
 
@@ -543,7 +543,7 @@ Các bước:
   \hat{c}(k) = \arg\max_{c} \sum_{t \in \mathcal{T}_k} s_t \cdot \mathbf{1}\{c_t = c\}
   \label{eq:vote}
 \end{equation}
-Công thức (\ref{eq:vote}): lớp của track $k$, với $\mathcal{T}_k$ là các frame track $k$ xuất hiện, $c_t$ và $s_t$ là
+trong đó $\hat{c}(k)$ là lớp của track $k$, $\mathcal{T}_k$ là các frame track $k$ xuất hiện, $c_t$ và $s_t$ là
 lớp và điểm tin cậy của box ở frame $t$. Lớp sau bỏ phiếu được ghi đè lên kết quả trước khi đếm, vì thư viện đếm theo lớp
 tại thời điểm xe cắt vạch.
 \begin{enumerate}[resume]

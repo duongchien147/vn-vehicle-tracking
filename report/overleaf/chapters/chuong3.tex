@@ -46,7 +46,7 @@ bốn lớp của đề tài theo tên lớp; riêng xe van trong VisDrone đư�
   \begin{subfigure}{0.32\linewidth}\includegraphics[width=\linewidth]{data_visdrone.jpg}\caption{VisDrone}\end{subfigure}\hfill
   \begin{subfigure}{0.32\linewidth}\includegraphics[width=\linewidth]{data_uvh26.jpg}\caption{UVH-26}\end{subfigure}\hfill
   \begin{subfigure}{0.32\linewidth}\includegraphics[width=\linewidth]{data_hanoi.jpg}\caption{Frame Hà Nội}\end{subfigure}
-  \caption{Ví dụ ảnh từ sáu nguồn dữ liệu huấn luyện của v5}
+  \caption{Ảnh ví dụ của các nguồn dữ liệu huấn luyện}
   \label{fig:nguon-du-lieu}
 \end{figure}
 
@@ -344,15 +344,15 @@ Lý do của từng bước:
 \end{itemize}
 
 Hai mô hình YOLO26s và RT-DETRv2-S dùng đúng dữ liệu v5 để so sánh kiến trúc (mục~\ref{sec:giao-thuc}). Hình~\ref{fig:hoc}
-là đường học trên tập val của ba mô hình cùng dữ liệu v5. RT-DETRv2-S hội tụ sớm hơn, gần như không tăng từ khoảng
-epoch 55, nên bị dừng sớm ở epoch 81, trước pha tắt tăng cường dữ liệu ở 10 epoch cuối mà hai bản YOLO đều trải qua.
+là đường học trên tập val của ba mô hình cùng dữ liệu v5; điểm đánh dấu là epoch được chọn. Số của YOLO do bộ chấm
+Ultralytics tính, số của RT-DETRv2 do pycocotools tính, nên chỉ so được hình dạng đường học. RT-DETRv2-S hội tụ sớm hơn,
+gần như không tăng từ khoảng epoch 55, nên bị dừng sớm ở epoch 81, trước pha tắt tăng cường dữ liệu ở 10 epoch cuối mà
+hai bản YOLO đều trải qua.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\linewidth]{learning_curves.pdf}
-  \caption{mAP50-95 trên tập val theo epoch của ba mô hình huấn luyện trên dữ liệu v5; điểm đánh dấu là epoch được
-           chọn. Số của YOLO do bộ chấm Ultralytics tính, số của RT-DETRv2 do pycocotools tính, nên chỉ so được hình
-           dạng đường học}
+  \caption{Đường học mAP50-95 trên tập val (dữ liệu v5)}
   \label{fig:hoc}
 \end{figure}
 

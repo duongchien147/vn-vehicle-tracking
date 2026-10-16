@@ -70,8 +70,7 @@ phiên bản sau giữ ý tưởng đó và cải tiến dần backbone, neck đ
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.78\linewidth]{paper_yolo_grid.jpg}
-  \caption[Ý tưởng phát hiện một giai đoạn của YOLO]{Ý tưởng phát hiện một giai đoạn của YOLO: ảnh chia lưới
-           $S \times S$, mỗi ô dự đoán box kèm độ tin cậy và xác suất lớp, rồi gộp thành kết quả cuối
+  \caption[Ý tưởng phát hiện một giai đoạn của YOLO]{Ý tưởng phát hiện một giai đoạn của YOLO
            (nguồn:~\cite{redmon2016yolo})}
   \label{fig:yolo-grid}
 \end{figure}
@@ -92,8 +91,7 @@ kênh với 0.25, cỡ s với 0.5, và cả hai chỉ lặp mỗi khối bằng
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\linewidth]{paper_yolo26_arch.png}
-  \caption[Kiến trúc YOLO26]{Kiến trúc YOLO26: backbone, neck và ba đầu phát hiện ở các mức 1/8, 1/16, 1/32 (số kênh
-           của cấu hình gốc, ảnh vào 640; nguồn:~\cite{jocher2026yolo26})}
+  \caption[Kiến trúc YOLO26]{Kiến trúc YOLO26, cấu hình gốc ảnh vào 640 (nguồn:~\cite{jocher2026yolo26})}
   \label{fig:yolo26-arch}
 \end{figure}
 
@@ -115,9 +113,7 @@ Các điểm khác biệt chính so với thế hệ trước:
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{paper_yolo26_blocks.png}
-  \caption[Các khối chính của YOLO26]{Các khối chính của YOLO26: C3k2, C2PSA (có attention), SPPF và đầu phát hiện hai
-           nhánh; nhánh một-nhiều chỉ dùng khi huấn luyện, nhánh một-một dùng khi suy luận, không cần NMS
-           (nguồn:~\cite{jocher2026yolo26})}
+  \caption[Các khối chính của YOLO26]{Các khối chính của YOLO26 (nguồn:~\cite{jocher2026yolo26})}
   \label{fig:yolo26-blocks}
 \end{figure}
 
@@ -154,8 +150,7 @@ trên dữ liệu của đề tài.
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.92\linewidth]{paper_yolo26_speed.png}
-  \caption[Độ chính xác theo độ trễ của YOLO26 trên GPU T4]{Độ chính xác (mAP50-95 trên COCO val2017) theo độ trễ trên
-           GPU T4 với TensorRT FP16 của các cỡ YOLO26 và các mô hình thời gian thực khác
+  \caption[Độ chính xác theo độ trễ của YOLO26 trên GPU T4]{Độ chính xác theo độ trễ của YOLO26 trên GPU T4
            (nguồn:~\cite{jocher2026yolo26})}
   \label{fig:yolo26-speed}
 \end{figure}
@@ -220,9 +215,7 @@ trăm epoch trên COCO) và chậm khi suy luận.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{paper_detr.png}
-  \caption[Kiến trúc DETR]{Kiến trúc DETR: CNN trích đặc trưng, cộng mã hoá vị trí, qua bộ mã hoá và bộ giải mã
-           Transformer; mỗi truy vấn đối tượng cho ra một box và lớp, hoặc ``không có đối tượng''
-           (nguồn:~\cite{carion2020detr})}
+  \caption[Kiến trúc DETR]{Kiến trúc DETR (nguồn:~\cite{carion2020detr})}
   \label{fig:detr}
 \end{figure}
 
@@ -270,9 +263,7 @@ mã hội tụ nhanh hơn. Bản RT-DETRv2-S dùng backbone ResNet-18 và có 20
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{paper_rtdetr.png}
-  \caption[Tổng quan RT-DETR]{Tổng quan RT-DETR: backbone cho ba mức đặc trưng S3--S5; bộ mã hoá lai gồm AIFI (attention
-           trong một mức, chỉ trên S5) và CCFF (trộn giữa các mức bằng tích chập); chọn truy vấn có độ bất định nhỏ
-           nhất rồi đưa vào bộ giải mã. RT-DETRv2 giữ nguyên kiến trúc này (nguồn:~\cite{zhao2024rtdetr})}
+  \caption[Tổng quan RT-DETR]{Tổng quan RT-DETR (nguồn:~\cite{zhao2024rtdetr})}
   \label{fig:rtdetr}
 \end{figure}
 
@@ -340,31 +331,31 @@ xác nhận sau vài frame liên tiếp có box (\texttt{min\_hits}) và bị xo
 
 ByteTrack~\cite{zhang2022bytetrack} giữ lại cả box điểm thấp (Hình~\ref{fig:bytetrack}). Box được chia hai
 nhóm theo điểm tin cậy: lần ghép thứ nhất chỉ dùng box điểm cao; các track còn lại được ghép lần hai với box điểm thấp. Xe bị che một phần thường
-có điểm thấp, nên lần ghép thứ hai giúp track không bị đứt. Chỉ box điểm cao chưa ghép mới tạo track mới. Vì lý do
+có điểm thấp, nên lần ghép thứ hai giúp track không bị đứt; trong Hình~\ref{fig:bytetrack}, người bị che có điểm 0.4
+rồi 0.1, chỉ ghép box điểm cao thì mất track, ghép thêm box điểm thấp thì giữ được. Chỉ box điểm cao chưa ghép mới tạo
+track mới. Vì lý do
 này, ngưỡng tin cậy của mô hình phát hiện trong hệ thống được đặt ở 0.1 thay cho 0.25 thông thường: các box từ 0.1 đến
 0.25 không tạo track mới nhưng được dùng ở lần ghép thứ hai.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.62\linewidth]{paper_bytetrack.jpg}
-  \caption[Ý tưởng ghép mọi box của ByteTrack]{Ý tưởng của ByteTrack, minh hoạ trên người đi bộ: (a) box phát hiện kèm
-           điểm tin cậy; (b) chỉ ghép box điểm cao thì người bị che (điểm 0.4 rồi 0.1) mất track; (c) ghép thêm box điểm
-           thấp giữ được track đó (nguồn:~\cite{zhang2022bytetrack})}
+  \caption[Ý tưởng ghép mọi box của ByteTrack]{Ý tưởng ghép mọi box của ByteTrack
+           (nguồn:~\cite{zhang2022bytetrack})}
   \label{fig:bytetrack}
 \end{figure}
 
 BoT-SORT~\cite{aharon2022botsort} dựa trên ByteTrack và thêm ba cải tiến (Hình~\ref{fig:botsort}): trạng thái
 Kalman dùng trực tiếp chiều rộng và chiều cao box; bù chuyển động camera (GMC) bằng cách ước lượng phép biến đổi giữa
 hai frame từ luồng quang học thưa rồi áp vào vị trí dự đoán; và tuỳ chọn kết hợp đặc trưng ngoại hình (ReID) với IoU
-khi ghép. Cấu hình của đề tài tắt cả ReID lẫn bù chuyển động camera, vì camera đứng yên và đặc trưng ngoại hình lấy từ
+khi ghép (bộ phát hiện trong Hình~\ref{fig:botsort} là YOLOX của bài báo gốc). Cấu hình của đề tài tắt cả ReID lẫn bù
+chuyển động camera, vì camera đứng yên và đặc trưng ngoại hình lấy từ
 mô hình phát hiện làm số lần đổi ID tăng (mục~\ref{sec:chon-tracker}).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{paper_botsort.png}
-  \caption[Luồng xử lý của BoT-SORT]{Luồng xử lý của BoT-SORT: ước lượng chuyển động camera, dự đoán vị trí bằng
-           Kalman, ghép lần một với box điểm cao theo IoU kết hợp ReID, ghép lần hai với box điểm thấp theo IoU, rồi cập
-           nhật danh sách track. Bộ phát hiện trong hình là YOLOX của bài báo gốc (nguồn:~\cite{aharon2022botsort})}
+  \caption[Luồng xử lý của BoT-SORT]{Luồng xử lý của BoT-SORT (nguồn:~\cite{aharon2022botsort})}
   \label{fig:botsort}
 \end{figure}
 

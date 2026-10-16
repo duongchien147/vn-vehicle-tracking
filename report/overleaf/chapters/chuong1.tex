@@ -23,14 +23,14 @@ hướng \emph{tracking-by-detection}: chạy mô hình phát hiện trên từn
 
 Khi đã có ID ổn định cho từng xe, hệ thống đếm được số xe đi qua một vạch ảo theo từng lớp và từng hướng. Đếm xe là
 ứng dụng minh hoạ của kết quả theo dõi; trọng tâm đánh giá của đề tài vẫn là độ chính xác phát hiện (mAP) và chất
-lượng theo dõi (HOTA, MOTA, IDF1). Hình~\ref{fig:demo-pvd} là một frame đầu ra của hệ thống.
+lượng theo dõi (HOTA, MOTA, IDF1). Hình~\ref{fig:demo-pvd} là một frame đầu ra của hệ thống: box và nhãn ``\#ID lớp''
+của từng xe, vết di chuyển, vạch đếm màu trắng và bảng đếm theo lớp ở góc trái.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{demo_pvd_goc_a.jpg}
-  \caption{Một frame đầu ra của hệ thống trên clip đại lộ Phạm Văn Đồng (TP.HCM): box và nhãn ``\#ID lớp'' của từng
-           xe, vết di chuyển, vạch đếm màu trắng và bảng đếm theo lớp ở góc trái (nguồn video: kênh YouTube Vietnam
-           Naturally)}
+  \caption[Kết quả của hệ thống trên clip Phạm Văn Đồng]{Kết quả của hệ thống trên clip Phạm Văn Đồng (nguồn video:
+           Vietnam Naturally)}
   \label{fig:demo-pvd}
 \end{figure}
 

@@ -149,13 +149,13 @@ hầm chui. v6 ngang v5 trên các tập ngoài: frame đêm thêm vào không l
 YOLO26s-v6 cao hơn v6 ở cả ba tập UVH-26 và UA-DETRAC (0.871, 0.867 và 0.881).
 
 Hình~\ref{fig:confusion} là ma trận nhầm lẫn của mô hình chính YOLO26s-v6 trên tập test Roboflow, chuẩn hoá theo cột
-(lớp thật). Nhầm lẫn giữa các lớp xe rất ít: ô lớn nhất ngoài đường chéo là 0.07, xe buýt bị gọi là ô tô. Lỗi chủ yếu
+(cột là lớp thật, hàng là lớp dự đoán). Nhầm lẫn giữa các lớp xe rất ít: ô lớn nhất ngoài đường chéo là 0.07, xe buýt bị gọi là ô tô. Lỗi chủ yếu
 là bỏ sót, với 18\% xe máy không được phát hiện (cột xe máy, hàng \emph{background}).
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.72\linewidth]{confusion_matrix.jpg}
-  \caption{Ma trận nhầm lẫn chuẩn hoá của YOLO26s-v6 trên tập test Roboflow (cột là lớp thật, hàng là lớp dự đoán)}
+  \caption{Ma trận nhầm lẫn của YOLO26s-v6 trên test Roboflow}
   \label{fig:confusion}
 \end{figure}
 
@@ -220,13 +220,13 @@ Trong họ YOLO, bản s hơn bản n rõ nhất ở \texttt{vn\_extra} đêm (0
 hai bản ngang nhau. Ưu thế của bản s qua nhiều lần huấn luyện, và tác dụng của dữ liệu đêm so với tác dụng của cỡ mô
 hình, được phân tích ở mục~\ref{sec:thao-luan}.
 
-Hình~\ref{fig:acc-speed} đặt độ chính xác cạnh tốc độ CPU: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
+Hình~\ref{fig:acc-speed} đặt mAP50 chính của bốn cấu hình cạnh thời gian phát hiện trên CPU i5-8250U: mỗi bước tăng độ chính xác đều phải trả bằng thời gian xử
 lý, và RT-DETRv2-S nằm xa nhất về phía chậm.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{accuracy_vs_speed.pdf}
-  \caption{Độ chính xác (mAP50 chính) theo thời gian phát hiện trên CPU i5-8250U của bốn cấu hình}
+  \caption{Độ chính xác theo thời gian phát hiện trên CPU}
   \label{fig:acc-speed}
 \end{figure}
 
@@ -533,28 +533,30 @@ nhiều lỗi loại đó nhất. Màu box: xanh lá là đúng, đỏ là bỏ 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_1.jpg}
-  \caption{Xe máy rất nhỏ ở xa bị bỏ sót (\texttt{vn\_extra} ngày, góc máy B)}
+  \caption{Xe máy nhỏ ở xa bị sót}
   \label{fig:error-1}
 \end{figure}
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_2.jpg}
-  \caption{Cụm xe máy chờ đèn đỏ dày đặc bị bỏ sót (test Hà Nội)}
+  \caption{Cụm xe máy chờ đèn đỏ bị sót}
   \label{fig:error-2}
 \end{figure}
 
-Hình~\ref{fig:error-1} và~\ref{fig:error-2} là hai dạng bỏ sót chính ban ngày: xe quá nhỏ sau khi ảnh bị thu về 960
+Hình~\ref{fig:error-1} (\texttt{vn\_extra} ngày, góc máy B) và~\ref{fig:error-2} (test Hà Nội) là hai dạng
+bỏ sót chính ban ngày: xe quá nhỏ sau khi ảnh bị thu về 960
 điểm ảnh, và xe máy dừng sát nhau che khuất lẫn nhau.
 
 \begin{figure}[H]
   \centering
   \includegraphics[width=0.9\linewidth]{error_3.jpg}
-  \caption{Ô tô ban đêm ở đường ngang phía xa bị rào chắn che, chỉ thấy đèn (\texttt{vn\_extra} đêm)}
+  \caption{Ô tô ban đêm chỉ thấy đèn bị sót}
   \label{fig:error-3}
 \end{figure}
 
-Ban đêm, ngoài xe chỉ thấy đèn bị sót (Hình~\ref{fig:error-3}), có hai lỗi đặc trưng. Xe máy chở thùng hàng, đèn hậu
+Ban đêm, ngoài ô tô ở đường ngang phía xa bị rào chắn che, chỉ thấy đèn (Hình~\ref{fig:error-3}, \texttt{vn\_extra}
+đêm), có hai lỗi đặc trưng. Xe máy chở thùng hàng, đèn hậu
 chói, bị gọi là ô tô. Và mô hình hay chỉ khoanh phần đèn hậu sáng: box này có IoU dưới 0.5 với box nhãn (bao cả người và
 xe), nên một xe vừa bị tính là bỏ sót vừa sinh một phát hiện thừa. Phần lớn ``phát hiện thừa'' ban đêm thuộc loại này
 chứ không phải vệt đèn hay bóng phản chiếu. Lỗi phân loại đáng kể còn lại ban ngày là xe Ford Transit, nhãn xe buýt,
@@ -563,13 +565,12 @@ bị gọi là ô tô, hệ quả của định nghĩa lớp xe van.
 \begin{figure}[H]
   \centering
   \includegraphics[width=\linewidth]{error_7.jpg}
-  \caption{Đổi ID khi xe bị cây cảnh phía trước che; box đổi dạng, tracker tạo track mới song song rồi bỏ track cũ
-           (clip Phạm Văn Đồng)}
+  \caption{Đổi ID khi xe bị cây che}
   \label{fig:error-7}
 \end{figure}
 
-Hình~\ref{fig:error-7} là dạng đổi ID điển hình: khi xe đi sau cây, box co lại theo phần nhìn thấy, tracker không ghép
-được với track cũ nên tạo track mới. Bộ dò đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm
+Hình~\ref{fig:error-7} (clip Phạm Văn Đồng) là dạng đổi ID điển hình: khi xe đi sau cây cảnh, box co lại theo phần nhìn thấy, tracker không ghép
+được với track cũ nên tạo track mới song song rồi bỏ track cũ. Bộ dò đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm
 điều kiện ``ID cũ đã biến mất ở frame đổi'' còn 25 lần, gần với 26 lần đổi ID của TrackEval. Phần chênh lệch là box của
 tracker nhảy qua lại giữa hai track trùng trên cùng một xe.
 

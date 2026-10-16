@@ -36,6 +36,10 @@ FRAME_TIME_S = 30  # lấy frame giữa clip demo 60 s
 # Ảnh phân tích lỗi (outputs/error_analysis/<số>_*.jpg) có trong báo cáo: xe nhỏ ở xa, cụm xe máy, xe đêm chỉ thấy
 # đèn, đổi ID. Các loại lỗi còn lại chỉ mô tả bằng lời trong báo cáo.
 ERROR_CASES_IN_REPORT = ("1", "2", "3", "7")
+# Ảnh lỗi có dòng tiêu đề in sẵn phía trên (scripts/render_error_examples.py, TITLE_HEIGHT = 44 px mỗi dòng), trùng với
+# chú thích hình của báo cáo -> cắt bỏ. Ảnh đổi ID (số 7) có hai dòng: chú thích nguyên nhân và tiêu đề.
+ERROR_TITLE_HEIGHT = 44
+ERROR_TITLE_LINES = {"7": 2}
 # Ảnh gốc (chưa qua mô hình) minh hoạ lý do chọn đề tài: tên file -> (video, giây), chọn bằng mắt.
 # Ban ngày: ngã tư Hà Nội lúc xe máy đi dày xen ô tô; ban đêm: đường phố TP.HCM nhiều xe, chỉ có đèn đường và đèn xe.
 INTRO_FRAMES = {
@@ -188,7 +192,11 @@ def copy_existing() -> None:
     for path in sorted(Path("outputs/error_analysis").glob("*.jpg")):
         case = path.name.split("_")[0]
         if case in ERROR_CASES_IN_REPORT:
-            save_jpeg(cv2.imread(str(path)), OUT / f"error_{case}.jpg")
+            image = cv2.imread(str(path))
+            if image is None:
+                raise RuntimeError(f"Không đọc được {path}")
+            title_rows = ERROR_TITLE_HEIGHT * ERROR_TITLE_LINES.get(case, 1)
+            save_jpeg(image[title_rows:], OUT / f"error_{case}.jpg")
     confusion = cv2.imread(str(KAGGLE_YOLO_MAIN / "runs/yolo26s_v6_e100_960/test/confusion_matrix_normalized.png"))
     save_jpeg(confusion, OUT / "confusion_matrix.jpg")
     # Ảnh chụp giao diện web demo (chụp bằng trình duyệt, lưu PNG vào OUT) -> JPEG

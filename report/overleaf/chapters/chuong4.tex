@@ -76,18 +76,18 @@ Nhãn sơ bộ từ YOLO26x nên dùng được cả mAP50-95.
   \caption{Kết quả phát hiện trên \texttt{vn\_extra}}
   \label{tab:vn-extra}
   \footnotesize
-  \begin{tabularx}{\linewidth}{|p{3.3cm}|C|>{\centering\arraybackslash}p{1.6cm}|C|>{\centering\arraybackslash}p{1.6cm}|}
+  \begin{tabularx}{\linewidth}{|P{3.5cm}|C|C|C|C|}
     \hline
-    \thead{Mô hình} & \thead{Ngày mAP50 [CI]} & \thead{Ngày mAP50-95} & \thead{Đêm mAP50 [CI]} & \thead{Đêm mAP50-95} \\ \hline
-    YOLO26n gốc COCO @1280 & 0.458 [0.416--0.502] & 0.286 & 0.437 [0.363--0.498] & 0.308 \\ \hline
+    \thead{Mô hình} & \thead{Ngày mAP50} & \thead{Ngày mAP50-95} & \thead{Đêm mAP50} & \thead{Đêm mAP50-95} \\ \hline
+    YOLO26n gốc COCO @1280 & \ci{0.458}{0.416--0.502} & 0.286 & \ci{0.437}{0.363--0.498} & 0.308 \\ \hline
     v1 @640 & 0.081 & 0.035 & 0.183 & 0.106 \\ \hline
     v2 & 0.736 & 0.424 & 0.496 & 0.306 \\ \hline
     v3 & 0.757 & 0.460 & 0.437 & 0.263 \\ \hline
-    v4 @1280 & 0.808 [0.770--0.843] & 0.517 & 0.481 & 0.321 \\ \hline
-    v5 & 0.745 [0.699--0.787] & 0.438 & 0.628 [0.575--0.681] & 0.404 \\ \hline
-    v5 @1280 (chỉ phân tích) & 0.834 [0.799--0.866] & 0.519 & 0.657 [0.607--0.705] & 0.449 \\ \hline
-    v6 & 0.760 [0.724--0.795] & 0.446 & 0.755 [0.708--0.795] & 0.495 \\ \hline
-    YOLO26s-v6 & 0.830 [0.801--0.858] & 0.545 & 0.887 [0.861--0.913] & 0.614 \\ \hline
+    v4 @1280 & \ci{0.808}{0.770--0.843} & 0.517 & 0.481 & 0.321 \\ \hline
+    v5 & \ci{0.745}{0.699--0.787} & 0.438 & \ci{0.628}{0.575--0.681} & 0.404 \\ \hline
+    v5 @1280 (chỉ phân tích) & \ci{0.834}{0.799--0.866} & 0.519 & \ci{0.657}{0.607--0.705} & 0.449 \\ \hline
+    v6 & \ci{0.760}{0.724--0.795} & 0.446 & \ci{0.755}{0.708--0.795} & 0.495 \\ \hline
+    YOLO26s-v6 & \ci{0.830}{0.801--0.858} & 0.545 & \ci{0.887}{0.861--0.913} & 0.614 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -121,17 +121,18 @@ Recall theo chiều cao xe dưới đây tính ở ngưỡng tin cậy 0.25, gh�
   \caption{mAP50 trên clip Phạm Văn Đồng và các tập ngoài}
   \label{tab:tap-ngoai}
   \footnotesize
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.3cm}|C|C|C|C|C|}
+  \setlength{\tabcolsep}{4pt}
+  \begin{tabularx}{\linewidth}{|P{2.5cm}|C|C|C|C|C|}
     \hline
     \thead{Tập} & \thead{COCO @1280} & \thead{v3} & \thead{v5} & \thead{v6} & \thead{YOLO26s-v6} \\ \hline
-    Clip Phạm Văn Đồng & 0.664 [0.638--0.693] & 0.891 [0.865--0.915] & 0.892 [0.866--0.923] & 0.907 [0.886--0.930] &
-      0.901 [0.877--0.928] \\ \hline
-    Val UVH-26 (4 lớp) & 0.594 [0.573--0.619] & 0.335 [0.314--0.361] & 0.850 [0.832--0.868] & 0.849 [0.829--0.867] &
-      0.871 [0.854--0.888] \\ \hline
-    UA-DETRAC đêm & 0.689 [0.654--0.739] & 0.722 [0.668--0.774] & 0.845 [0.797--0.890] & 0.857 [0.811--0.898] &
-      0.867 [0.824--0.912] \\ \hline
-    UA-DETRAC ngày & 0.690 [0.661--0.753] & 0.709 [0.649--0.764] & 0.812 [0.755--0.870] & 0.852 [0.799--0.901] &
-      0.881 [0.833--0.924] \\ \hline
+    Clip Phạm Văn Đồng & \ci{0.664}{0.638--0.693} & \ci{0.891}{0.865--0.915} & \ci{0.892}{0.866--0.923} & \ci{0.907}{0.886--0.930} &
+      \ci{0.901}{0.877--0.928} \\ \hline
+    Val UVH-26 (4 lớp) & \ci{0.594}{0.573--0.619} & \ci{0.335}{0.314--0.361} & \ci{0.850}{0.832--0.868} & \ci{0.849}{0.829--0.867} &
+      \ci{0.871}{0.854--0.888} \\ \hline
+    UA-DETRAC đêm & \ci{0.689}{0.654--0.739} & \ci{0.722}{0.668--0.774} & \ci{0.845}{0.797--0.890} & \ci{0.857}{0.811--0.898} &
+      \ci{0.867}{0.824--0.912} \\ \hline
+    UA-DETRAC ngày & \ci{0.690}{0.661--0.753} & \ci{0.709}{0.649--0.764} & \ci{0.812}{0.755--0.870} & \ci{0.852}{0.799--0.901} &
+      \ci{0.881}{0.833--0.924} \\ \hline
     Test Roboflow (4 lớp) & 0.255 & -- & 0.834 & 0.844 & 0.857 \\ \hline
   \end{tabularx}
 \end{table}
@@ -168,7 +169,7 @@ Ba mô hình cùng dữ liệu v5, cùng giao thức (mục~\ref{sec:giao-thuc})
   \caption{mAP50 chính của ba kiến trúc}
   \label{tab:kien-truc}
   \small
-  \begin{tabularx}{\linewidth}{|p{3.4cm}|C|C|C|C|}
+  \begin{tabularx}{\linewidth}{|P{3.4cm}|C|C|C|C|}
     \hline
     \thead{Tập} & \thead{YOLO26n (v5) @960} & \thead{YOLO26s @960} & \thead{RT-DETRv2-S @960×960} &
       \thead{YOLO26s @1280} \\ \hline
@@ -249,14 +250,14 @@ v6 và 3.9 ms với YOLO26s-v6; trên CPU chênh lệch không nhất quán (t�
   \label{tab:toc-do-cpu}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.2cm}|>{\centering\arraybackslash}p{1.55cm}|C|C|>{\centering\arraybackslash}p{1.15cm}|C|}
+  \begin{tabularx}{\linewidth}{|P{2.8cm}|>{\centering\arraybackslash}p{1.55cm}|C|C|>{\centering\arraybackslash}p{1.15cm}|C|}
     \hline
-    \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector ms [IQR]} & \thead{frame/s} &
+    \thead{Mô hình} & \thead{Đầu vào} & \thead{Tham số / GFLOPs} & \thead{Detector ms} & \thead{frame/s} &
       \thead{Pipeline ms (frame/s)} \\ \hline
-    YOLO26n v5 & 544×960 & 2.51 M / 7.4 & 100.5 [88.4--109.4] & 9.9 & 133.7 (7.5) \\ \hline
-    YOLO26s & 544×960 & 9.95 M / 28.7 & 261.9 [254.8--267.5] & 3.8 & 285.3 (3.5) \\ \hline
-    YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & 455.2 [445.4--472.2] & 2.2 & 493.0 (2.0) \\ \hline
-    RT-DETRv2-S & 960×960 & 20.08 M / 133.9 & 1526.2 [1498.6--1602.4] & 0.66 & -- \\ \hline
+    YOLO26n v5 & 544×960 & 2.51 M / 7.4 & \ci{100.5}{88.4--109.4} & 9.9 & 133.7 (7.5) \\ \hline
+    YOLO26s & 544×960 & 9.95 M / 28.7 & \ci{261.9}{254.8--267.5} & 3.8 & 285.3 (3.5) \\ \hline
+    YOLO26s @1280 & 736×1280 & 9.95 M / 52.4 & \ci{455.2}{445.4--472.2} & 2.2 & 493.0 (2.0) \\ \hline
+    RT-DETRv2-S & 960×960 & 20.08 M / 133.9 & \ci{1526.2}{1498.6--1602.4} & 0.66 & -- \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -313,7 +314,7 @@ v5 cho thấy ba điều:
   \caption{Các cấu hình chạy trên laptop}
   \label{tab:openvino}
   \footnotesize
-  \begin{tabularx}{\linewidth}{|p{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
+  \begin{tabularx}{\linewidth}{|P{2.85cm}|>{\centering\arraybackslash}p{2.1cm}|>{\centering\arraybackslash}p{1.45cm}|C|C|C|C|}
     \hline
     \thead{Cấu hình} & \thead{Thiết bị} & \thead{Đầu vào} & \thead{Phát hiện (ms)} & \thead{Pipeline (frame/s)} &
       \thead{mAP50 val} & \thead{IDR dev} \\ \hline
@@ -404,16 +405,16 @@ tóm tắt các cách đã thử, mỗi cách có tiêu chí viết ra trước 
   \label{tab:giam-doi-id}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|L|*{8}{>{\centering\arraybackslash}p{0.95cm}|}}
+  \begin{tabularx}{\linewidth}{|L|*{8}{>{\centering\arraybackslash}p{1.12cm}|}}
     \hline
     & \multicolumn{2}{c|}{\thead{Dev VnTraffic}} &
       \multicolumn{3}{c|}{\thead{Dev PVD góc C}} & \multicolumn{3}{c|}{\thead{Test PVD góc A}} \\ \cline{2-9}
     \thead{Cấu hình tracker} & \thead{Đổi ID} & \thead{IDR} & \thead{Đổi ID} & \thead{Bỏ sót} & \thead{HOTA} & \thead{Đổi ID} & \thead{Bỏ sót} &
       \thead{HOTA} \\ \hline
-    Cũ: ngưỡng mở track 0.25, không lọc & 93.5 & 0.833 & 36.5 & 1.521 & 0.689 & 49 & 1.689 & 0.732 \\ \hline
-    Ngưỡng mở track 0.6, ngưỡng ghép lần một 0.4 & 62.5 & 0.836 & 13.0 & 2.182 & 0.700 & 7 & 3.291 & 0.687 \\ \hline
-    Lọc box trùng, IoU 0.5 & 51.0 & 0.851 & 25.0 & 1.559 & 0.696 & -- & -- & -- \\ \hline
-    Lọc box trùng, IoU 0.6 (mặc định mới) & 63.0 & 0.841 & 27.5 & 1.535 & 0.695 & 26 & 1.704 & 0.744 \\ \hline
+    Cũ (mở track 0.25, không lọc) & 93.5 & 0.833 & 36.5 & 1.521 & 0.689 & 49 & 1.689 & 0.732 \\ \hline
+    Mở track 0.6, ghép lần một 0.4 & 62.5 & 0.836 & 13.0 & 2.182 & 0.700 & 7 & 3.291 & 0.687 \\ \hline
+    Lọc box trùng IoU 0.5 & 51.0 & 0.851 & 25.0 & 1.559 & 0.696 & -- & -- & -- \\ \hline
+    Lọc box trùng IoU 0.6 (mặc định) & 63.0 & 0.841 & 27.5 & 1.535 & 0.695 & 26 & 1.704 & 0.744 \\ \hline
   \end{tabularx}
 \end{table}
 
@@ -498,7 +499,7 @@ YOLO26s-v6 chạy với cấu hình mặc định, có lọc box trùng.
   \label{tab:dem-xe}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{3.2cm}|C|C|C|C|C|}
+  \begin{tabularx}{\linewidth}{|P{3.7cm}|C|C|C|C|C|}
     \hline
     & \multicolumn{2}{c|}{\thead{Ban ngày (2 vào / 71 ra)}} & \multicolumn{3}{c|}{\thead{Ban đêm (176 lượt)}} \\ \cline{2-6}
     \thead{Mô hình} & \thead{Đếm (vào / ra)} & \thead{Sai số} & \thead{Sót} & \thead{Thừa} & \thead{Sai số} \\ \hline
@@ -570,7 +571,8 @@ bị gọi là ô tô, hệ quả của định nghĩa lớp xe van.
 \end{figure}
 
 Hình~\ref{fig:error-7} (clip Phạm Văn Đồng) là dạng đổi ID điển hình: khi xe đi sau cây cảnh, box co lại theo phần nhìn thấy, tracker không ghép
-được với track cũ nên tạo track mới song song rồi bỏ track cũ. Bộ dò đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm
+được với track cũ nên tạo track mới song song rồi bỏ track cũ (trong hình, khung xanh lá là nhãn, khung xanh dương là
+tracker: xe mang ID 296 ở frame 340 rồi đổi sang ID 780 ở frame 341). Bộ dò đổi ID đơn giản của đề tài (ghép IoU từng frame) đếm được 46 lần; lọc thêm
 điều kiện ``ID cũ đã biến mất ở frame đổi'' còn 25 lần, gần với 26 lần đổi ID của TrackEval. Phần chênh lệch là box của
 tracker nhảy qua lại giữa hai track trùng trên cùng một xe.
 
@@ -585,11 +587,11 @@ qua OpenVINO trên GPU tích hợp, mục~\ref{sec:openvino}) dùng khi cần x�
 \begin{figure}[H]
   \centering
   \begin{subfigure}{\linewidth}
-    \centering\includegraphics[width=0.92\linewidth]{app_gpu_demo.jpg}
+    \centering\fbox{\includegraphics[width=0.9\linewidth]{app_gpu_demo.jpg}}
     \caption{Video kết quả của clip Phạm Văn Đồng}
   \end{subfigure}\\[6pt]
   \begin{subfigure}{\linewidth}
-    \centering\includegraphics[width=0.92\linewidth]{app_counts.jpg}
+    \centering\fbox{\includegraphics[width=0.9\linewidth]{app_counts.jpg}}
     \caption{Bảng đếm theo lớp và hướng, biểu đồ số xe cộng dồn}
   \end{subfigure}
   \caption{Giao diện web demo Streamlit}
@@ -642,25 +644,25 @@ từ 61 đến 97 với YOLO26n, nên con số 61 của lần huấn luyện đ�
   \label{tab:seeds}
   \footnotesize
   \setlength{\tabcolsep}{4pt}
-  \begin{tabularx}{\linewidth}{|>{\raggedright\arraybackslash}p{2.6cm}|C|C|C|C|>{\centering\arraybackslash}p{0.8cm}|}
+  \begin{tabular}{|P{2.2cm}|*{2}{>{\centering\arraybackslash}p{2.95cm}|>{\centering\arraybackslash}p{2.3cm}|}>{\centering\arraybackslash}p{0.95cm}|}
     \hline
     \thead{Tập, chỉ số} & \thead{YOLO26n (v5)} & \thead{v6} & \thead{YOLO26s (v5)} & \thead{YOLO26s-v6} & \thead{v3}
       \\ \hline
-    Test Hà Nội & 0.923 / 0.918 / 0.918 & 0.921 / 0.919 & 0.914 / 0.918 / 0.919 & 0.920 / 0.927 & 0.921 \\ \hline
-    \texttt{vn\_extra} ngày & 0.745 / 0.757 / 0.732 & 0.760 / 0.752 & 0.798 / 0.828 / 0.809 & 0.830 / 0.841 & 0.757
+    Test Hà Nội & 0.923/0.918/0.918 & 0.921/0.919 & 0.914/0.918/0.919 & 0.920/0.927 & 0.921 \\ \hline
+    \texttt{vn\_extra} ngày & 0.745/0.757/0.732 & 0.760/0.752 & 0.798/0.828/0.809 & 0.830/0.841 & 0.757
       \\ \hline
-    \texttt{vn\_extra} đêm & 0.628 / 0.638 / 0.510 & 0.755 / 0.747 & 0.713 / 0.725 / 0.821 & 0.887 / 0.847 & 0.437
+    \texttt{vn\_extra} đêm & 0.628/0.638/0.510 & 0.755/0.747 & 0.713/0.725/0.821 & 0.887/0.847 & 0.437
       \\ \hline
-    20 frame PVD & 0.892 / 0.905 / 0.898 & 0.907 / 0.908 & 0.903 / 0.903 / 0.904 & 0.901 / 0.914 & 0.891 \\ \hline
-    Test Roboflow (4 lớp) & 0.834 / 0.844 / 0.837 & 0.844 / 0.849 & 0.862 / 0.865 / 0.862 & 0.857 / 0.848 & -- \\ \hline
-    Val UVH-26 & 0.850 / 0.847 / 0.838 & 0.849 / 0.842 & 0.859 / 0.866 / 0.871 & 0.871 / 0.875 & 0.335 \\ \hline
-    UA-DETRAC đêm & 0.845 / 0.846 / 0.833 & 0.857 / 0.844 & 0.876 / 0.864 / 0.837 & 0.867 / 0.872 & 0.722 \\ \hline
-    UA-DETRAC ngày & 0.812 / 0.831 / 0.792 & 0.852 / 0.833 & 0.885 / 0.885 / 0.884 & 0.881 / 0.881 & 0.709 \\ \hline
-    VnTraffic (dev): IDR & 0.827 / 0.836 / 0.861 & 0.841 / 0.824 & 0.845 / 0.826 / 0.854 & 0.866 / 0.870 & 0.731 \\ \hline
-    VnTraffic (dev): đổi ID & 61 / 97 / 95 & 93 / 94 & 65 / 71 / 62 & 63 / 75 & 130 \\ \hline
-    Clip PVD (test): HOTA & 0.718 / 0.728 / 0.714 & 0.732 / 0.722 & 0.758 / 0.763 / 0.767 & -- & -- \\ \hline
-    Clip PVD (test): IDF1 & 0.880 / 0.870 / 0.885 & 0.884 / 0.871 & 0.904 / 0.908 / 0.905 & -- & -- \\ \hline
-  \end{tabularx}
+    20 frame PVD & 0.892/0.905/0.898 & 0.907/0.908 & 0.903/0.903/0.904 & 0.901/0.914 & 0.891 \\ \hline
+    Test Roboflow (4 lớp) & 0.834/0.844/0.837 & 0.844/0.849 & 0.862/0.865/0.862 & 0.857/0.848 & -- \\ \hline
+    Val UVH-26 & 0.850/0.847/0.838 & 0.849/0.842 & 0.859/0.866/0.871 & 0.871/0.875 & 0.335 \\ \hline
+    UA-DETRAC đêm & 0.845/0.846/0.833 & 0.857/0.844 & 0.876/0.864/0.837 & 0.867/0.872 & 0.722 \\ \hline
+    UA-DETRAC ngày & 0.812/0.831/0.792 & 0.852/0.833 & 0.885/0.885/0.884 & 0.881/0.881 & 0.709 \\ \hline
+    VnTraffic (dev): IDR & 0.827/0.836/0.861 & 0.841/0.824 & 0.845/0.826/0.854 & 0.866/0.870 & 0.731 \\ \hline
+    VnTraffic (dev): đổi ID & 61/97/95 & 93/94 & 65/71/62 & 63/75 & 130 \\ \hline
+    Clip PVD (test): HOTA & 0.718/0.728/0.714 & 0.732/0.722 & 0.758/0.763/0.767 & -- & -- \\ \hline
+    Clip PVD (test): IDF1 & 0.880/0.870/0.885 & 0.884/0.871 & 0.904/0.908/0.905 & -- & -- \\ \hline
+  \end{tabular}
 \end{table}
 
 Từ Bảng~\ref{tab:seeds} rút ra ba điểm:

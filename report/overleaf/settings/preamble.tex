@@ -102,6 +102,10 @@
 \captionsetup[table]{position=top}
 % Hàng tiêu đề bảng: nền xanh, chữ đậm như mẫu
 \newcommand{\thead}[1]{\cellcolor{tableheader}\textbf{#1}}
+% Cột chữ căn trái: cột p{} mặc định dàn đều, ô hẹp có khoảng trắng lớn giữa các từ
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
+% Ô số liệu kèm khoảng tin cậy: giá trị ở dòng trên, khoảng [a–b] chữ nhỏ ở dòng dưới, để khoảng không bị ngắt giữa chừng
+\newcommand{\ci}[2]{\begin{tabular}[t]{@{}c@{}}#1\\{\scriptsize[#2]}\end{tabular}}
 
 % ---------- Danh sách ----------
 \usepackage{enumitem}
@@ -119,5 +123,14 @@
 % Không dùng hyperref: báo cáo nộp bản in, bỏ liên kết bấm được để mỗi lượt biên dịch nhanh hơn ~0.3 s
 \usepackage{url}
 \urlstyle{same}
+% \bstctlcite: đọc mục @IEEEtranBSTCTL trong references.bib (lệnh có sẵn ở lớp IEEEtran, không có ở scrreprt)
+\makeatletter
+\def\bstctlcite{\@ifnextchar[{\@bstctlcite}{\@bstctlcite[@auxout]}}
+\def\@bstctlcite[#1]#2{\@bsphack
+  \@for\@citeb:=#2\do{%
+    \edef\@citeb{\expandafter\@firstofone\@citeb}%
+    \if@filesw\immediate\write\csname #1\endcsname{\string\citation{\@citeb}}\fi}%
+  \@esphack}
+\makeatother
 % Cho phép ngắt dòng URL ở dấu gạch ngang: URL bài báo tiếng Việt dài, chỉ ngắt ở / và . thì tràn lề
 \expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks\do\-}

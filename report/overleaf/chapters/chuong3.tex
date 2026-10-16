@@ -19,7 +19,7 @@ bốn lớp của đề tài theo tên lớp; riêng xe van trong VisDrone đư�
   \caption{Các nguồn dữ liệu huấn luyện}
   \label{tab:nguon-du-lieu}
   \small
-  \begin{tabularx}{\linewidth}{|p{3.3cm}|L|p{2.3cm}|p{2.1cm}|}
+  \begin{tabularx}{\linewidth}{|P{3.4cm}|L|P{2.0cm}|P{2.4cm}|}
     \hline
     \thead{Nguồn} & \thead{Đặc điểm và cách dùng} & \thead{Dùng cho} & \thead{Giấy phép} \\ \hline
     vietnamese-vehicle v3~\cite{roboflow_vnvehicle} & Ảnh xe Việt Nam từ nhiều cảnh; nguồn duy nhất được chia ra cả
@@ -417,7 +417,7 @@ RT-DETRv2-S dùng cấu hình chính thức của tác giả cho bản ResNet-18
   \caption{Các yếu tố được đồng nhất giữa YOLO26 và RT-DETRv2-S}
   \label{tab:dong-nhat}
   \small
-  \begin{tabularx}{\linewidth}{|p{4cm}|L|}
+  \begin{tabularx}{\linewidth}{|P{4cm}|L|}
     \hline
     \thead{Yếu tố} & \thead{Cách giữ đồng nhất} \\ \hline
     Dữ liệu và nhãn & Cùng bộ v5 (4.714 train, 320 val, 308 test), cùng file nhãn \\ \hline
@@ -445,7 +445,7 @@ Các yếu tố không thể đồng nhất vì gắn với công thức của t
   \caption{Các yếu tố khác nhau giữa hai họ mô hình}
   \label{tab:khong-dong-nhat}
   \small
-  \begin{tabularx}{\linewidth}{|p{2.8cm}|L|L|}
+  \begin{tabularx}{\linewidth}{|P{2.8cm}|L|L|}
     \hline
     \thead{Yếu tố} & \thead{YOLO26} & \thead{RT-DETRv2-S} \\ \hline
     Tốc độ học & 0.00125, giảm tuyến tính & $10^{-4}$ cố định sau warmup, cắt gradient 0.1 \\ \hline
@@ -496,7 +496,7 @@ Quá trình chọn gồm năm bước, kết quả chi tiết ở mục~\ref{sec
   \caption{Cấu hình tracker mặc định}
   \label{tab:tracker-config}
   \small
-  \begin{tabularx}{\linewidth}{|p{4.2cm}|c|L|}
+  \begin{tabularx}{\linewidth}{|P{4.2cm}|c|L|}
     \hline
     \thead{Tham số} & \thead{Giá trị} & \thead{Ý nghĩa} \\ \hline
     \texttt{track\_high\_thresh} & 0.25 & Ngưỡng box điểm cao cho lần ghép thứ nhất \\ \hline

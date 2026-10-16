@@ -813,6 +813,9 @@ ID khi xe bị cây che. Màu: xanh = đúng, đỏ = sót, cam = sai lớp, tí
 
 ## 7. Danh mục từ viết tắt
 
+Bản đầy đủ (45 mục) ở `report/overleaf/frontmatter/viettat.tex`; 16/10/2026 thêm AIFI, BCE, CCFF, COCO, CVAT, DFL, dHash,
+FP16, GIoU, KITTI, SPPF, STAL, VFL (tên đầy đủ lấy từ bài báo gốc). Bảng dưới là bản tổng hợp ban đầu.
+
 | Tiếng Anh | Viết tắt | Diễn giải |
 |---|---|---|
 | Convolutional Neural Network | CNN | Mạng nơ-ron tích chập |

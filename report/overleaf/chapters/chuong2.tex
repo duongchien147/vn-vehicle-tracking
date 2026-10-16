@@ -105,9 +105,11 @@ Các điểm khác biệt chính so với thế hệ trước:
         nên đầu ra dùng được ngay, không qua NMS.
   \item \textbf{Bỏ Distribution Focal Loss (DFL).} Box được hồi quy trực tiếp, giúp mô hình gọn hơn khi xuất sang các
         định dạng triển khai như OpenVINO.
-  \item \textbf{ProgLoss và STAL.} ProgLoss cân bằng dần các thành phần mất mát trong quá trình huấn luyện; STAL là cách
-        gán nhãn chú ý tới vật nhỏ. Cả hai nhắm vào vật nhỏ, đúng với xe máy ở xa trong bài toán này.
-  \item \textbf{Optimizer MuSGD}, kết hợp SGD với Muon, dùng cho các lần huấn luyện dài.
+  \item \textbf{ProgLoss và STAL.} ProgLoss (Progressive Loss) điều chỉnh dần trọng số giữa mất mát của nhánh một-nhiều
+        và nhánh một-một trong quá trình huấn luyện. STAL (gán nhãn có chú ý tới vật nhỏ) bảo đảm box rất nhỏ vẫn có dự
+        đoán được gán để học, đúng với xe máy ở xa trong bài toán này.
+  \item \textbf{Optimizer MuSGD}, kết hợp SGD với Muon. Thư viện chỉ tự chọn MuSGD khi số vòng lặp huấn luyện vượt
+        10.000; với bộ dữ liệu của đề tài, số vòng lặp thấp hơn nên AdamW được chọn (mục~\ref{sec:cau-hinh-train}).
 \end{itemize}
 
 \begin{figure}[H]

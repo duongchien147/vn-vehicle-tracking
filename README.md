@@ -116,7 +116,9 @@ bash scripts/make_demo_videos.sh
 | `scripts/eval_clip_detection.py` | mAP trên frame của clip có nhãn tracking | `outputs/eval_clip_detection/` |
 | `scripts/eval_uvh26.py`, `scripts/eval_ua_detrac.py` | mAP trên bộ dữ liệu ngoài (UVH-26; UA-DETRAC đêm/ngày) | `outputs/eval_uvh26/`, `outputs/eval_ua_detrac/` |
 | `scripts/eval_tracking.py` | HOTA, MOTA, IDF1, số lần đổi ID (TrackEval) | `outputs/eval_tracking/` |
-| `scripts/eval_counting.py` | Sai số đếm theo lớp và hướng | `outputs/eval_counting/` |
+| `scripts/eval_counting.py` | Sai số đếm theo lớp và hướng (số thật từ nhãn quỹ đạo) | `outputs/eval_counting/` |
+| `scripts/count_by_hand.py`, `scripts/eval_manual_counts.py` | Sai số đếm so với người đếm tay (clip đêm) | `data/count_gt/`, `outputs/eval_manual_counts/` |
+| `scripts/analyze_size_recall.py` | Recall theo chiều cao xe | `outputs/size_recall/` |
 | `scripts/benchmark_speed.py` | Tốc độ CPU/GPU, số tham số, GFLOPs | `outputs/benchmark_speed/` |
 | `scripts/render_error_examples.py` | Ảnh minh hoạ các loại lỗi | `outputs/error_analysis/` |
 

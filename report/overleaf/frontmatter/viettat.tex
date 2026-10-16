@@ -6,20 +6,28 @@
 \hline
 \thead{Tiếng Anh} & \thead{Viết tắt} & \thead{Diễn giải} \\ \hline
 \endhead
+Attention-based Intra-scale Feature Interaction & AIFI & Trộn đặc trưng trong cùng một mức bằng attention (RT-DETR) \\ \hline
 Average Precision / mean Average Precision & AP / mAP & Độ chính xác trung bình / trung bình trên các lớp \\ \hline
 Automatic Mixed Precision & AMP & Huấn luyện với độ chính xác số hỗn hợp \\ \hline
 Association Accuracy & AssA & Độ chính xác liên kết (thành phần của HOTA) \\ \hline
+Binary Cross-Entropy & BCE & Entropy chéo nhị phân \\ \hline
+CNN-based Cross-scale Feature Fusion & CCFF & Trộn đặc trưng giữa các mức bằng tích chập (RT-DETR) \\ \hline
 Confidence Interval & CI & Khoảng tin cậy \\ \hline
 Convolutional Neural Network & CNN & Mạng nơ-ron tích chập \\ \hline
+Common Objects in Context & COCO & Bộ dữ liệu phát hiện đối tượng tổng quát \\ \hline
 Central Processing Unit & CPU & Bộ xử lý trung tâm \\ \hline
+Computer Vision Annotation Tool & CVAT & Công cụ gán nhãn ảnh và video \\ \hline
 Detection Accuracy & DetA & Độ chính xác phát hiện (thành phần của HOTA) \\ \hline
 DEtection TRansformer & DETR & Mô hình phát hiện dựa trên Transformer \\ \hline
+Distribution Focal Loss & DFL & Hàm mất mát hồi quy box dạng phân bố \\ \hline
+Difference Hash & dHash & Mã băm ảnh theo chênh lệch độ sáng, dùng tìm ảnh gần trùng \\ \hline
 Exponential Moving Average & EMA & Trung bình trượt hàm mũ của trọng số \\ \hline
 False Negative / False Positive & FN / FP & Bỏ sót / phát hiện thừa \\ \hline
 Floating-point Operations & FLOPs & Số phép tính dấu phẩy động \\ \hline
-32-bit Floating Point / 8-bit Integer & FP32 / INT8 & Số thực 32 bit / số nguyên 8 bit (độ chính xác số khi suy luận)
+16-bit / 32-bit Floating Point, 8-bit Integer & FP16 / FP32 / INT8 & Số thực 16 bit / 32 bit, số nguyên 8 bit (độ chính xác số khi suy luận)
   \\ \hline
 Frames Per Second & FPS & Số frame xử lý mỗi giây \\ \hline
+Generalized Intersection over Union & GIoU & IoU tổng quát, khác 0 cả khi hai box không giao nhau \\ \hline
 Global Motion Compensation & GMC & Bù chuyển động camera \\ \hline
 Graphics Processing Unit & GPU & Bộ xử lý đồ hoạ \\ \hline
 Higher Order Tracking Accuracy & HOTA & Độ chính xác theo dõi bậc cao \\ \hline
@@ -28,6 +36,7 @@ ID Precision / ID Recall & IDP / IDR & Độ chính xác / độ bao phủ theo 
 ID Switch & IDSW & Số lần đổi ID \\ \hline
 Intersection over Union & IoU & Tỉ lệ diện tích giao trên hợp của hai box \\ \hline
 Interquartile Range & IQR & Khoảng tứ phân vị \\ \hline
+Karlsruhe Institute of Technology and Toyota Technological Institute & KITTI & Bộ dữ liệu lái xe tự hành \\ \hline
 Multiple Object Tracking & MOT & Theo dõi đa đối tượng \\ \hline
 Multiple Object Tracking Accuracy & MOTA & Độ chính xác theo dõi đa đối tượng \\ \hline
 Non-Maximum Suppression & NMS & Loại bỏ box trùng lặp \\ \hline
@@ -36,7 +45,10 @@ Re-Identification & ReID & Nhận dạng lại đối tượng \\ \hline
 Real-Time DEtection TRansformer & RT-DETR & DETR thời gian thực \\ \hline
 Slicing Aided Hyper Inference & SAHI & Suy luận theo lát cắt ảnh \\ \hline
 Simple Online and Realtime Tracking & SORT & Thuật toán theo dõi trực tuyến đơn giản \\ \hline
+Spatial Pyramid Pooling -- Fast & SPPF & Gộp đặc trưng ở nhiều kích thước vùng (bản nhanh) \\ \hline
+Small-Target-Aware Label Assignment & STAL & Gán nhãn có chú ý tới vật nhỏ (YOLO26) \\ \hline
 Test-Time Augmentation & TTA & Tăng cường dữ liệu khi suy luận \\ \hline
+Varifocal Loss & VFL & Hàm mất mát phân lớp dùng IoU làm nhãn mềm \\ \hline
 Weighted Boxes Fusion & WBF & Ghép box có trọng số \\ \hline
 You Only Look Once & YOLO & Họ mô hình phát hiện một giai đoạn \\ \hline
 \end{longtable}

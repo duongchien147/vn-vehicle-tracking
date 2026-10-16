@@ -270,13 +270,15 @@ thúc, nên được giữ theo lần đếm đầu. Kết quả là 176 lượt
 \section{Huấn luyện mô hình phát hiện}
 
 \subsection{Cấu hình huấn luyện}
+\label{sec:cau-hinh-train}
 
 Mọi mô hình được huấn luyện trên GPU Tesla T4 của Kaggle, khởi tạo từ trọng số đã huấn luyện trên COCO. Cấu hình chung
 cho YOLO26:
 \begin{itemize}
   \item tối đa 100 epoch, dừng sớm nếu mAP50-95 trên val không tăng sau 20 epoch; seed 42 (để đo dao động giữa các lần
-        huấn luyện, v5 và YOLO26s được huấn luyện thêm với seed 1 và 2, v6 với seed 1);
-  \item kích thước ảnh 960 (v1 dùng 640, v4 dùng 1280); batch 16, cộng dồn gradient tới batch danh nghĩa 64;
+        huấn luyện, v5 và YOLO26s học dữ liệu v5 được huấn luyện thêm với seed 1 và 2, v6 và YOLO26s-v6 với seed 1);
+  \item kích thước ảnh 960 (v1 dùng 640, v4 dùng 1280); batch 16, riêng v4 và các bản YOLO26s dùng batch 8 vì bộ nhớ của
+        T4; cả hai đều cộng dồn gradient tới batch danh nghĩa 64;
   \item optimizer chọn tự động: số vòng lặp dự kiến với bộ dữ liệu v5 là $\lceil 4714 / 64 \rceil \times 100 = 7.400$,
         với v6 là $\lceil 5002 / 64 \rceil \times 100 = 7.900$, đều dưới 10.000, nên Ultralytics chọn AdamW với tốc độ
         học 0.00125;

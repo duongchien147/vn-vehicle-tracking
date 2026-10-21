@@ -11,7 +11,9 @@ demo là laptop không có GPU rời; việc huấn luyện chạy trên GPU T4 
 ## Kết quả chính
 
 Mọi tập test dưới đây đều **không** được dùng khi train hoặc khi chọn tham số. Các lựa chọn (mô hình, tracker,
-kích thước ảnh) được chốt trên tập dev theo tiêu chí đặt trước.
+kích thước ảnh) được chốt trên tập dev theo tiêu chí đặt trước. Ngoại lệ duy nhất: một lần kết quả test clip PVD đã làm
+loại một cấu hình tracker chọn trên dev; sau đó đề tài gán nhãn thêm một clip dev và chọn lại trên hai tập dev (ghi rõ
+trong báo cáo).
 
 **Phát hiện** (mAP50 trung bình xe máy + ô tô):
 
@@ -41,16 +43,16 @@ và v6, 8.5% với v5, 4.5% với YOLO26s học dữ liệu v5; lỗi gần như
 
 **Tốc độ** (video 1080p, cả pipeline phát hiện + theo dõi):
 
-| Phần cứng | YOLO26n (v5, v6) | YOLO26s (v5, YOLO26s-v6) |
+| Phần cứng | Bản nhẹ v6 (YOLO26n) | YOLO26s-v6 (mô hình chính) |
 |---|---|---|
-| GPU Tesla T4 (Kaggle), PyTorch | ~42 frame/s | ~43 frame/s |
-| Laptop i5-8250U, OpenVINO đầu vào 544×960 trên GPU Intel UHD 620 tích hợp | ~19.8 frame/s | ~9.4 frame/s |
-| Laptop i5-8250U, chỉ CPU, OpenVINO INT8 544×960 | ~18.8 frame/s | ~8.2 frame/s |
-| Laptop i5-8250U, chỉ CPU, PyTorch | ~7.5 frame/s | ~3.3 frame/s |
+| GPU Tesla T4 (Kaggle), PyTorch FP32 | ~42 frame/s | ~43 frame/s |
+| Laptop i5-8250U, OpenVINO FP32 544×960 trên GPU Intel UHD 620 tích hợp | 19.5 frame/s | 9.8 frame/s |
+| Laptop i5-8250U, chỉ CPU, OpenVINO INT8 544×960 | 18.2 frame/s | — |
+| Laptop i5-8250U, chỉ CPU, PyTorch | 6.6 frame/s | 3.2 frame/s |
 
-Đo với các bản học dữ liệu v5. Đo lại trên laptop với v6 và YOLO26s-v6 (`outputs/benchmark_speed/e2_v6_cpu|e2_v6_igpu/`)
-cho kết quả tương đương: bản nhẹ OpenVINO trên GPU tích hợp 19.5 frame/s, INT8 trên CPU 18.2, YOLO26s-v6 trên GPU tích
-hợp 9.8. Bộ lọc box trùng chỉ tốn thêm vài ms mỗi frame.
+Hàng GPU T4 đo với các bản học dữ liệu v5 (cùng kiến trúc, chưa đo lại với v6). Các hàng laptop đo với v6 và
+YOLO26s-v6 (`outputs/benchmark_speed/e2_v6_cpu|e2_v6_igpu/`), chưa tính bộ lọc box trùng; bộ lọc chỉ tốn thêm vài ms
+mỗi frame (bản nhẹ trên GPU tích hợp 19.5 → 17.4 frame/s).
 
 Tính cả vẽ kết quả và ghi video 1080p, web demo trên laptop chạy khoảng 7 frame/s với bản nhẹ; video demo của mô hình
 chính được xử lý sẵn (`scripts/make_demo_videos.sh`) để trình chiếu mượt.
@@ -136,9 +138,10 @@ Mỗi lần chạy ghi kết quả vào thư mục riêng, kèm cấu hình đã
 | `app/` | Web demo Streamlit |
 | `configs/` | Cấu hình tracker, dữ liệu, tập đánh giá, ảnh minh hoạ lỗi |
 | `notebooks/` | Huấn luyện trên Kaggle (`kaggle_train` cho YOLO26, `kaggle_train_rtdetr` cho RT-DETRv2), đo tốc độ GPU |
-| `docs/` | Giao thức so sánh kiến trúc, hướng dẫn gán nhãn tracking |
+| `docs/` | Giao thức so sánh kiến trúc, hướng dẫn gán nhãn tracking, hướng dẫn đếm tay |
 | `tests/` | Kiểm thử logic thuần (đếm, bỏ phiếu lớp, chuyển định dạng, chấm điểm) |
-| `data/`, `weights/`, `outputs/` | Dữ liệu, trọng số, kết quả (không đưa lên git) |
+| `report/` | Báo cáo LaTeX (`overleaf/`, build bằng `build_pdf.ps1`), slide bảo vệ (`slide/bao_ve/`) và kịch bản thuyết trình |
+| `data/`, `weights/`, `outputs/` | Dữ liệu, trọng số, kết quả (không đưa lên git), trừ nhãn gán tay và số đếm tay trong `data/labeling/`, `data/tracking_gt/`, `data/count_gt/` |
 
 ## Dữ liệu
 
@@ -149,17 +152,21 @@ Mỗi lần chạy ghi kết quả vào thư mục riêng, kèm cấu hình đã
 - [VisDrone2019-DET](https://github.com/VisDrone/VisDrone-Dataset) (chỉ dùng cho nghiên cứu).
 - [UVH-26](https://huggingface.co/datasets/iisc-aim/UVH-26) (IISc, CC BY 4.0): 2.000 ảnh camera giao thông.
 - Frame từ video giao thông Hà Nội, gán nhãn tự động bằng ghép nhiều mô hình.
+- Từ bản v6: 288 frame đêm từ hai camera đường phố TP.HCM, nhãn tự động.
 
-**Đánh giá:** frame gán tay từ video giao thông Hà Nội và TP.HCM (ngày và đêm); nhãn tracking gán tay bằng CVAT;
+**Đánh giá:** frame gán tay từ video giao thông Hà Nội và TP.HCM (ngày và đêm, cùng một tập dev đêm); nhãn tracking
+gán tay bằng CVAT (một clip test, một clip dev); 176 lượt xe đếm tay ở hai clip đêm;
 [VnTraffic](https://doi.org/10.5281/zenodo.18195750) (CC BY 4.0) làm tập dev cho tracking; val UVH-26; UA-DETRAC
 (bản gán lại có xe máy) cho so sánh đêm/ngày. Nguồn và giấy phép từng video: `data/videos/SOURCES.md`. Video lấy từ
 YouTube chỉ dùng cho học tập và không được đăng lại.
 
 ## Hạn chế
 
-- Tập test nhỏ (mỗi tập 20–30 frame; một clip tracking 20 s). Có khoảng tin cậy bootstrap, nhưng mỗi mô hình chỉ train
-  một lần.
+- Tập test nhỏ (mỗi tập 20–30 frame; một clip tracking 20 s). Có khoảng tin cậy bootstrap (cả lấy mẫu theo khối
+  10 giây), nhưng mỗi mô hình chỉ huấn luyện 2–3 lần; kết quả ban đêm dao động lớn giữa các lần.
+- Chưa có nhãn theo dõi cho cảnh đêm; nhãn train đêm là nhãn tự động, còn thiếu xe nhỏ ở xa.
 - Xe rất nhỏ ở xa (cao < 20 px) và xe bị che ban đêm vẫn hay bị sót. Ban đêm, mô hình đôi khi chỉ khoanh phần đèn hậu
   của xe máy.
 - Lớp "van" không có trong 4 lớp: xe cỡ Ford Transit được quy ước là buýt, và mô hình đôi khi gọi là ô tô.
-- Trên CPU, demo chưa đạt thời gian thực (~10.9 frame/s với video 1080p); cần GPU để đạt ~42 frame/s.
+- Laptop không GPU rời chỉ chạy kịp với bản nhẹ (19.5 frame/s cho phát hiện + theo dõi, khoảng 7 frame/s khi tính cả
+  vẽ và ghi video 1080p); mô hình chính YOLO26s-v6 cần GPU (~43 frame/s trên T4).

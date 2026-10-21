@@ -1,0 +1,15 @@
+{
+  "source": "E:/cv and dl/data/videos/ham_chui_dem_1.mp4",
+  "line": [
+    0.0,
+    0.6,
+    1.0,
+    0.6
+  ],
+  "fps": 30.0,
+  "frames": 1800,
+  "anchor": "bottom_center",
+  "annotation_method": "AI visual review of sampled original frames with targeted boundary checks",
+  "timestamps": "Approximate visual crossing estimates, quantized to video frames; not exact frame labels",
+  "human_verified": false
+}

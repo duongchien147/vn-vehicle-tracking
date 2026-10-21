@@ -1,0 +1,15 @@
+{
+  "source": "data\\videos\\ham_chui_dem_3.mp4",
+  "line": [
+    0.0,
+    0.6,
+    1.0,
+    0.6
+  ],
+  "fps": 30.0,
+  "frames": 1800,
+  "anchor": "bottom_center",
+  "annotation_method": "người đếm tay toàn bộ clip (count_by_hand.py), đối chiếu với bộ đếm độc lập của AI",
+  "human_verified": true,
+  "pickup_rule": "bán tải 5 chỗ = car"
+}

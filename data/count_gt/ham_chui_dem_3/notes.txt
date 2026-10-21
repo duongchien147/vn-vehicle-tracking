@@ -1,0 +1,7 @@
+Người làm đồ án đếm tay toàn bộ clip bằng scripts/count_by_hand.py (11-12/10/2026), độc lập với bộ đếm của AI
+(data/count_gt/ai_review_2026-10-11/, chỉ mở sau khi đếm xong).
+Đối chiếu người - AI: clip 2 khớp 79/79 lượt; clip 3 khớp 95/97 (2 xe máy cuối clip, 59.80 s và 59.97 s, AI không chốt;
+trợ lý AI phóng to frame 1782-1799: cả hai qua vạch trước khi clip hết -> giữ theo người đếm) + 2 lượt khác lớp (xe bán tải
+2.1 s và 24.5 s: người = car, AI = truck).
+Quy ước lớp xe bán tải (người làm đồ án chốt 12/10/2026): bán tải 5 chỗ (Ford Ranger...) = car. Lệch COCO (pickup ->
+truck); lý do: mô hình của đề tài đều gọi loại xe này là car (dữ liệu train ngầm xếp vào car), ở VN chủ yếu dùng chở người.

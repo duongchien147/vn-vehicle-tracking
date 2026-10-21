@@ -1,0 +1,32 @@
+{
+  "1": {
+    "motorbike": 59,
+    "car": 9,
+    "bus": 0,
+    "truck": 1,
+    "total": 69,
+    "in": 69,
+    "out": 0,
+    "pending": 0
+  },
+  "2": {
+    "motorbike": 72,
+    "car": 6,
+    "bus": 0,
+    "truck": 1,
+    "total": 79,
+    "in": 79,
+    "out": 0,
+    "pending": 0
+  },
+  "3": {
+    "motorbike": 75,
+    "car": 17,
+    "bus": 1,
+    "truck": 2,
+    "total": 95,
+    "in": 95,
+    "out": 0,
+    "pending": 1
+  }
+}

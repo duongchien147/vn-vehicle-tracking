@@ -1,0 +1,16 @@
+[
+  {
+    "input_estimate_s": 59.95,
+    "frame": 1798,
+    "road": "L",
+    "class_name": "motorbike",
+    "description": "black_couple_rail",
+    "origin": "clip3_visual_review",
+    "event_id": "C3_096",
+    "direction": "in",
+    "time_s": 59.933333,
+    "timing_note": "approximate; inspect nearby frames",
+    "review_flag": "crossing_before_clip_end_uncertain; excluded from manual_counts.csv",
+    "evidence": "../evidence/review_c3_16.jpg"
+  }
+]

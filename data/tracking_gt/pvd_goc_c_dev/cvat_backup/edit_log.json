@@ -1,0 +1,33 @@
+{
+  "mo_ta": "Các lần trợ lý AI sửa nhãn quỹ đạo clip dev pvd_goc_c_dev trực tiếp trên CVAT (job 4590297) qua API, theo yêu cầu người gán. Không dùng mô hình của dự án. YOLO26x COCO chỉ dùng để dò chỗ sót và đề xuất box cho xe đường bên trái; mọi box đều được xem bằng mắt. Bản sao lưu trước/sau mỗi lần: before_*/after_*.json; script và dữ liệu trung gian: scripts/.",
+  "lan_1_2026-10-14_22:23": {
+    "script": "scripts/cvat_fix.py",
+    "noi_dung": [
+      "Lấp 26 chỗ hở dưới vạch (outside 1–17 frame do tracker mất dấu) sau khi xem ảnh từng chỗ: xe vẫn thấy rõ.",
+      "275: kết thúc ở 149 (nhảy từ xe chở hàng đỏ sang xe áo trắng đã có track 263).",
+      "Box frame 149 của 280 là xe mũ xanh ngọc -> chuyển sang 281; 280 bắt đầu từ 191 (xe khác).",
+      "28373613: bỏ keyframe 148 bị kéo lệch 60 px và outside 149."
+    ]
+  },
+  "lan_2_2026-10-14_23:18": {
+    "script": "scripts/cvat_fix2.py",
+    "noi_dung": [
+      "277: trả lại outside ở 333 (xe khuất sau biển CẤM; lần lấp 1 làm box đè lên xe của 287), bỏ đoạn 350–351 trùng 287.",
+      "301 + 311 cùng một ô tô -> gộp (301 tới 419, phần 311 từ 420).",
+      "248 + 306 cùng xe tay ga đỗ (359–377 chỉ bị người đi bộ che một phần) -> gộp.",
+      "Xoá 304 (trùng xe đỗ 460).",
+      "Khôi phục 2 track bị xoá nhầm: 28373612 (xe mũ đen 0–138, nối vào 613) và 28362264 (xe áo đỏ sẫm 46–136, nối vào 278). Xe mũ đen chạy nối đuôi xe mũ vàng 242 ở frame 30–58 (hai xe riêng: tách nhau ở frame 0–15 và từ ~75).",
+      "268 + 274 cùng xe mũ trắng -> gộp."
+    ]
+  },
+  "lan_3_2026-10-14_23:51": {
+    "script": "scripts/cvat_fix3.py",
+    "noi_dung": [
+      "267 (mũ xanh lá) và 274 (mũ trắng) frame 86–128: box cũ của 267 ôm cả hai xe chạy song song; box mới đọc bằng mắt trên ảnh phóng to có lưới toạ độ, keyframe mỗi 6 frame (scripts/pair_manual.json). YOLO26x không tách được hai xe ở đoạn này.",
+      "8 xe ở đường bên trái (chiều ngược lại, dưới hàng cây) chưa có nhãn: 6 xe máy (263–266, 317–323, 329–337, 369–373, 509–513, 556–564) và 2 ô tô (531–545, 585–599). Box từ YOLO26x COCO từng frame trên vùng cắt (scripts/det_crops.json), lớp do trợ lý AI quyết định khi xem ảnh (YOLO26x gọi nhầm vài xe máy dưới lá là ô tô), bỏ box phình to > 1,6 lần diện tích trung vị; source = semi-auto.",
+      "308: thêm frame 392–395.",
+      "Giữ 461: phóng to thấy biển số trắng và đèn hậu đỏ ở đáy box, đứng yên 20 s -> xe máy đỗ nhìn từ sau (YOLO26x không bắt được)."
+    ]
+  },
+  "chua_lam": "Một số xe vào cảnh từ mép dưới có track bắt đầu trễ vài frame (vd. frame 15, 135, 168, 183, 234, 375, 474, 570) — ảnh hưởng rất nhỏ."
+}

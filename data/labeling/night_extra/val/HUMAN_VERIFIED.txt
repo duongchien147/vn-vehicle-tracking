@@ -1,0 +1,2 @@
+Nhãn trong labels/ đã được người kiểm (13/10/2026; nhãn sơ bộ YOLO26x COCO trong labels_prelabel_yolo26x, rà soát bằng YOLO26x@1280+1920). Đây là tập DEV đêm của v6 (chọn keep_conf nhãn tự động, so v6 với v5). Không script nào được ghi đè thư mục labels/ của tập này.
+Kết quả: 524 box (359 xe máy, 162 ô tô, 3 buýt) + 20 vùng ignore; người gán thêm 248, xoá 21 box so với nhãn sơ bộ.

@@ -1,0 +1,13 @@
+{
+  "source": "data/raw/youtube_VswAfC4fER0.mp4",
+  "start": 6480.0,
+  "duration": 20.0,
+  "tracker": "configs/botsort_tuned_nogmc.yaml",
+  "weights": "weights/yolo26s_vn_v5_best.pt",
+  "out": "data/tracking_gt/pvd_goc_c_dev",
+  "num_frames": 600,
+  "fps": 30.0,
+  "imgsz": 960,
+  "min_prelabel_track_frames": 15,
+  "keyframe_every": 10
+}

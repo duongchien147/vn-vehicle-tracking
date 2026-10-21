@@ -41,6 +41,16 @@ data/labeling/vn_extra/night/*
 !data/labeling/vn_extra/*/labels/
 !data/labeling/vn_extra/*/labels_prelabel_yolo26x/
 !data/labeling/vn_extra/*/HUMAN_VERIFIED.txt
+# Dev đêm (32 frame nút giao Gia Định, người kiểm); frame train đêm là nhãn tự động, tạo lại được -> không đưa
+!data/labeling/night_extra/
+data/labeling/night_extra/*
+!data/labeling/night_extra/classes.txt
+!data/labeling/night_extra/label_frames_config.yaml
+!data/labeling/night_extra/val/
+data/labeling/night_extra/val/*
+!data/labeling/night_extra/val/labels/
+!data/labeling/night_extra/val/labels_prelabel_yolo26x/
+!data/labeling/night_extra/val/HUMAN_VERIFIED.txt
 !data/tracking_gt/
 data/tracking_gt/*
 !data/tracking_gt/pvd_goc_a/
@@ -49,6 +59,29 @@ data/tracking_gt/pvd_goc_a/*
 !data/tracking_gt/pvd_goc_a/cvat_backup/
 !data/tracking_gt/pvd_goc_a/labels.txt
 !data/tracking_gt/pvd_goc_a/run_config.json
+# Clip dev góc C: nhãn quỹ đạo + nhật ký các lần sửa qua API CVAT (bản đầu, bản cuối, script); bản sao lưu trung gian chỉ giữ trên máy
+!data/tracking_gt/pvd_goc_c_dev/
+data/tracking_gt/pvd_goc_c_dev/*
+!data/tracking_gt/pvd_goc_c_dev/gt/
+!data/tracking_gt/pvd_goc_c_dev/labels.txt
+!data/tracking_gt/pvd_goc_c_dev/run_config.json
+!data/tracking_gt/pvd_goc_c_dev/cvat_backup/
+data/tracking_gt/pvd_goc_c_dev/cvat_backup/*
+!data/tracking_gt/pvd_goc_c_dev/cvat_backup/edit_log.json
+!data/tracking_gt/pvd_goc_c_dev/cvat_backup/before_gapfill_20261014_221828.json
+!data/tracking_gt/pvd_goc_c_dev/cvat_backup/after_fix3_20261014_235136.json
+!data/tracking_gt/pvd_goc_c_dev/cvat_backup/scripts/
+# Số xe người đếm tay ban đêm (176 lượt) và bản kiểm chéo độc lập (chỉ file chữ; ảnh frame YouTube không đưa)
+!data/count_gt/
+data/count_gt/*
+!data/count_gt/ham_chui_dem_2/
+!data/count_gt/ham_chui_dem_3/
+!data/count_gt/ai_review_2026-10-11/
+data/count_gt/ai_review_2026-10-11/*
+!data/count_gt/ai_review_2026-10-11/outputs/
+data/count_gt/ai_review_2026-10-11/outputs/*
+!data/count_gt/ai_review_2026-10-11/outputs/dem_xe_truc_quan/
+data/count_gt/ai_review_2026-10-11/outputs/dem_xe_truc_quan/evidence/
 weights/*
 !weights/.gitkeep
 outputs/*

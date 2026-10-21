@@ -82,6 +82,8 @@ data/count_gt/ai_review_2026-10-11/*
 data/count_gt/ai_review_2026-10-11/outputs/*
 !data/count_gt/ai_review_2026-10-11/outputs/dem_xe_truc_quan/
 data/count_gt/ai_review_2026-10-11/outputs/dem_xe_truc_quan/evidence/
+# nhat_ky.md chỉ là bảng chữ chép lại audit.json
+data/count_gt/ai_review_2026-10-11/outputs/dem_xe_truc_quan/*/nhat_ky.md
 weights/*
 !weights/.gitkeep
 outputs/*

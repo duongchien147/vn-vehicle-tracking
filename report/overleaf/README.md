@@ -43,12 +43,12 @@ references.bib           tài liệu tham khảo, kiểu IEEE (IEEEtran)
 ## Định dạng
 
 - Font chữ: TeX Gyre Termes (bản Times có sẵn trên Overleaf, đủ dấu tiếng Việt); font toán: newtxmath (kiểu Times).
-- Header ghi tên đề tài; số trang ở giữa chân trang, đánh liên tục từ bìa như mẫu Word.
+- Header ghi tên đề tài; số trang ở giữa chân trang: phần đầu đánh số La Mã (i, ii, ...), từ Mở đầu đánh số 1, 2, ...
 - Hình: chú thích dưới hình; bảng: chú thích trên bảng; công thức đánh số theo chương, ví dụ (2.1).
 
 ## Việc cần tự điền hoặc kiểm tra trước khi nộp
 
-- `frontmatter/loicamdoan.tex`: ngày ký lời cam đoan (đang để trống: "ngày ... tháng ... năm 2026").
+- `frontmatter/tuyenboai.tex`: ô "Mức độ sử dụng AI" để trống cho người làm đồ án tự điền.
 - `references.bib`: số trang của ByteTrack và OC-SORT, tên đầy đủ tác giả bộ nhãn UA-DETRAC trên Kaggle đang để trống
   vì chưa xác minh được; nên đối chiếu lại toàn bộ danh mục với Google Scholar.
 - Một số hình là frame của video YouTube (clip Phạm Văn Đồng, hầm chui, Hà Nội). Các video này chỉ được dùng cho học

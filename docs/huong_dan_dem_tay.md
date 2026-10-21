@@ -51,7 +51,7 @@ Tắt **Caps Lock** (nếu không, chữ thường thành chữ hoa và chiều 
 
 ## 3. Sau khi đếm xong
 
-Nhắn cho trợ lý AI. trợ lý AI sẽ chạy pipeline v5 trên CPU với đúng vạch đó, rồi chấm cả v5 lẫn YOLO26s (video demo GPU):
+Chạy pipeline với đúng vạch đó (ví dụ v5 trên CPU, lưu vào `outputs\manual_count_runs\v5`), rồi chấm các lần chạy so với số đếm tay:
 
 ```powershell
 .venv\Scripts\python.exe scripts\eval_manual_counts.py --runs outputs\kaggle\vtrack-demo-gpu\demo outputs\manual_count_runs\v5

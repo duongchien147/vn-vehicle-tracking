@@ -29,7 +29,7 @@ sequences:
   # TẬP DEV tracking thứ hai (14/10/2026): thêm vì VnTraffic gần như không có nhãn xe nhỏ ở xa, nên cấu hình làm bỏ sót
   # các xe này vẫn trông tốt trên dev (đã xảy ra với v6). Phạm Văn Đồng góc C, 1:48:00–1:48:20 của video gốc (khác camera
   # với clip test góc A), 600 frame, 30 fps, 96 track. Nhãn: người gán trên CVAT (quy tắc như clip test, nhãn sơ bộ từ
-  # YOLO26s v5), trợ lý AI soát/sửa qua API — YOLO26x COCO chỉ dò lỗi và đề xuất box cho 8 xe ở đường bên trái
+  # YOLO26s v5), soát/sửa thêm qua API CVAT — YOLO26x COCO chỉ dò lỗi và đề xuất box cho 8 xe ở đường bên trái
   # (data/tracking_gt/pvd_goc_c_dev/cvat_backup/edit_log.json). Vùng ignore: dải y < 637 (xe máy cao < 25 px, KITTI).
   pvd_goc_c_dev:
     video: data/tracking_gt/pvd_goc_c_dev/clip.mp4

@@ -39,7 +39,7 @@ class CocoMetrics:
     map50_95: float  # chỉ số chính của COCO: trung bình AP ở IoU 0.50:0.05:0.95
     map50: float
     # AP ở IoU 0.75: đo độ khít của box. Lưu ý: trên tập có nhãn sửa từ nhãn sơ bộ của một mô hình, chỉ số IoU chặt
-    # thiên vị mô hình (hoặc họ mô hình) đã vẽ nhãn sơ bộ — xem ghi chú dự án
+    # thiên vị mô hình (hoặc họ mô hình) đã vẽ nhãn sơ bộ (vd. test Hà Nội sửa từ nhãn sơ bộ của v2)
     map75: float
     map_small: float  # AP50-95 cho vật nhỏ (diện tích < 32x32 px)
     recall: float  # AR ở MAX_DETECTIONS phát hiện/ảnh

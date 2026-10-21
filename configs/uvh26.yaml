@@ -1,6 +1,6 @@
 # Tập con UVH-26 (IISc, CC BY 4.0, https://huggingface.co/datasets/iisc-aim/UVH-26) để train v5:
 # ảnh camera giao thông cố định (Bengaluru, ~2.800 camera) — đúng GÓC NHÌN của đồ án, thứ dữ liệu train đang thiếu
-# (ghi chú dự án: v3 bỏ sót buýt/tải ở góc camera giao thông). Dùng bởi scripts/build_uvh26_subset.py.
+# (v3 bỏ sót buýt/tải ở góc camera giao thông). Dùng bởi scripts/build_uvh26_subset.py.
 annotations: data/raw/uvh26/UVH-26-MV-Train.json  # bỏ phiếu đa số: giữ 21.349 ảnh (bản STAPLE bỏ mất ~4.000)
 file_list: data/raw/uvh26/train_files.txt          # đường dẫn ảnh trong repo HF (liệt kê bằng huggingface_hub)
 raw_dir: D:/uvh26_raw                              # ảnh PNG gốc 1080p (~3.5 MB/ảnh) — ổ D vì ổ E không đủ chỗ

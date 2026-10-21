@@ -12,6 +12,8 @@
 \usetheme{MLWNet}
 \usepackage{tabularx}
 \newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+% Cột chữ căn trái có độ rộng cố định: cột p{} mặc định dàn đều, ô hẹp bị khoảng trắng lớn giữa các từ
+\newcolumntype{P}[1]{>{\raggedright\arraybackslash}p{#1}}
 
 % ---------------------------------------------------------------------
 % Thông tin trang bìa
@@ -195,8 +197,9 @@
 
 \subsection{Theo dõi đa đối tượng}
 \begin{frame}{\stitle}
+  % Hình ByteTrack gần vuông đặt cạnh chữ; sơ đồ BoT-SORT rất dẹt (4.6 : 1) nên trải hết bề ngang ở dưới cho đọc được
   \begin{columns}[T]
-    \begin{column}{0.46\textwidth}
+    \begin{column}{0.56\textwidth}
       \begin{itemize}
         \item \textbf{SORT}\ct{bewley2016sort}: Kalman dự đoán vị trí, Hungarian ghép box theo IoU.
         \item \textbf{ByteTrack}\ct{zhang2022bytetrack}: ghép thêm lần hai với box điểm thấp, xe bị che không mất
@@ -206,15 +209,16 @@
         \item Ngưỡng tin cậy detector đặt \alert{0.1} để có box điểm thấp cho lần ghép hai.
       \end{itemize}
     \end{column}
-    \begin{column}{0.52\textwidth}
+    \begin{column}{0.42\textwidth}
       \centering
-      \figorbox{paper_bytetrack.jpg}{width=\linewidth,height=0.29\textheight,keepaspectratio}{2.4cm}
-      \src{Nguồn: \cite{zhang2022bytetrack}.}
-      \vspace{0.15em}
-      \figorbox{paper_botsort.png}{width=\linewidth,height=0.29\textheight,keepaspectratio}{2.4cm}
-      \src{Nguồn: \cite{aharon2022botsort}.}
+      \figorbox{paper_bytetrack.jpg}{width=\linewidth,height=0.40\textheight,keepaspectratio}{3cm}
+      \src{ByteTrack. Nguồn: \cite{zhang2022bytetrack}.}
     \end{column}
   \end{columns}
+  \vspace{0.1em}
+  \centering
+  \figorbox{paper_botsort.png}{width=\textwidth,height=0.22\textheight,keepaspectratio}{2.4cm}
+  \src{Luồng xử lý của BoT-SORT. Nguồn: \cite{aharon2022botsort}.}
 \end{frame}
 
 \subsection{Chỉ số đánh giá}
@@ -250,7 +254,7 @@
 \begin{frame}{\stitle}
   \centering
   \small
-  \begin{tabularx}{\linewidth}{@{}p{3.6cm}Yr@{}}
+  \begin{tabularx}{\linewidth}{@{}P{4.1cm}Yr@{}}
     \toprule
     \textbf{Nguồn} & \textbf{Đặc điểm} & \textbf{Ảnh train} \\
     \midrule
@@ -454,10 +458,11 @@
     \begin{column}{0.62\textwidth}
       \centering
       \footnotesize
-      \setlength{\tabcolsep}{4pt}
-      \begin{tabular}{@{}lccccc@{}}
+      \setlength{\tabcolsep}{3.4pt}
+      % Tô nền cột mô hình chính như bảng tương ứng trong báo cáo
+      \begin{tabular}{@{}lcccc>{\columncolor{HiRow}}c@{}}
         \toprule
-        \textbf{Tập} & \hd{COCO}{@1280} & \textbf{v3} & \textbf{v5} & \textbf{v6} & \hd{YOLO26s}{-v6} \\
+        \textbf{Tập} & \hd{COCO}{@1280} & \textbf{v3} & \textbf{v5} & \textbf{v6} & \textbf{YOLO26s-v6} \\
         \midrule
         Clip PVD & 0.664 & 0.891 & 0.892 & \textbf{0.907} & 0.901 \\
         Val UVH-26 & 0.594 & 0.335 & 0.850 & 0.849 & \textbf{0.871} \\
@@ -510,56 +515,64 @@
 
 \subsection{Tốc độ trên CPU và GPU}
 \begin{frame}{\stitle}
+  % Bảng và nhận xét ở trên, đồ thị hai panel ở dưới trải rộng: đặt trong cột hẹp thì chữ trên trục quá nhỏ
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
+    \begin{column}{0.53\textwidth}
       \centering
       \footnotesize
+      \setlength{\tabcolsep}{4pt}
       \begin{tabular}{@{}lcc@{}}
         \toprule
         \textbf{Mô hình} & \hd{CPU i5-8250U}{phát hiện (ms)} & \hd{GPU Tesla T4}{pipeline (frame/s)} \\
         \midrule
-        YOLO26n & 100.5 & 42.2 \\
-        YOLO26s & 261.9 & 42.6 \\
+        YOLO26n & \textbf{100.5} & 42.2 \\
+        \rowcolor{HiRow}
+        YOLO26s & 261.9 & \textbf{42.6} \\
         YOLO26s @1280 & 455.2 & 30.2 \\
         RT-DETRv2-S & 1526.2 & 16.0\textsuperscript{*} \\
         \bottomrule
       \end{tabular}\par
       \vspace{0.2em}
       \src{* riêng phần phát hiện.}
-      \vspace{0.4em}
+    \end{column}
+    \begin{column}{0.45\textwidth}
+      \small
       \begin{itemize}
-        \item Trên GPU, YOLO26n và YOLO26s \alert{nhanh như nhau} (khoảng 42 frame/s).
+        \item Trên GPU, YOLO26n và YOLO26s \alert{nhanh như nhau} (khoảng 42 frame/s), nên mô hình chính dùng YOLO26s.
         \item RT-DETRv2-S chậm hơn YOLO26s 5.8 lần trên CPU, khoảng 4 lần trên GPU.
       \end{itemize}
     \end{column}
-    \begin{column}{0.42\textwidth}
-      \centering
-      \figorbox{accuracy_vs_speed.pdf}{width=\linewidth,height=0.55\textheight,keepaspectratio}{4cm}
-      \src{Độ chính xác theo thời gian phát hiện trên CPU.}
-    \end{column}
   \end{columns}
+  \vspace{0.1em}
+  \centering
+  \figorbox{accuracy_vs_speed.pdf}{width=0.86\textwidth,height=0.35\textheight,keepaspectratio}{3cm}
+  \src{Độ chính xác theo thời gian phát hiện trên CPU: (a) \texttt{vn\_extra} đêm, (b) val UVH-26.}
 \end{frame}
 
 \subsection{Chạy trên laptop với OpenVINO}
 \begin{frame}{\stitle}
   \centering
   \small
-  \begin{tabular}{@{}llcccc@{}}
+  % Hai mô hình tách thành hai nhóm như bảng trong báo cáo; in đậm giá trị tốt nhất trong từng nhóm
+  \begin{tabular}{@{}lcccc@{}}
     \toprule
-    \textbf{Mô hình} & \textbf{Cấu hình, thiết bị} & \hd{Phát hiện}{(ms)} & \hd{Pipeline}{(frame/s)} & \hd{mAP50}{val} &
-      \hd{IDR}{dev} \\
+    \textbf{Cấu hình, thiết bị} & \hd{Phát hiện}{(ms)} & \hd{Pipeline}{(frame/s)} & \hd{mAP50}{val} & \hd{IDR}{dev} \\
     \midrule
-    v6 & PyTorch FP32, CPU & 130.0 & 6.6 & 0.914 & \textbf{0.841} \\
-    v6 & OpenVINO INT8, CPU & 39.9 & 18.2 & \textbf{0.918} & 0.825 \\
+    \multicolumn{5}{@{}l}{\textit{v6 (bản nhẹ, YOLO26n)}} \\
+    PyTorch FP32, CPU & 130.0 & 6.6 & 0.914 & \textbf{0.841} \\
+    OpenVINO INT8, CPU & 39.9 & 18.2 & \textbf{0.918} & 0.825 \\
     \rowcolor{HiRow}
-    v6 & OpenVINO FP32, GPU tích hợp & \textbf{34.7} & \textbf{19.5} & 0.914 & 0.825 \\
-    YOLO26s-v6 & PyTorch FP32, CPU & 338.0 & 3.2 & 0.911 & 0.866 \\
-    YOLO26s-v6 & OpenVINO FP32, GPU tích hợp & 80.1 & 9.8 & 0.912 & 0.875 \\
+    OpenVINO FP32, GPU tích hợp & \textbf{34.7} & \textbf{19.5} & 0.914 & 0.825 \\
+    \midrule
+    \multicolumn{5}{@{}l}{\textit{YOLO26s-v6 (mô hình chính)}} \\
+    PyTorch FP32, CPU & 338.0 & 3.2 & 0.911 & 0.866 \\
+    OpenVINO FP32, GPU tích hợp & \textbf{80.1} & \textbf{9.8} & \textbf{0.912} & \textbf{0.875} \\
     \bottomrule
   \end{tabular}\par
-  \vspace{0.5em}
+  \vspace{0.2em}
+  \src{In đậm: tốt nhất trong từng mô hình. IDR đo trên VnTraffic, chưa lọc box trùng.}
   \begin{itemize}
-    \item Laptop không GPU rời: bản nhẹ v6 qua OpenVINO trên GPU Intel UHD 620 đạt \alert{19.5 frame/s}, gấp 3 lần PyTorch.
+    \item Bản nhẹ v6 qua OpenVINO trên GPU Intel UHD 620 đạt \alert{19.5 frame/s}, gấp 3 lần PyTorch.
     \item Ba điều quan trọng: chỉ định thiết bị, tránh tranh chấp luồng CPU, xuất đúng khung 544$\times$960 (nhanh hơn
           ảnh vuông 1.6--2.1 lần).
     \item Đánh đổi: mAP50 hoà PyTorch, IDR thấp hơn 0.016.
@@ -651,7 +664,8 @@
   \vspace{0.6em}
   \begin{itemize}
     \item Clip Phạm Văn Đồng 20 giây, 183 xe, nhãn quỹ đạo đầy đủ.
-    \item Mô hình chính: \alert{HOTA 0.755, MOTA 0.874, IDF1 0.916}, đổi ID 22 lần.
+    % ~\, nới khoảng sau IDF1: nét số 1 của font sát chữ số kế tiếp, khoảng thường đọc thành "IDF10.916"
+    \item Mô hình chính: \alert{HOTA 0.755, MOTA 0.874, IDF1~\,0.916}, đổi ID 22 lần.
     \item IDP cao hơn IDR: ít gán nhầm danh tính, phần mất chủ yếu do bỏ sót (1.353 box sót, 340 box thừa).
     \item Với cùng v5, BoT-SORT cũng tốt nhất trên test (ByteTrack HOTA 0.698, OC-SORT 0.692).
   \end{itemize}
@@ -753,22 +767,25 @@
 
 \subsection{Web demo}
 \begin{frame}{\stitle}
+  % Hai ảnh chụp màn hình nằm ngang (2 : 1) đặt cạnh nhau ở trên cho to, mô tả ở dưới
   \begin{columns}[T]
-    \begin{column}{0.56\textwidth}
+    \begin{column}{0.49\textwidth}
       \centering
-      \fbox{\includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{app_gpu_demo.jpg}}\par
-      \vspace{0.3em}
-      \fbox{\includegraphics[width=0.95\linewidth,height=0.32\textheight,keepaspectratio]{app_counts.jpg}}
+      \fbox{\includegraphics[width=0.96\linewidth]{app_gpu_demo.jpg}}
+      \src{Video kết quả của clip Phạm Văn Đồng.}
     \end{column}
-    \begin{column}{0.42\textwidth}
-      \begin{itemize}
-        \item Streamlit: chọn clip hoặc tải video, chọn mô hình, đặt vạch đếm.
-        \item Kết quả: video có box, ID, vết di chuyển; bảng đếm theo lớp và hướng; biểu đồ cộng dồn; tải CSV.
-        \item Chế độ trình chiếu nạp video xử lý sẵn bằng \alert{YOLO26s-v6}; chế độ chạy trên laptop dùng bản nhẹ v6
-              OpenVINO.
-      \end{itemize}
+    \begin{column}{0.49\textwidth}
+      \centering
+      \fbox{\includegraphics[width=0.96\linewidth]{app_counts.jpg}}
+      \src{Bảng đếm theo lớp và hướng, biểu đồ cộng dồn.}
     \end{column}
   \end{columns}
+  \vspace{0.5em}
+  \begin{itemize}
+    \item Streamlit: chọn clip hoặc tải video, chọn mô hình, đặt vạch đếm.
+    \item Kết quả: video có box, ID, vết di chuyển; bảng đếm theo lớp và hướng; biểu đồ cộng dồn; tải CSV.
+    \item Chế độ trình chiếu nạp video xử lý sẵn bằng \alert{YOLO26s-v6}; chế độ chạy trên laptop dùng bản nhẹ v6 OpenVINO.
+  \end{itemize}
 \end{frame}
 
 % =====================================================================
@@ -780,7 +797,7 @@
   \begin{itemize}
     \item \textbf{Phát hiện}: YOLO26s-v6 trên camera mới đạt mAP50 0.830 ban ngày, \alert{0.887 ban đêm} (COCO gốc 0.458
           và 0.437).
-    \item \textbf{Theo dõi}: trên clip test HOTA 0.755, MOTA 0.874, IDF1 0.916; đổi ID 22 lần trên 183 xe.
+    \item \textbf{Theo dõi}: trên clip test HOTA 0.755, MOTA 0.874, IDF1~\,0.916; đổi ID 22 lần trên 183 xe.
     \item \textbf{Đếm xe}: sai số 4.1\% ban ngày (73 lượt), \alert{1.7\%} ban đêm (176 lượt đếm tay).
     \item \textbf{Kiến trúc}: RT-DETRv2-S chính xác hơn YOLO26s ở cùng ảnh 960 nhưng hoà khi YOLO nhìn cùng số điểm ảnh,
           và chậm hơn 4--5.8 lần.
